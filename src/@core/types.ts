@@ -10,7 +10,7 @@ export type SystemMode = 'light' | 'dark'
 export type Direction = 'ltr' | 'rtl'
 
 export type ChildrenType = {
-  children: ReactNode
+  children?: ReactNode
 }
 
 export type ThemeColor = 'primary' | 'secondary' | 'error' | 'warning' | 'info' | 'success'
