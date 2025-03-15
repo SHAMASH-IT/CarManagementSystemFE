@@ -1,60 +1,62 @@
-'use client'
 import { useState, useEffect } from 'react'
 
-import type { Appointment } from '../../types/index'
+import {
+  fetchAppointments,
+  createAppointment,
+  updateAppointment,
+  deleteAppointment
+} from '../services/appointmentService'
 
-export default function useAppointments() {
-  const [appointments, setAppointments] = useState<Appointment[]>([])
-  const [loading, setLoading] = useState<boolean>(true)
+export function useAppointments() {
+  const [appointments, setAppointments] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const fetchAppointments = async () => {
-      try {
-        // Utilisation de données statiques pour tester
-        const staticData: Appointment[] = [
-          {
-            id: '1',
-
-            date: '2025-03-10',
-            clientName: 'John Doe',
-            service: 'Mécanique',
-            status: 'Confirmé',
-            vehicleName: 'Toyota Prius'
-          },
-          {
-            id: '2',
-
-            date: '2025-03-12',
-            clientName: 'Jane Smith',
-            service: 'Pneumatique',
-            status: 'En attente',
-            vehicleName: 'Honda Accord'
-          },
-          {
-            id: '3',
-
-            date: '2025-03-15',
-            clientName: 'Marc Dupont',
-            service: 'Révision',
-            status: 'Annulé',
-            vehicleName: 'Honda Accord'
-          }
-        ]
-
-        // Simuler un chargement
-        setTimeout(() => {
-          setAppointments(staticData)
-          setLoading(false)
-        }, 1000)
-      } catch (err) {
-        setError('Erreur lors du chargement des rendez-vous')
-        setLoading(false)
-      }
-    }
-
+    setLoading(true)
     fetchAppointments()
+      .then(setAppointments)
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false))
   }, [])
 
-  return { appointments, loading, error }
+  const addAppointment = async (data: any) => {
+    try {
+      setLoading(true)
+      const newAppointment = await createAppointment(data)
+
+      setAppointments(prev => [...prev, newAppointment])
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const updateAppointmentById = async (id: number, data: any) => {
+    try {
+      setLoading(true)
+      const updatedAppointment = await updateAppointment(id, data)
+
+      setAppointments(prev => prev.map(apt => (apt.id === id ? updatedAppointment : apt)))
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const deleteAppointmentById = async (id: number) => {
+    try {
+      setLoading(true)
+      await deleteAppointment(id)
+      setAppointments(prev => prev.filter(apt => apt.id !== id))
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return { appointments, addAppointment, updateAppointmentById, deleteAppointmentById, loading, error }
 }

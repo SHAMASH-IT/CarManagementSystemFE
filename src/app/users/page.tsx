@@ -1,42 +1,35 @@
 'use client'
 
-import type React from 'react'
-
 import Sidebar from '../common/Sidebar'
 import Navbar from '../common/Navbar'
-
-// eslint-disable-next-line import/no-named-as-default
-import CalendarView from '../users/components/UserList'
+import CalendarManager from './components/CalendarManager'
+import type { CalendarEvent } from '../types/index'
 
 // Initial events for the calendar
-const initialEvents = [
+const initialEvents: CalendarEvent[] = [
   {
-    service: 'Exemple de rendez-vous',
+    id: '1',
+    title: 'Exemple de rendez-vous',
     start: new Date(),
-    end: new Date(new Date().setHours(new Date().getHours() + 1))
+    end: new Date(new Date().setHours(new Date().getHours() + 1)),
+    vehicle: 'Peugeot 208',
+    service: 'Entretien',
+    additionalInfo: 'Révision générale'
   }
 ]
 
-const Home: React.FC = () => {
+export default function CalendarPage() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'row', height: '100vh' }}>
+    <div className='flex flex-row h-screen'>
       <Sidebar />
-      <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+      <div className='flex flex-col flex-1'>
         <Navbar />
-        <div style={{ display: 'flex', flex: 1 }}>
-          <div
-            style={{
-              flex: 1,
-              overflow: 'hidden',
-              position: 'relative'
-            }}
-          >
-            <CalendarView initialEvents={initialEvents} />
+        <div className='flex flex-1'>
+          <div className='flex-1 overflow-hidden relative'>
+            <CalendarManager initialEvents={initialEvents} />
           </div>
         </div>
       </div>
     </div>
   )
 }
-
-export default Home

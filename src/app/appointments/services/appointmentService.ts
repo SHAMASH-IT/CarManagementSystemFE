@@ -1,29 +1,41 @@
-import type { Appointment } from '../../types/index'
+const API_URL = process.env.NEXT_PUBLIC_API_URL // Base URL de ton back-end
 
-const fakeAppointments: Appointment[] = [
-  {
-    id: '1',
-    clientName: 'John Doe',
-    service: 'Consultation',
-    date: '2023-04-10T10:30:00',
-    status: 'En attente',
-    vehicleName: 'Toyota Prius'
-  },
-  {
-    id: '2',
-    clientName: 'Jane Smith',
-    service: 'Massage',
-    date: '2023-04-11T14:00:00',
-    status: 'Accepté',
-    vehicleName: 'Honda Accord'
-  }
-]
+export const fetchAppointments = async () => {
+  const res = await fetch(`${API_URL}/appointments`)
 
-// Fonction pour récupérer les rendez-vous (simule un appel API)
-export const getAppointments = async (): Promise<Appointment[]> => {
-  return new Promise(resolve => {
-    setTimeout(() => {
-      resolve(fakeAppointments)
-    }, 1000)
+  if (!res.ok) throw new Error('Failed to fetch appointments')
+
+  return res.json()
+}
+
+export const createAppointment = async (data: any) => {
+  const res = await fetch(`${API_URL}/appointments`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
   })
+
+  if (!res.ok) throw new Error('Failed to create appointment')
+
+  return res.json()
+}
+
+export const updateAppointment = async (id: number, data: any) => {
+  const res = await fetch(`${API_URL}/appointments/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  })
+
+  if (!res.ok) throw new Error('Failed to update appointment')
+
+  return res.json()
+}
+
+export const deleteAppointment = async (id: number) => {
+  const res = await fetch(`${API_URL}/appointments/${id}`, {
+    method: 'DELETE'
+  })
+
+  if (!res.ok) throw new Error('Failed to delete appointment')
 }
