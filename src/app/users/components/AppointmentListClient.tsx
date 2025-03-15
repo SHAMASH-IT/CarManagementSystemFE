@@ -74,25 +74,6 @@ const AppointmentListClient = ({
     }
   }
 
-  // Handle opening appointment modal for new appointment
-  const handleAddNew = () => {
-    // Réinitialiser les détails du rendez-vous
-    setAppointmentDetails({
-      vehicle: '',
-      service: '',
-      date: new Date().toISOString().split('T')[0],
-      time: new Date().toTimeString().slice(0, 5),
-      additionalInfo: ''
-    })
-
-    setCurrentAppointment({
-      start: new Date(),
-      end: new Date(new Date().getTime() + 60 * 60 * 1000) // Default 1 hour duration
-    })
-    setIsEditing(false)
-    setIsAppointmentModalOpen(true)
-  }
-
   // Handle opening appointment modal for editing
   const internalHandleEdit = (eventId: string) => {
     if (externalHandleEdit) {
@@ -214,12 +195,6 @@ const AppointmentListClient = ({
     <div className='container mx-auto py-6 px-4'>
       <div className='flex justify-between items-center mb-6'>
         <h1 className='text-2xl font-bold'>Gestion des Rendez-vous</h1>
-        <button
-          onClick={handleAddNew}
-          className='bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition-colors'
-        >
-          Ajouter un rendez-vous
-        </button>
       </div>
 
       {error && <div className='mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded'>{error}</div>}

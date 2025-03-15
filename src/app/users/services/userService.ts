@@ -1,7 +1,7 @@
 import type { CreateUserDto, UpdateUserDto, User, ApiUser } from '../../types/index'
 import { transformUserData, mapRoleToBackend } from '../services/ApiTransformData'
 
-const API_URL = process.env.NEXT_PUBLIC_APP_URL // Base URL de ton back-end
+const API_URL = process.env.NEXT_PUBLIC_APP_URL
 
 export const fetchUsers = async (): Promise<User[]> => {
   const res = await fetch(`${API_URL}/users/all-users`)

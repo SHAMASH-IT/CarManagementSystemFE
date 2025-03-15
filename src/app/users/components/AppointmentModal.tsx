@@ -118,11 +118,9 @@ const AppointmentModal = ({
               required
             >
               <option value=''>Sélectionnez un service</option>
-              <option value='Révision'>Révision</option>
+              <option value='Révision'>Lavage</option>
               <option value='Réparation'>Réparation</option>
               <option value='Entretien'>Entretien</option>
-              <option value='Diagnostic'>Diagnostic</option>
-              <option value='Autre'>Autre</option>
             </select>
           </div>
 
@@ -156,7 +154,7 @@ const AppointmentModal = ({
             </div>
           </div>
 
-          <div className='mb-4'>
+          {/*<div className='mb-4'>
             <label className='block text-gray-700 mb-1'>Informations additionnelles</label>
             <textarea
               name='additionalInfo'
@@ -166,7 +164,7 @@ const AppointmentModal = ({
               rows={3}
               placeholder='Informations complémentaires'
             ></textarea>
-          </div>
+          </div>*/}
 
           <div className='flex justify-end space-x-3'>
             <button

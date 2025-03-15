@@ -1,7 +1,7 @@
 import type { CreateAppointmentDto, UpdateAppointmentDto, Appointment, ApiAppointment } from '../../types'
 import { transformAppointmentData, mapStatusToBackend } from '../services/ApiTransformData'
 
-const API_URL = process.env.NEXT_PUBLIC_APP_URL // Base URL de ton back-end
+const API_URL = process.env.NEXT_PUBLIC_APP_URL
 
 export const fetchAppointments = async (): Promise<Appointment[]> => {
   const res = await fetch(`${API_URL}/appointments/all-appointments`)
