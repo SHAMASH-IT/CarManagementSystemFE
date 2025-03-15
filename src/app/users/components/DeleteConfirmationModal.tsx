@@ -21,45 +21,21 @@ const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm }: DeleteConfirmat
     <Modal
       isOpen={isOpen}
       onRequestClose={onClose}
-      style={{
-        overlay: {
-          backgroundColor: 'rgba(0, 0, 0, 0.75)',
-          zIndex: 1000,
-          backdropFilter: 'blur(5px)'
-        },
-        content: {
-          top: '50%',
-          left: '50%',
-          right: 'auto',
-          bottom: 'auto',
-          marginRight: '-50%',
-          transform: 'translate(-50%, -50%)',
-          width: '400px',
-          padding: '25px',
-          borderRadius: '12px',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
-          border: 'none',
-          background: 'linear-gradient(135deg, #f5f7fa, #c3cfe2)'
-        }
-      }}
-      contentLabel='Confirmation de suppression'
+      className='max-w-md mx-auto mt-20 bg-white p-6 rounded-lg shadow-lg'
+      overlayClassName='fixed inset-0 bg-black bg-opacity-50 flex justify-center'
     >
       <div className='text-center'>
-        <Trash2 size={48} color='#e74c3c' className='mb-4' />
-        <h2 className='text-[#2c3e50] mb-4'>Confirmer la suppression</h2>
-        <p className='mb-6 text-base text-[#7f8c8d]'>Êtes-vous sûr de vouloir supprimer ce rendez-vous ?</p>
-        <div className='flex justify-center gap-4'>
-          <button
-            onClick={onClose}
-            className='px-5 py-2.5 bg-[#95a5a6] text-white border-none rounded cursor-pointer text-base transition-colors hover:bg-[#7f8c8d]'
-          >
+        <h2 className='text-xl font-semibold mb-4'>Confirmer la suppression</h2>
+        <p className='mb-6'>Êtes-vous sûr de vouloir supprimer ce rendez-vous ?</p>
+        <div className='flex justify-center space-x-4'>
+          <button onClick={onClose} className='px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 transition-colors'>
             Annuler
           </button>
           <button
             onClick={onConfirm}
-            className='px-5 py-2.5 bg-[#e74c3c] text-white border-none rounded cursor-pointer text-base transition-colors hover:bg-[#c0392b]'
+            className='px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors flex items-center'
           >
-            Supprimer
+            <Trash2 size={16} className='mr-2' /> Supprimer
           </button>
         </div>
       </div>

@@ -7,7 +7,7 @@ import {
   deleteAppointment
 } from '../services/appointmentService'
 
-export function useAppointments() {
+export const useAppointments = () => {
   const [appointments, setAppointments] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)

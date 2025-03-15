@@ -1,14 +1,19 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL // Base URL de ton back-end
+import type { CreateAppointmentDto, UpdateAppointmentDto, Appointment, ApiAppointment } from '../../types'
+import { transformAppointmentData, mapStatusToBackend } from '../services/ApiTransformData'
 
-export const fetchAppointments = async () => {
-  const res = await fetch(`${API_URL}/appointments`)
+const API_URL = process.env.NEXT_PUBLIC_APP_URL // Base URL de ton back-end
+
+export const fetchAppointments = async (): Promise<Appointment[]> => {
+  const res = await fetch(`${API_URL}/appointments/all-appointments`)
 
   if (!res.ok) throw new Error('Failed to fetch appointments')
 
-  return res.json()
+  const apiAppointments: ApiAppointment[] = await res.json()
+
+  return apiAppointments.map(transformAppointmentData)
 }
 
-export const createAppointment = async (data: any) => {
+export const createAppointment = async (data: CreateAppointmentDto): Promise<Appointment> => {
   const res = await fetch(`${API_URL}/appointments`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -17,10 +22,17 @@ export const createAppointment = async (data: any) => {
 
   if (!res.ok) throw new Error('Failed to create appointment')
 
-  return res.json()
+  const apiAppointment: ApiAppointment = await res.json()
+
+  return transformAppointmentData(apiAppointment)
 }
 
-export const updateAppointment = async (id: number, data: any) => {
+export const updateAppointment = async (id: number, data: UpdateAppointmentDto): Promise<Appointment> => {
+  // If status is included in data, map it to backend format
+  if (data.status) {
+    data.status = mapStatusToBackend(data.status)
+  }
+
   const res = await fetch(`${API_URL}/appointments/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
@@ -29,13 +41,19 @@ export const updateAppointment = async (id: number, data: any) => {
 
   if (!res.ok) throw new Error('Failed to update appointment')
 
-  return res.json()
+  const apiAppointment: ApiAppointment = await res.json()
+
+  return transformAppointmentData(apiAppointment)
 }
 
-export const deleteAppointment = async (id: number) => {
+export const deleteAppointment = async (id: number): Promise<void> => {
   const res = await fetch(`${API_URL}/appointments/${id}`, {
     method: 'DELETE'
   })
 
   if (!res.ok) throw new Error('Failed to delete appointment')
+}
+
+export const acceptAppointment = async (id: number): Promise<Appointment> => {
+  return updateAppointment(id, { status: 'CONFIRMED' })
 }

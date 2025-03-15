@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 
-import useAppointments from './hooks/useAppointments'
+import { useAppointments } from './hooks/useAppointments'
 import AppointmentTable from './components/AppointmentTable'
 import Sidebar from '../common/Sidebar'
 import Navbar from '../common/Navbar'
@@ -19,6 +19,8 @@ const AppointmentsPage: React.FC<ChildrenType> = ({ children }) => {
   }, [appointments])
 
   if (loading) return <div>Chargement des rendez-vous...</div>
+
+  console.log(appointmentList)
 
   if (error) return <div>{error}</div>
 

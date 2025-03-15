@@ -1,7 +1,6 @@
 'use client'
 
 import type React from 'react'
-
 import { useState } from 'react'
 
 import type {
@@ -12,7 +11,7 @@ import type {
 } from '../../types/index'
 import CalendarHeader from './CalendarHeader'
 import CalendarGrid from './CalendarGrid'
-import EventList from './AppointmentListClient'
+import AppointmentListClient from './AppointmentListClient'
 import AppointmentModal from './AppointmentModal'
 import DeleteConfirmationModal from './DeleteConfirmationModal'
 
@@ -62,7 +61,7 @@ const CalendarManager = ({ initialEvents = [] }: CalendarViewProps) => {
     setModalIsOpen(true)
   }
 
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = event.target
 
     setAppointmentDetails(prevState => ({
@@ -185,8 +184,8 @@ const CalendarManager = ({ initialEvents = [] }: CalendarViewProps) => {
 
       <div className='mx-5 mb-5 bg-white rounded-b-lg shadow-md flex-1 p-5'>
         {isListView ? (
-          <EventList
-            events={calendarEvents}
+          <AppointmentListClient
+            appointments={calendarEvents}
             handleEdit={handleEdit}
             handleDeleteConfirmation={handleDeleteConfirmation}
           />
