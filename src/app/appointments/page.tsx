@@ -9,6 +9,7 @@ import Navbar from '../common/Navbar'
 
 import type { ChildrenType } from '../../@core/types'
 import type { Appointment } from '../types/index'
+import { fetchAppointments } from './services/appointmentService'
 
 const AppointmentsPage: React.FC<ChildrenType> = ({ children }) => {
   const { appointments, loading, error } = useAppointments()
@@ -18,9 +19,15 @@ const AppointmentsPage: React.FC<ChildrenType> = ({ children }) => {
     setAppointmentList(appointments)
   }, [appointments])
 
-  if (loading) return <div>Chargement des rendez-vous...</div>
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchAppointments()
+    }, 2000)
 
-  console.log(appointmentList)
+    return () => clearTimeout(timer)
+  }, [])
+
+  if (loading) return <div>Chargement des rendez-vous...</div>
 
   if (error) return <div>{error}</div>
 

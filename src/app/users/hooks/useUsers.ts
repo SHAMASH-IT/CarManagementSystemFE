@@ -1,67 +1,144 @@
+'use client'
+
 import { useState, useEffect } from 'react'
 
-import type { User } from '../../types'
-import { fetchUsers, createUser, updateUser, deleteUser } from '../services/userService'
+interface User {
+  id: number
+  name: string
+  email: string
+  phone: string
+  role: 'ADMIN' | 'USER' | 'PROVIDER'
+  vehicles?: Vehicle[]
+}
+
+interface Vehicle {
+  id: number
+  brand: string
+  model: string
+  year: number
+  registration: string
+  userId: number
+}
 
 export const useUsers = () => {
-  // Spécifiez explicitement le type User[] pour l'état
   const [users, setUsers] = useState<User[]>([])
-  const [loading, setLoading] = useState(false)
+  const [userVehicles, setUserVehicles] = useState<Vehicle[]>([])
+  const [isLoading, setIsLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
+  const [currentUser, setCurrentUser] = useState<User | null>(null)
+  const API_URL = process.env.NEXT_PUBLIC_APP_URL
+
+  // Fetch all users
+  const fetchUsers = async () => {
+    try {
+      setIsLoading(true)
+      setError(null)
+
+      const response = await fetch(`${API_URL}/users`)
+
+      if (!response.ok) {
+        throw new Error('Erreur lors de la récupération des utilisateurs')
+      }
+
+      const data = await response.json()
+
+      setUsers(data)
+
+      return data
+    } catch (err) {
+      console.error('Error fetching users:', err)
+      setError('Impossible de charger les utilisateurs. Veuillez réessayer plus tard.')
+
+      return []
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Fetch current user (usually used in client-side components)
+  const fetchCurrentUser = async () => {
+    try {
+      setIsLoading(true)
+      setError(null)
+
+      const response = await fetch(`${API_URL}/users/me`)
+
+      if (!response.ok) {
+        throw new Error('Erreur lors de la récupération du profil utilisateur')
+      }
+
+      const data = await response.json()
+
+      setCurrentUser(data)
+
+      return data
+    } catch (err) {
+      console.error('Error fetching current user:', err)
+      setError('Impossible de charger votre profil. Veuillez réessayer plus tard.')
+
+      return null
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Fetch vehicles for a specific user
+  const fetchUserVehicles = async (userId?: number) => {
+    try {
+      setIsLoading(true)
+      setError(null)
+
+      // If userId is not provided, try to get vehicles for the current user
+      const endpoint = userId ? `${API_URL}/vehicles/user/${userId}` : `${API_URL}/vehicles/me`
+
+      const response = await fetch(endpoint)
+
+      if (!response.ok) {
+        throw new Error('Erreur lors de la récupération des véhicules')
+      }
+
+      const data = await response.json()
+
+      setUserVehicles(data)
+
+      return data
+    } catch (err) {
+      console.error('Error fetching user vehicles:', err)
+      setError('Impossible de charger les véhicules. Veuillez réessayer plus tard.')
+
+      return []
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Get vehicle by ID
+  const getVehicleById = (vehicleId: number) => {
+    return userVehicles.find(vehicle => vehicle.id === vehicleId) || null
+  }
+
+  // Get user by ID
+  const getUserById = (userId: number) => {
+    return users.find(user => user.id === userId) || null
+  }
 
   useEffect(() => {
-    setLoading(true)
-    fetchUsers()
-      .then(setUsers)
-      .catch(err => setError(err.message))
-      .finally(() => setLoading(false))
+    // Optionally fetch current user on hook initialization
+    // fetchCurrentUser()
   }, [])
 
-  const addUser = async (data: any) => {
-    try {
-      setLoading(true)
-      const newUser = await createUser(data)
-
-      setUsers(prev => [...prev, newUser])
-    } catch (err: any) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
+  return {
+    users,
+    currentUser,
+    userVehicles,
+    isLoading,
+    error,
+    fetchUsers,
+    fetchCurrentUser,
+    fetchUserVehicles,
+    getVehicleById,
+    getUserById
   }
-
-  const updateUserById = async (id: string, data: any) => {
-    try {
-      setLoading(true)
-
-      // Convertir l'ID string en number pour l'API
-      const numericId = parseInt(id, 10)
-      const updatedUser = await updateUser(numericId, data)
-
-      setUsers(prev => prev.map(user => (user.id === id ? updatedUser : user)))
-    } catch (err: any) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const deleteUserById = async (id: string) => {
-    try {
-      setLoading(true)
-
-      // Convertir l'ID string en number pour l'API
-      const numericId = parseInt(id, 10)
-
-      await deleteUser(numericId)
-
-      setUsers(prev => prev.filter(user => user.id !== id))
-    } catch (err: any) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  return { users, addUser, updateUserById, deleteUserById, loading, error }
 }
+
+export default useUsers

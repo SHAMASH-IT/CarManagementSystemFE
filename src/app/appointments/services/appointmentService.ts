@@ -1,5 +1,5 @@
 import type { CreateAppointmentDto, UpdateAppointmentDto, Appointment, ApiAppointment } from '../../types'
-import { transformAppointmentData, mapStatusToBackend } from '../services/ApiTransformData'
+import { transformAppointmentData, mapStatusToBackend } from './ApiTransformData'
 
 const API_URL = process.env.NEXT_PUBLIC_APP_URL
 
@@ -14,7 +14,7 @@ export const fetchAppointments = async (): Promise<Appointment[]> => {
 }
 
 export const createAppointment = async (data: CreateAppointmentDto): Promise<Appointment> => {
-  const res = await fetch(`${API_URL}/appointments`, {
+  const res = await fetch(`${API_URL}/appointments/create`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
@@ -28,26 +28,47 @@ export const createAppointment = async (data: CreateAppointmentDto): Promise<App
 }
 
 export const updateAppointment = async (id: number, data: UpdateAppointmentDto): Promise<Appointment> => {
-  // If status is included in data, map it to backend format
+  // Assurez-vous que le statut est correctement formaté pour l'API
   if (data.status) {
     data.status = mapStatusToBackend(data.status)
   }
 
-  const res = await fetch(`${API_URL}/appointments/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  })
+  console.log(`Updating appointment ${id} with data:`, data)
 
-  if (!res.ok) throw new Error('Failed to update appointment')
+  try {
+    const res = await fetch(`${API_URL}/appointments/update/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    })
 
-  const apiAppointment: ApiAppointment = await res.json()
+    if (!res.ok) {
+      const errorText = await res.text()
+      let errorInfo
 
-  return transformAppointmentData(apiAppointment)
+      try {
+        errorInfo = JSON.parse(errorText)
+      } catch (e) {
+        errorInfo = { message: errorText }
+      }
+
+      console.error('API error:', errorInfo)
+
+      // Lancer une erreur plus descriptive
+      throw new Error(`Failed to update appointment: ${errorInfo.message || 'Unknown error'}`)
+    }
+
+    const apiAppointment: ApiAppointment = await res.json()
+
+    return transformAppointmentData(apiAppointment)
+  } catch (error) {
+    console.error('Update appointment error:', error)
+    throw error
+  }
 }
 
 export const deleteAppointment = async (id: number): Promise<void> => {
-  const res = await fetch(`${API_URL}/appointments/${id}`, {
+  const res = await fetch(`${API_URL}/appointments/cancel/${id}`, {
     method: 'DELETE'
   })
 
@@ -55,5 +76,7 @@ export const deleteAppointment = async (id: number): Promise<void> => {
 }
 
 export const acceptAppointment = async (id: number): Promise<Appointment> => {
+  console.log(`Accepting appointment ${id}`)
+
   return updateAppointment(id, { status: 'CONFIRMED' })
 }

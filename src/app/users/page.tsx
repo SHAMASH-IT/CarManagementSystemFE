@@ -1,24 +1,16 @@
 'use client'
+import { useState } from 'react'
+
+import { ToastContainer } from 'react-toastify'
 
 import Sidebar from '../common/Sidebar'
 import Navbar from '../common/Navbar'
 import CalendarManager from './components/CalendarManager'
 import type { CalendarEvent } from '../types/index'
 
-// Initial events for the calendar
-const initialEvents: CalendarEvent[] = [
-  {
-    id: '1',
-    title: 'Exemple de rendez-vous',
-    start: new Date(),
-    end: new Date(new Date().setHours(new Date().getHours() + 1)),
-    vehicle: 'Peugeot 208',
-    service: 'Entretien',
-    additionalInfo: 'Révision générale'
-  }
-]
-
 export default function CalendarPage() {
+  const [events] = useState<CalendarEvent[]>([])
+
   return (
     <div className='flex flex-row h-screen'>
       <Sidebar />
@@ -26,10 +18,11 @@ export default function CalendarPage() {
         <Navbar />
         <div className='flex flex-1'>
           <div className='flex-1 overflow-hidden relative'>
-            <CalendarManager initialEvents={initialEvents} />
+            <CalendarManager initialEvents={events} />
           </div>
         </div>
       </div>
+      <ToastContainer />
     </div>
   )
 }

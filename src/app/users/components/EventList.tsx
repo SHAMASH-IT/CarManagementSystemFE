@@ -1,4 +1,5 @@
 'use client'
+import { useState, useEffect } from 'react'
 
 import moment from 'moment'
 import { Edit, Trash2 } from 'lucide-react'
@@ -11,16 +12,49 @@ interface EventListProps {
   handleDeleteConfirmation: (eventId: string) => void
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const EventList = ({ events, handleEdit, handleDeleteConfirmation }: EventListProps) => {
-  // Sort events by date
-  const sortedEvents = [...events].sort((a, b) => a.start.getTime() - b.start.getTime())
+  const [eventsList, setEvents] = useState<CalendarEvent[]>([])
+  const API_URL = process.env.NEXT_PUBLIC_APP_URL
+
+  const fetchAppointments = async () => {
+    try {
+      const response = await fetch(`${API_URL}/appointments/all-appointments`)
+
+      if (!response.ok) {
+        throw new Error('Erreur lors de la récupération des rendez-vous')
+      }
+
+      const data = await response.json()
+
+      console.log('data', data)
+
+      const formattedEvents = data.map((event: any) => ({
+        ...event,
+        vehicleName: event.vehicle.model,
+        start: new Date(event.date),
+        end: new Date(event.date)
+      }))
+
+      setEvents(formattedEvents)
+      console.log('events after setting:', formattedEvents)
+    } catch (err) {
+      console.error('Error fetching appointments:', err)
+    }
+  }
+
+  useEffect(() => {
+    fetchAppointments()
+  }, [])
+
+  // const sortedEvents = [...events].sort((a, b) => a.start.getTime() - b.start.getTime())
 
   return (
     <div className='mb-6'>
       <h2 className='text-xl font-semibold mb-4'>Liste des rendez-vous</h2>
-      {sortedEvents.length > 0 ? (
+      {eventsList.length > 0 ? (
         <div className='space-y-4'>
-          {sortedEvents.map(event => (
+          {eventsList.map(event => (
             <div key={event.id} className='bg-white p-4 rounded-lg shadow-md'>
               <div className='flex justify-between items-center mb-2'>
                 <h3 className='text-lg font-medium'>{event.title}</h3>
@@ -42,6 +76,9 @@ const EventList = ({ events, handleEdit, handleDeleteConfirmation }: EventListPr
                 </div>
               </div>
               <div className='text-sm text-gray-600'>
+                <p>
+                  <strong>Vehicle:</strong> {event.vehicleName}
+                </p>
                 <p>
                   <strong>Date:</strong> {moment(event.start).format('DD/MM/YYYY')}
                 </p>

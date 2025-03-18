@@ -4,12 +4,34 @@ export const APPOINTMENT_STATUS = {
   CANCELED: 'CANCELED'
 }
 
+export enum Status {
+  RESERVED = 'RESERVED',
+  PENDING = 'PENDING',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED'
+}
+
+// User roles enums
 export const USER_ROLES = {
   ADMINISTRATEUR: 'ADMINISTRATEUR',
   CLIENT: 'CLIENT',
   MÉCANICIEN: 'MÉCANICIEN'
 }
 
+export enum Role {
+  ADMIN = 'ADMIN',
+  CLIENT = 'CLIENT',
+  MECHANIC = 'MECHANIC'
+}
+
+// Parking status
+export enum StatusP {
+  RESERVED = 'RESERVED',
+  OCCUPIED = 'OCCUPIED',
+  EMPTY = 'EMPTY'
+}
+
+// Basic entity interfaces
 export interface Appointment {
   id: string
   vehicleName: string
@@ -28,11 +50,63 @@ export interface User {
   createdAt: string
 }
 
-export type AppointmentListProps = {
+export interface Vehicle {
+  id: number
+  brand: string
+  model: string
+  year: number
+  registration: string
+  userId: number
+}
+
+export interface Service {
+  id: number
+  name: string
+  description: string
+}
+
+// Calendar related interfaces
+export interface CalendarEvent {
+  id: string
+  title: string
+  start: Date
+  end: Date
+  vehicle: string
+  service: string
+  additionalInfo: string
+}
+
+export type CalendarView = 'month' | 'day' | 'list'
+
+// Detailed entity interfaces for API
+export interface ApiAppointment {
+  id: number
+  date: string
+  time: string
+  status: 'RESERVED' | 'PENDING' | 'COMPLETED' | 'CANCELLED'
+  serviceId: number
+  vehicleId: number
+  service?: Service
+  vehicle?: Vehicle
+}
+
+export interface ApiUser {
+  id: number
+  firstName: string
+  lastName: string
+  email: string
+  phone?: string
+  role: 'ADMIN' | 'USER' | 'PROVIDER'
+  createdAt: string
+  updatedAt: string
+}
+
+// Component props interfaces
+export interface AppointmentListProps {
   appointments: Appointment[]
 }
 
-export type UserListProps = {
+export interface UserListProps {
   users: User[]
 }
 
@@ -48,18 +122,17 @@ export interface UserTableProps {
   onEdit: (id: string) => void
 }
 
-export interface CalendarEvent {
-  id: string
-  title: string
-  start: Date
-  end: Date
-  vehicle: string
-  service: string
-  additionalInfo: string
+export interface CalendarViewProps {
+  initialEvents?: CalendarEvent[]
 }
 
-export type CalendarView = 'month' | 'day' | 'list'
+export interface AppointmentListClientProps {
+  appointments: CalendarEvent[]
+  handleEdit: (eventId: string) => void
+  handleDeleteConfirmation: (eventId: string) => void
+}
 
+// Detail interfaces
 export interface AppointmentDetails {
   vehicle: string
   service: string
@@ -76,24 +149,12 @@ export interface UserDetails {
   role: string
 }
 
-export interface CalendarViewProps {
-  initialEvents?: CalendarEvent[]
-}
-
+// DTO interfaces for API requests
 export interface CreateAppointmentDto {
-  date: string
-  time: string
+  date: any
+  time: any
   serviceId: number
   vehicleId: number
-}
-
-export interface CreateUserDto {
-  firstName: string
-  lastName: string
-  email: string
-  phone?: string
-  password: string
-  role: 'ADMIN' | 'CLIENT' | 'MECHANIC'
 }
 
 export interface UpdateAppointmentDto {
@@ -102,53 +163,27 @@ export interface UpdateAppointmentDto {
   status?: string
 }
 
+export interface CreateUserDto {
+  firstName: string
+  lastName: string
+  email: string
+  phone?: string
+  password: string
+  role: 'ADMIN' | 'USER' | 'PROVIDER'
+}
+
 export interface UpdateUserDto {
   firstName?: string
   lastName?: string
   email?: string
   phone?: string
-  role?: 'ADMIN' | 'CLIENT' | 'MECHANIC'
+  role?: 'ADMIN' | 'USER' | 'PROVIDER'
 }
 
-export interface Vehicle {
-  id: number
-  brand: string
-  model: string
-  year: number
-  registration: string
-  userId: number
-}
-
-export interface Service {
-  id: number
-  name: string
-  description: string
-}
-
-export interface ApiAppointment {
-  id: number
+// Form data interface for appointments
+export interface AppointmentFormData {
   date: string
   time: string
-  status: 'RESERVED' | 'PENDING' | 'COMPLETED' | 'CANCELLED'
-  serviceId: number
   vehicleId: number
-  service?: Service
-  vehicle?: Vehicle
-}
-
-export interface AppointmentListClientProps {
-  appointments: CalendarEvent[]
-  handleEdit: (eventId: string) => void
-  handleDeleteConfirmation: (eventId: string) => void
-}
-
-export interface ApiUser {
-  id: number
-  firstName: string
-  lastName: string
-  email: string
-  phone?: string
-  role: 'ADMIN' | 'CLIENT' | 'MECHANIC'
-  createdAt: string
-  updatedAt: string
+  serviceId: number
 }

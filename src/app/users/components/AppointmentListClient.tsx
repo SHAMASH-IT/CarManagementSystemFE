@@ -25,9 +25,10 @@ const AppointmentListClient = ({
   // Modal states
   const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
-  const [currentAppointment, setCurrentAppointment] = useState<Partial<CalendarEvent> | null>(null)
+  const [, setCurrentAppointment] = useState<Partial<CalendarEvent> | null>(null)
   const [appointmentToDelete, setAppointmentToDelete] = useState<string | null>(null)
   const [isEditing, setIsEditing] = useState(false)
+  const API_URL = process.env.NEXT_PUBLIC_APP_URL
 
   // État pour les détails du rendez-vous conforme au type AppointmentDetails
   const [appointmentDetails, setAppointmentDetails] = useState<AppointmentDetails>({
@@ -102,37 +103,24 @@ const AppointmentListClient = ({
     }
   }
 
-  // Gérer les changements dans le formulaire
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = event.target
 
     setAppointmentDetails(prev => ({ ...prev, [name]: value }))
   }
 
-  // Handle saving appointment (create or update)
   const handleSaveAppointment = async () => {
     try {
-      // Conversion des détails du formulaire en CalendarEvent
-      const [year, month, day] = appointmentDetails.date.split('-').map(Number)
-      const [hours, minutes] = appointmentDetails.time.split(':').map(Number)
-
-      const startDate = new Date(year, month - 1, day, hours, minutes)
-      const endDate = new Date(startDate.getTime() + 60 * 60 * 1000) // 1 heure par défaut
-
-      const appointmentData: Partial<CalendarEvent> = {
-        ...currentAppointment,
-        title: appointmentDetails.vehicle,
-        service: appointmentDetails.service,
-        start: startDate,
-        end: endDate,
-        additionalInfo: appointmentDetails.additionalInfo
+      const appointmentData = {
+        date: appointmentDetails.date,
+        time: appointmentDetails.time,
+        vehicleId: parseInt(appointmentDetails.vehicle),
+        serviceId: parseInt(appointmentDetails.service)
       }
 
-      const url = isEditing ? `/api/appointments/${appointmentData.id}` : '/api/appointments'
-      const method = isEditing ? 'PUT' : 'POST'
-
-      const response = await fetch(url, {
-        method,
+      // Appeler l'API
+      const response = await fetch(`${API_URL}/appointments/create`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
@@ -140,17 +128,17 @@ const AppointmentListClient = ({
       })
 
       if (!response.ok) {
-        throw new Error(`Erreur lors de ${isEditing ? 'la modification' : "l'ajout"} du rendez-vous`)
+        throw new Error(`Erreur lors de l'ajout du rendez-vous`)
       }
 
-      // Refresh the appointments list
+      // Actualiser la liste des rendez-vous
       await fetchAppointments()
 
-      // Close the modal
+      // Fermer le modal
       setIsAppointmentModalOpen(false)
     } catch (err) {
       console.error('Error saving appointment:', err)
-      throw err // Propagate the error to the modal
+      setError("Une erreur est survenue lors de l'enregistrement du rendez-vous.")
     }
   }
 

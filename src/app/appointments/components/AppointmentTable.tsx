@@ -1,11 +1,27 @@
 'use client'
-import React from 'react'
+import React, { useEffect } from 'react'
 
 import { FaCheckCircle, FaTrashAlt } from 'react-icons/fa'
 
 import type { AppointmentTableProps } from '../../types/index'
+import { useAppointments } from '../hooks/useAppointments'
 
-const AppointmentTable: React.FC<AppointmentTableProps> = ({ appointments, onDelete, onAccept }) => {
+const AppointmentTable: React.FC<AppointmentTableProps> = ({ appointments: initialAppointments }) => {
+  console.log('Initializing AppointmentTable component')
+  console.log('Initial appointments:', initialAppointments)
+
+  const { appointments, acceptAppointmentById, deleteAppointmentById } = useAppointments()
+
+  console.log('Appointments from hook:', appointments)
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      console.log('5 second timer executed')
+    }, 5000)
+
+    return () => clearTimeout(timer)
+  }, [])
+
   // Helper function to get status styling
   const getStatusStyle = (status: string) => {
     switch (status) {
@@ -29,6 +45,11 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({ appointments, onDel
         }
     }
   }
+
+  // Utiliser les rendez-vous du hook ou les initiaux si ceux du hook ne sont pas encore chargés
+  const displayAppointments = appointments.length > 0 ? appointments : initialAppointments
+
+  console.log('Display appointments:', displayAppointments)
 
   return (
     <div className='overflow-x-auto'>
@@ -58,7 +79,7 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({ appointments, onDel
             </tr>
           </thead>
           <tbody className='block md:table-row-group'>
-            {appointments.map(appointment => {
+            {displayAppointments.map(appointment => {
               const statusStyle = getStatusStyle(appointment.status)
 
               return (
@@ -93,10 +114,21 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({ appointments, onDel
                         <div className='relative group'>
                           <button
                             className='bg-green-500 dark:bg-green-600 text-white p-1 rounded-full hover:bg-green-600 dark:hover:bg-green-700'
-                            onClick={() => onAccept(appointment.id)}
+                            onClick={() => {
+                              console.log(`Tentative d'acceptation du rendez-vous ${appointment.id}`)
+                              console.log("Type de l'ID:", typeof appointment.id)
+                              console.log('Détails du rendez-vous:', appointment)
+
+                              acceptAppointmentById(appointment.id)
+                                .then(() => console.log(`Rendez-vous ${appointment.id} accepté avec succès`))
+                                .catch(err =>
+                                  console.error(`Erreur lors de l'acceptation du rendez-vous ${appointment.id}:`, err)
+                                )
+                            }}
                           >
                             <FaCheckCircle className='w-5 h-5' />
                           </button>
+
                           <span className='absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs leading-none text-white bg-green-500 rounded opacity-0 group-hover:opacity-100 z-0'>
                             Accepter
                           </span>
@@ -105,7 +137,15 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({ appointments, onDel
                       <div className='relative group'>
                         <button
                           className='bg-red-500 dark:bg-red-600 text-white p-1 rounded-full hover:bg-red-600 dark:hover:bg-red-700'
-                          onClick={() => onDelete(appointment.id)}
+                          onClick={() => {
+                            console.log(`Tentative de suppression du rendez-vous ${appointment.id}`)
+
+                            deleteAppointmentById(appointment.id)
+                              .then(() => console.log(`Rendez-vous ${appointment.id} supprimé avec succès`))
+                              .catch(err =>
+                                console.error(`Erreur lors de la suppression du rendez-vous ${appointment.id}:`, err)
+                              )
+                          }}
                         >
                           <FaTrashAlt className='w-5 h-5' />
                         </button>

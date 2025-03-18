@@ -4,7 +4,10 @@ import { useState, useEffect } from 'react'
 
 import Modal from 'react-modal'
 
+import { toast } from 'react-toastify'
+
 import type { AppointmentDetails } from '../../types/index'
+import { createAppointment } from '@/app/appointments/services/appointmentService'
 
 interface AppointmentModalProps {
   isOpen: boolean
@@ -30,7 +33,7 @@ const AppointmentModal = ({
     Modal.setAppElement('body')
   }, [])
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
 
@@ -42,13 +45,24 @@ const AppointmentModal = ({
       return
     }
 
+    console.log('date', date)
+    console.log('time', time)
+
     try {
       setIsLoading(true)
       handleSubmit()
+      await createAppointment({
+        date: date,
+        time: time,
+        serviceId: Number(service),
+        vehicleId: Number(vehicle)
+      })
+      toast.success('rendez-vous crée avec succées')
       setIsLoading(false)
     } catch (err) {
       console.error('Error saving appointment:', err)
       setError("Une erreur est survenue lors de l'enregistrement du rendez-vous.")
+      toast.error("Une erreur est survenue lors de l'enregistrement du rendez-vous.")
       setIsLoading(false)
     }
   }
@@ -118,7 +132,7 @@ const AppointmentModal = ({
               required
             >
               <option value=''>Sélectionnez un service</option>
-              <option value='Révision'>Lavage</option>
+              <option value='1'>Lavage</option>
               <option value='Réparation'>Réparation</option>
               <option value='Entretien'>Entretien</option>
             </select>

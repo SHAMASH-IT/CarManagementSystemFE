@@ -17,31 +17,31 @@ export const transformUserData = (apiUser: ApiUser): User => {
 /**
  * Maps backend role values to frontend role values
  */
-export const mapRoleToFrontend = (backendRole: 'ADMIN' | 'CLIENT' | 'MECHANIC'): string => {
+export const mapRoleToFrontend = (backendRole: 'ADMIN' | 'USER' | 'PROVIDER'): string => {
   switch (backendRole) {
     case 'ADMIN':
       return 'ADMINISTRATEUR'
-    case 'CLIENT':
-      return 'CLIENT'
-    case 'MECHANIC':
-      return 'MÉCANICIEN'
+    case 'USER':
+      return 'UTILISATEUR'
+    case 'PROVIDER':
+      return 'PRESTATAIRE'
     default:
-      return 'CLIENT'
+      return 'UTILISATEUR'
   }
 }
 
 /**
  * Maps frontend role values to backend role values
  */
-export const mapRoleToBackend = (frontendRole: string): 'ADMIN' | 'CLIENT' | 'MECHANIC' => {
+export const mapRoleToBackend = (frontendRole: string): 'ADMIN' | 'USER' | 'PROVIDER' => {
   switch (frontendRole) {
     case 'ADMINISTRATEUR':
       return 'ADMIN'
-    case 'CLIENT':
-      return 'CLIENT'
-    case 'MÉCANICIEN':
-      return 'MECHANIC'
+    case 'UTILISATEUR':
+      return 'USER'
+    case 'PRESTATAIRE':
+      return 'PROVIDER'
     default:
-      return 'CLIENT'
+      return 'USER'
   }
 }

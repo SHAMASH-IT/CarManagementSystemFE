@@ -1,50 +1,66 @@
 import type { ApiAppointment, Appointment } from '../../types'
 
-/**
- * Transforms API appointment data to frontend appointment format
- */
-export const transformAppointmentData = (apiAppointment: ApiAppointment): Appointment => {
-  return {
-    id: String(apiAppointment.id),
-    vehicleName: apiAppointment.vehicle
-      ? `${apiAppointment.vehicle.brand} ${apiAppointment.vehicle.model}`
-      : 'Unknown Vehicle',
-    clientName: 'Fetch from user based on vehicle userId',
-    service: apiAppointment.service?.name || 'Unknown Service',
-    date: apiAppointment.date,
-    status: mapStatusToFrontend(apiAppointment.status)
+// Map frontend status to backend status
+export const mapStatusToBackend = (status: string): string => {
+  console.log(`Mapping status: ${status}`) // Pour débogage
+
+  // Cette fonction doit renvoyer le format exact attendu par votre API
+  switch (status) {
+    case 'CONFIRMED':
+      return 'CONFIRMED' // Ou le format attendu par votre API
+    case 'CANCELED':
+      return 'CANCELED' // Ou le format attendu par votre API
+    default:
+      return 'PENDING' // Ou le format attendu par votre API
   }
 }
 
-/**
- * Maps backend status values to frontend status values
- */
-export const mapStatusToFrontend = (backendStatus: 'RESERVED' | 'PENDING' | 'COMPLETED' | 'CANCELLED'): string => {
-  switch (backendStatus) {
-    case 'RESERVED':
-    case 'PENDING':
-      return 'PENDING'
+// Map backend status to frontend status
+export const mapStatusToFrontend = (status: string): string => {
+  switch (status) {
     case 'COMPLETED':
       return 'CONFIRMED'
     case 'CANCELLED':
       return 'CANCELED'
+    case 'RESERVED':
+    case 'PENDING':
     default:
       return 'PENDING'
   }
 }
 
-/**
- * Maps frontend status values to backend status values
- */
-export const mapStatusToBackend = (frontendStatus: string): 'RESERVED' | 'PENDING' | 'COMPLETED' | 'CANCELLED' => {
-  switch (frontendStatus) {
-    case 'PENDING':
-      return 'PENDING'
-    case 'CONFIRMED':
-      return 'COMPLETED'
-    case 'CANCELED':
-      return 'CANCELLED'
-    default:
-      return 'RESERVED'
+// Transform API appointment data to frontend format
+export const transformAppointmentData = (apiAppointment: ApiAppointment): Appointment => {
+  // Extract vehicle and client information if available
+  const vehicleName = apiAppointment.vehicle
+    ? `${apiAppointment.vehicle.brand} ${apiAppointment.vehicle.model} (${apiAppointment.vehicle.registration})`
+    : 'Véhicule inconnu'
+
+  // You'll need to adapt this part based on how you get the client name
+  // If you have user information linked to the vehicle, you could use it
+  const clientName = 'Client' // Placeholder - you'll need to adjust this
+
+  // Extract service information
+  const serviceName = apiAppointment.service?.name || 'Service inconnu'
+
+  // Create datetime from date and time fields
+  const appointmentDate = new Date(apiAppointment.date)
+
+  if (apiAppointment.time) {
+    const timeStr = apiAppointment.time.toString()
+    const timeParts = timeStr.split(':')
+
+    if (timeParts.length >= 2) {
+      appointmentDate.setHours(parseInt(timeParts[0]), parseInt(timeParts[1]))
+    }
+  }
+
+  return {
+    id: apiAppointment.id.toString(),
+    vehicleName,
+    clientName,
+    service: serviceName,
+    date: appointmentDate.toISOString(),
+    status: mapStatusToFrontend(apiAppointment.status)
   }
 }
