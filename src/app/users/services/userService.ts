@@ -229,6 +229,7 @@ export const useServices = () => {
   useEffect(() => {
     // Fetch services on hook initialization
     fetchServices()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return {

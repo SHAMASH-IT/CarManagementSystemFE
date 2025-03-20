@@ -16,8 +16,8 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({ appointments: initi
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      console.log('5 second timer executed')
-    }, 5000)
+      console.log('3 second timer executed')
+    }, 3000)
 
     return () => clearTimeout(timer)
   }, [])

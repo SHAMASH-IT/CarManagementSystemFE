@@ -141,13 +141,13 @@ export interface AppointmentDetails {
   additionalInfo: string
 }
 
-export interface UserDetails {
+/*export interface UserDetails {
   firstName: string
   lastName: string
   email: string
   phone: string
   role: string
-}
+}*/
 
 // DTO interfaces for API requests
 export interface CreateAppointmentDto {

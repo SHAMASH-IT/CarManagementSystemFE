@@ -5,6 +5,7 @@ import moment from 'moment'
 import { Edit, Trash2 } from 'lucide-react'
 
 import type { CalendarEvent } from '../../types/index'
+import UpdateAppointmentModal from './UpdateAppointmentModal' // Import the modal component
 
 interface EventListProps {
   events: CalendarEvent[]
@@ -12,9 +13,12 @@ interface EventListProps {
   handleDeleteConfirmation: (eventId: string) => void
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const EventList = ({ events, handleEdit, handleDeleteConfirmation }: EventListProps) => {
+const EventList = ({ events, handleDeleteConfirmation }: EventListProps) => {
   const [eventsList, setEvents] = useState<CalendarEvent[]>([])
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false)
+  const [appointmentToUpdate, setAppointmentToUpdate] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
   const API_URL = process.env.NEXT_PUBLIC_APP_URL
 
   const fetchAppointments = async () => {
@@ -29,6 +33,7 @@ const EventList = ({ events, handleEdit, handleDeleteConfirmation }: EventListPr
 
       console.log('data', data)
 
+      // Convert string dates to Date objects
       const formattedEvents = data.map((event: any) => ({
         ...event,
         vehicleName: event.vehicle.model,
@@ -45,13 +50,64 @@ const EventList = ({ events, handleEdit, handleDeleteConfirmation }: EventListPr
 
   useEffect(() => {
     fetchAppointments()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // const sortedEvents = [...events].sort((a, b) => a.start.getTime() - b.start.getTime())
+  // Handle edit button click
+  const handleEditClick = (eventId: string) => {
+    setAppointmentToUpdate(eventId)
+    setIsUpdateModalOpen(true)
+  }
+
+  // Handle update success
+  const handleUpdateSuccess = () => {
+    fetchAppointments() // Refresh the list after update
+  }
+
+  // Fonction pour supprimer un rendez-vous
+  const handleDelete = async (eventId: string) => {
+    try {
+      setIsLoading(true)
+      setError('')
+
+      const response = await fetch(`${API_URL}/appointments/cancel/${eventId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Erreur lors de la suppression du rendez-vous')
+      }
+
+      // Rafraîchir la liste des rendez-vous
+      await fetchAppointments()
+      
+    } catch (err: any) {
+      console.error('Error deleting appointment:', err)
+      setError(err.message || 'Une erreur est survenue lors de la suppression du rendez-vous')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Fonction pour confirmer la suppression
+  const confirmDelete = (eventId: string) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce rendez-vous ?')) {
+      handleDelete(eventId)
+    }
+  }
 
   return (
     <div className='mb-6'>
       <h2 className='text-xl font-semibold mb-4'>Liste des rendez-vous</h2>
+      {error && (
+        <div className='mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded'>
+          {error}
+        </div>
+      )}
       {eventsList.length > 0 ? (
         <div className='space-y-4'>
           {eventsList.map(event => (
@@ -60,16 +116,17 @@ const EventList = ({ events, handleEdit, handleDeleteConfirmation }: EventListPr
                 <h3 className='text-lg font-medium'>{event.title}</h3>
                 <div className='flex space-x-2'>
                   <button
-                    onClick={() => handleEdit(event.id)}
+                    onClick={() => handleEditClick(event.id)}
                     className='flex items-center justify-center bg-[#f39c12] text-white border-none rounded p-2 cursor-pointer transition-colors'
                     title='Modifier'
                   >
                     <Edit size={16} />
                   </button>
                   <button
-                    onClick={() => handleDeleteConfirmation(event.id)}
+                    onClick={() => confirmDelete(event.id)}
                     className='flex items-center justify-center bg-[#e74c3c] text-white border-none rounded p-2 cursor-pointer transition-colors'
                     title='Supprimer'
+                    disabled={isLoading}
                   >
                     <Trash2 size={16} />
                   </button>
@@ -92,6 +149,14 @@ const EventList = ({ events, handleEdit, handleDeleteConfirmation }: EventListPr
       ) : (
         <p className='text-gray-500 italic'>Aucun rendez-vous programmé</p>
       )}
+
+      {/* Add the UpdateAppointmentModal component */}
+      <UpdateAppointmentModal
+        isOpen={isUpdateModalOpen}
+        onClose={() => setIsUpdateModalOpen(false)}
+        appointmentId={appointmentToUpdate}
+        onUpdateSuccess={handleUpdateSuccess}
+      />
     </div>
   )
 }

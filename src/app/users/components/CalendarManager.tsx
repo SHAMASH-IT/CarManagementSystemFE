@@ -216,6 +216,7 @@ const CalendarManager = ({ initialEvents = [] }: CalendarViewProps) => {
         isOpen={deleteModalIsOpen}
         onClose={() => setDeleteModalIsOpen(false)}
         onConfirm={handleDelete}
+        eventId={null}
       />
 
       <style jsx global>{`
