@@ -72,6 +72,7 @@ export interface CalendarEvent {
   start: Date
   end: Date
   vehicle: string
+  vehicleName: string
   service: string
   additionalInfo: string
 }

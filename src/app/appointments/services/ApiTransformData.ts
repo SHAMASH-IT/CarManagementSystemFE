@@ -1,4 +1,5 @@
 import type { ApiAppointment, Appointment } from '../../types'
+import moment from 'moment'
 
 // Map frontend status to backend status
 export const mapStatusToBackend = (status: string): string => {
@@ -45,22 +46,23 @@ export const transformAppointmentData = (apiAppointment: ApiAppointment): Appoin
 
   // Create datetime from date and time fields
   const appointmentDate = new Date(apiAppointment.date)
+  
+  // Pas besoin de manipuler le temps car la date de l'API contient déjà l'heure
+  // if (apiAppointment.time) {
+  //   const timeStr = apiAppointment.time.toString()
+  //   const timeParts = timeStr.split(':')
 
-  if (apiAppointment.time) {
-    const timeStr = apiAppointment.time.toString()
-    const timeParts = timeStr.split(':')
-
-    if (timeParts.length >= 2) {
-      appointmentDate.setHours(parseInt(timeParts[0]), parseInt(timeParts[1]))
-    }
-  }
+  //   if (timeParts.length >= 2) {
+  //     appointmentDate.setHours(parseInt(timeParts[0]), parseInt(timeParts[1]))
+  //   }
+  // }
 
   return {
     id: apiAppointment.id.toString(),
     vehicleName,
     clientName,
     service: serviceName,
-    date: appointmentDate.toISOString(),
+    date: moment.utc(appointmentDate).format(), // Convertir en UTC pour éviter les problèmes de fuseau horaire
     status: mapStatusToFrontend(apiAppointment.status)
   }
 }

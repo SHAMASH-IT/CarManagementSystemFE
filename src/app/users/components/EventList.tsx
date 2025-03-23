@@ -36,9 +36,13 @@ const EventList = ({ events, handleDeleteConfirmation }: EventListProps) => {
       // Convert string dates to Date objects
       const formattedEvents = data.map((event: any) => ({
         ...event,
-        vehicleName: event.vehicle.model,
+        title: `Rendez-vous - ${event.vehicle?.brand} ${event.vehicle?.model}`,
+        vehicleName: `${event.vehicle?.brand} ${event.vehicle?.model}`,
+        vehicle: event.vehicle?.id.toString() || '',
         start: new Date(event.date),
-        end: new Date(event.date)
+        end: new Date(event.date),
+        service: event.service?.name || '',
+        additionalInfo: ''
       }))
 
       setEvents(formattedEvents)

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 
 import {
   Home,
@@ -18,16 +19,27 @@ import {
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(true)
+  const pathname = usePathname()
   const [activeItem, setActiveItem] = useState('Dashboard')
+
+  useEffect(() => {
+    if (pathname === '/appointments/dashboard') {
+      setActiveItem('Dashboard')
+    } else if (pathname === '/appointments') {
+      setActiveItem('Liste des Rendez-vous')
+    } else if (pathname === '/page') {
+      setActiveItem('Rendez-vous')
+    }
+  }, [pathname])
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen)
   }
 
   const menuItems = [
-    { icon: <Home size={20} />, title: 'Dashboard', url: '#', badge: null },
-    { icon: <Calendar size={20} />, title: 'Rendez-vous', url: '/page', badge: '5' },
-    { icon: <ClipboardList size={20} />, title: 'Liste des Rendez-vous', url: '#', badge: null },
+    { icon: <Home size={20} />, title: 'Dashboard', url: '/appointments/dashboard', badge: null },
+    
+    { icon: <ClipboardList size={20} />, title: 'Liste des Rendez-vous', url: '/appointments', badge: null },
     { icon: <Users size={20} />, title: 'Clients', url: '#', badge: '12' },
     { icon: <ParkingCircle size={20} />, title: 'Stationnement', url: '#', badge: null }
   ]
