@@ -38,7 +38,7 @@ const EventList = ({ events, handleDeleteConfirmation }: EventListProps) => {
         ...event,
         title: `Rendez-vous - ${event.vehicle?.brand} ${event.vehicle?.model}`,
         vehicleName: `${event.vehicle?.brand} ${event.vehicle?.model}`,
-        vehicle: event.vehicle?.id.toString() || '',
+        vehicle: event.vehicle?.id|| '',
         start: new Date(event.date),
         end: new Date(event.date),
         service: event.service?.name || '',

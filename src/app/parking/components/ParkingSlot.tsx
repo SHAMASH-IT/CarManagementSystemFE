@@ -1,6 +1,8 @@
 import React from 'react'
 
-const StationnementSlot = ({ number, available }: { number: string; available: boolean }) => {
+
+
+const ParkingSlot = ({ number, available }: { number: string; available: boolean }) => {
   return (
     <div className={`p-4 border rounded-lg text-center ${available ? 'bg-green-300' : 'bg-red-300'}`}>
       <p>Place {number}</p>
@@ -9,4 +11,4 @@ const StationnementSlot = ({ number, available }: { number: string; available: b
   )
 }
 
-export default StationnementSlot
+export default ParkingSlot 

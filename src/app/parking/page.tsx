@@ -2,9 +2,9 @@
 
 import Sidebar from '../common/Sidebar'
 import Navbar from '../common/Navbar'
-import StationnementList from './components/StationnementList'
+import ParkingList from './components/ParkingList'
 
-export default function StationnementPage() {
+export default function ParkingPage() {
   return (
     <div className='flex flex-row h-screen'>
       {/* Sidebar */}
@@ -15,7 +15,7 @@ export default function StationnementPage() {
         <div className='flex flex-1'>
           <div className='flex-1 overflow-hidden relative'>
             {/* Main content: StationnementList */}
-            <StationnementList />
+            <ParkingList />
           </div>
         </div>
       </div>

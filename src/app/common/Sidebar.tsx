@@ -41,7 +41,7 @@ const Sidebar = () => {
     
     { icon: <ClipboardList size={20} />, title: 'Liste des Rendez-vous', url: '/appointments', badge: null },
     { icon: <Users size={20} />, title: 'Clients', url: '#', badge: '12' },
-    { icon: <ParkingCircle size={20} />, title: 'Stationnement', url: '#', badge: null }
+    { icon: <ParkingCircle size={20} />, title: 'Stationnement', url: '/parking', badge: null }
   ]
 
   const settingsItems = [
