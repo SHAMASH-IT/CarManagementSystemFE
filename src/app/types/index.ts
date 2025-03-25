@@ -39,6 +39,12 @@ export interface Appointment {
   service: string
   date: string
   status: string
+  vehicle?: {
+    userId: number
+    brand: string
+    model: string
+    registration: string
+  }
 }
 
 export interface User {
@@ -57,6 +63,7 @@ export interface Vehicle {
   year: number
   registration: string
   userId: number
+  user?: ApiUser
 }
 
 export interface Service {
@@ -88,7 +95,13 @@ export interface ApiAppointment {
   serviceId: number
   vehicleId: number
   service?: Service
-  vehicle?: Vehicle
+  vehicle?: {
+    id: number
+    userId: number
+    brand: string
+    model: string
+    registration: string
+  }
 }
 
 export interface ApiUser {

@@ -1,27 +1,33 @@
 import { useState, useEffect } from 'react';
-
-const API_URL = process.env.NEXT_PUBLIC_APP_URL
-
+import { fetchAllLocations } from '../services/parkingService';
 
 interface ParkingSlot {
   id: number;
-  bloc: string;
-  place: number;
+  parkingName: string;
   status: string;
 }
 
-
-const useParking = () => {
-  const [parkingSlots, setParkingSlots] = useState<ParkingSlot[]>([]); 
+export default function useParking() {
+  const [parkingSlots, setParkingSlots] = useState<ParkingSlot[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`${API_URL}/parking/all-parkings`)
-      .then(res => res.json())
-      .then(data => setParkingSlots(data))
-      .catch(err => console.error(err));
+    const loadParkingSlots = async () => {
+      try {
+        const data = await fetchAllLocations();
+        setParkingSlots(data);
+        setError(null);
+      } catch (err) {
+        setError('Erreur lors du chargement des places de parking');
+        console.error('Error loading parking slots:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadParkingSlots();
   }, []);
 
-  return { parkingSlots };
-};
-
-export default useParking;
+  return { parkingSlots, loading, error };
+}

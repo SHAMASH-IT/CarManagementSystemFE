@@ -41,7 +41,6 @@ const AppointmentModal = ({
 
     if (!vehicle || !service || !date || !time) {
       setError('Veuillez remplir tous les champs obligatoires.')
-
       return
     }
 
@@ -168,7 +167,7 @@ const AppointmentModal = ({
             </div>
           </div>
 
-          {/*<div className='mb-4'>
+         {/* <div className='mb-4'>
             <label className='block text-gray-700 mb-1'>Informations additionnelles</label>
             <textarea
               name='additionalInfo'

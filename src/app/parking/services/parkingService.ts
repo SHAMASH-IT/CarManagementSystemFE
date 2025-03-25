@@ -107,3 +107,20 @@ export const getParkingStats = async () => {
     throw error;
   }
 };
+
+/**
+ * Fetches all locations from the API
+ * @returns Array of locations
+ */
+export const fetchAllLocations = async () => {
+  try {
+    const response = await fetch(`${API_URL}/parking/all-parkings`);
+    const data = await response.json();
+    // Extraire toutes les locations de tous les parkings
+    const allLocations = data.flatMap((parking: any) => parking.locations);
+    return transformParkingSlots(allLocations);
+  } catch (error) {
+    console.error('Error fetching locations:', error);
+    throw error;
+  }
+};

@@ -1,7 +1,7 @@
 'use client'
 
 import type React from 'react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 import type {
   CalendarEvent,
@@ -21,6 +21,9 @@ const CalendarManager = ({ initialEvents = [] }: CalendarViewProps) => {
   const [isEditMode, setIsEditMode] = useState(false)
   const [currentEventId, setCurrentEventId] = useState<string | null>(null)
   const [, setSelectedDate] = useState<Date | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
+  const API_URL = process.env.NEXT_PUBLIC_APP_URL
 
   // Add state for current date and view
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -41,6 +44,52 @@ const CalendarManager = ({ initialEvents = [] }: CalendarViewProps) => {
   }
 
   const [appointmentDetails, setAppointmentDetails] = useState<AppointmentDetails>(initialAppointmentDetails)
+
+  // Fetch appointments from API
+  const fetchAppointments = async () => {
+    try {
+      setIsLoading(true)
+      const response = await fetch(`${API_URL}/appointments/all-appointments`)
+
+      if (!response.ok) {
+        throw new Error('Erreur lors de la récupération des rendez-vous')
+      }
+
+      const data = await response.json()
+
+      // Convert appointments to calendar events
+      const formattedEvents = data.map((event: any) => {
+        console.log('Service name:', event.service?.name); // Log pour déboguer
+        const isWashing = event.service?.name?.toLowerCase().includes('lavage') || 
+                         event.service?.name?.toLowerCase().includes('washing');
+        return {
+          id: event.id.toString(),
+          title: `${event.vehicle?.brand} ${event.vehicle?.model} - ${event.service?.name}`,
+          vehicleName: `${event.vehicle?.brand} ${event.vehicle?.model}`,
+          vehicle: event.vehicle?.id || '',
+          start: new Date(event.date),
+          end: new Date(event.date),
+          service: event.service?.name || '',
+          additionalInfo: `Status: ${event.status}`,
+          className: isWashing ? 'washing-event' : 'maintenance-event'
+        };
+      });
+
+      console.log('Formatted events:', formattedEvents); // Log pour déboguer
+
+      setCalendarEvents(formattedEvents)
+    } catch (err) {
+      console.error('Error fetching appointments:', err)
+      setError('Impossible de récupérer les rendez-vous')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Fetch appointments on component mount and when date changes
+  useEffect(() => {
+    fetchAppointments()
+  }, [currentDate])
 
   const handleSelectSlot = ({ start }: { start: Date }) => {
     setIsEditMode(false)
@@ -70,45 +119,58 @@ const CalendarManager = ({ initialEvents = [] }: CalendarViewProps) => {
     }))
   }
 
-  const handleSubmit = () => {
-    const { vehicle, service, date, time, additionalInfo } = appointmentDetails
-    const start = new Date(date + 'T' + time)
-    const end = new Date(start.getTime() + 60 * 60 * 1000)
+  const handleSubmit = async () => {
+    try {
+      const { vehicle, service, date, time, additionalInfo } = appointmentDetails
+      const start = new Date(date + 'T' + time)
+      const end = new Date(start.getTime() + 60 * 60 * 1000)
 
-    if (isEditMode && currentEventId) {
-      // Update existing event
-      setCalendarEvents(prevEvents =>
-        prevEvents.map(event =>
-          event.id === currentEventId
-            ? {
-                ...event,
-                title: `${vehicle} - ${service}${additionalInfo ? ` : ${additionalInfo}` : ''}`,
-                start,
-                end,
-                vehicle,
-                service,
-                additionalInfo
-              }
-            : event
-        )
-      )
-    } else {
-      // Create new event
-      const newEvent: CalendarEvent = {
-        id: Date.now().toString(),
-        title: `${vehicle} - ${service}${additionalInfo ? ` : ${additionalInfo}` : ''}`,
-        start,
-        end,
-        vehicle,
-        service,
-        additionalInfo
+      if (isEditMode && currentEventId) {
+        // Update existing appointment
+        const response = await fetch(`${API_URL}/appointments/${currentEventId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            date: start.toISOString(),
+            time: time,
+            status: 'PENDING'
+          }),
+        })
+
+        if (!response.ok) {
+          throw new Error('Erreur lors de la mise à jour du rendez-vous')
+        }
+      } else {
+        // Create new appointment
+        const response = await fetch(`${API_URL}/appointments`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            vehicleId: parseInt(vehicle),
+            serviceId: parseInt(service),
+            date: start.toISOString(),
+            time: time,
+            status: 'PENDING'
+          }),
+        })
+
+        if (!response.ok) {
+          throw new Error('Erreur lors de la création du rendez-vous')
+        }
       }
 
-      setCalendarEvents(prevEvents => [...prevEvents, newEvent])
+      // Refresh appointments after successful operation
+      await fetchAppointments()
+      setModalIsOpen(false)
+      setAppointmentDetails(initialAppointmentDetails)
+    } catch (err) {
+      console.error('Error handling appointment:', err)
+      setError('Une erreur est survenue lors du traitement du rendez-vous')
     }
-
-    setModalIsOpen(false)
-    setAppointmentDetails(initialAppointmentDetails)
   }
 
   // Handle edit appointment
@@ -146,11 +208,24 @@ const CalendarManager = ({ initialEvents = [] }: CalendarViewProps) => {
     setDeleteModalIsOpen(true)
   }
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (eventToDelete) {
-      setCalendarEvents(prevEvents => prevEvents.filter(event => event.id !== eventToDelete))
-      setDeleteModalIsOpen(false)
-      setEventToDelete(null)
+      try {
+        const response = await fetch(`${API_URL}/appointments/${eventToDelete}`, {
+          method: 'DELETE',
+        })
+
+        if (!response.ok) {
+          throw new Error('Erreur lors de la suppression du rendez-vous')
+        }
+
+        await fetchAppointments()
+        setDeleteModalIsOpen(false)
+        setEventToDelete(null)
+      } catch (err) {
+        console.error('Error deleting appointment:', err)
+        setError('Impossible de supprimer le rendez-vous')
+      }
     }
   }
 
@@ -243,13 +318,46 @@ const CalendarManager = ({ initialEvents = [] }: CalendarViewProps) => {
         }
 
         .vehicle-calendar .rbc-today {
-          background-color: #e8f4fd;
+          background-color: #f1f5f9;
         }
 
-        .vehicle-calendar .rbc-event {
-          background-color: #3498db;
+        /* Style pour les événements de lavage */
+        .vehicle-calendar .rbc-event.washing-event {
+          background-color: #60a5fa !important; /* Bleu */
+          color: white !important;
+          border: none !important;
           border-radius: 4px;
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+          transition: all 0.2s ease;
+        }
+
+        .vehicle-calendar .rbc-event.washing-event:hover {
+          background-color: #3b82f6 !important;
+          transform: translateY(-1px);
+          box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Style pour les événements d'entretien */
+        .vehicle-calendar .rbc-event.maintenance-event {
+          background-color: #f97316 !important; /* Orange */
+          color: white !important;
+          border: none !important;
+          border-radius: 4px;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+          transition: all 0.2s ease;
+        }
+
+        .vehicle-calendar .rbc-event.maintenance-event:hover {
+          background-color: #ea580c !important;
+          transform: translateY(-1px);
+          box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Style par défaut pour les événements (au cas où) */
+        .vehicle-calendar .rbc-event {
+          background-color: #64748b !important;
+          color: white !important;
+          border: none !important;
         }
 
         .vehicle-calendar .rbc-toolbar button {
@@ -262,9 +370,9 @@ const CalendarManager = ({ initialEvents = [] }: CalendarViewProps) => {
         }
 
         .vehicle-calendar .rbc-toolbar button.rbc-active {
-          background-color: #3498db;
+          background-color: #2c3e50;
           color: white;
-          border-color: #3498db;
+          border-color: #2c3e50;
         }
 
         .vehicle-calendar .rbc-toolbar {

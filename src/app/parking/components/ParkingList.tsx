@@ -1,10 +1,27 @@
 import useParking from '../hooks/useParking';
-import ParkingSlot from '.././components/ParkingSlot';
-import { FaCheckCircle, FaTimesCircle, FaParking, FaCarAlt } from 'react-icons/fa';
-
+import { FaCheckCircle, FaTimesCircle, FaParking, FaCarAlt, FaSpinner } from 'react-icons/fa';
 
 export default function ParkingList() {
-  const { parkingSlots } = useParking(); // Récupération des places dynamiques
+  const { parkingSlots, loading, error } = useParking();
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <FaSpinner className="animate-spin text-4xl text-blue-800" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-red-600 text-center">
+          <p className="text-xl font-semibold">{error}</p>
+          <p className="text-sm mt-2">Veuillez réessayer plus tard</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className='p-4 bg-gray-50 min-h-screen flex flex-col justify-start items-center'>
@@ -15,13 +32,12 @@ export default function ParkingList() {
             <thead className='bg-blue-800 text-white'>
               <tr className='text-lg font-semibold uppercase'>
                 <th className='px-4 py-3 border-b border-gray-200'>ID</th>
-                <th className='px-4 py-3 border-b border-gray-200'>Bloc</th>
-                <th className='px-4 py-3 border-b border-gray-200'>Place</th>
+                <th className='px-4 py-3 border-b border-gray-200'>Nom</th>
                 <th className='px-4 py-3 border-b border-gray-200'>Statut</th>
               </tr>
             </thead>
             <tbody>
-              {parkingSlots.map(place => ( // Utilisation des données dynamiques
+              {parkingSlots.map(place => (
                 <tr
                   key={place.id}
                   className={`transition duration-200 ease-in-out ${
@@ -29,8 +45,7 @@ export default function ParkingList() {
                   }`}
                 >
                   <td className='px-4 py-3 font-medium border-b border-gray-300'>{place.id}</td>
-                  <td className='px-4 py-3 border-b border-gray-300'>{place.bloc}</td>
-                  <td className='px-4 py-3 border-b border-gray-300'>{place.place}</td>
+                  <td className='px-4 py-3 border-b border-gray-300'>{place.parkingName}</td>
                   <td className='px-4 py-3 border-b border-gray-300'>
                     {place.status === 'Disponible' ? (
                       <span className='flex items-center gap-2 text-green-600'>
