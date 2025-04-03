@@ -191,8 +191,7 @@ const AppointmentListClient = ({
     vehicle: '',
     service: '',
     date: '',
-    time: '',
-    additionalInfo: ''
+    time: ''
   })
 
   // Fetch appointments from backend only if no appointments were provided via props

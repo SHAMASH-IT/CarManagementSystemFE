@@ -167,18 +167,6 @@ const AppointmentModal = ({
             </div>
           </div>
 
-         {/* <div className='mb-4'>
-            <label className='block text-gray-700 mb-1'>Informations additionnelles</label>
-            <textarea
-              name='additionalInfo'
-              value={appointmentDetails.additionalInfo}
-              onChange={handleInputChange}
-              className='w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500'
-              rows={3}
-              placeholder='Informations complémentaires'
-            ></textarea>
-          </div>*/}
-
           <div className='flex justify-end space-x-3'>
             <button
               type='button'

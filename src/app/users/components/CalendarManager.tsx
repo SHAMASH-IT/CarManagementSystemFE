@@ -39,8 +39,7 @@ const CalendarManager = ({ initialEvents = [] }: CalendarViewProps) => {
     vehicle: '',
     service: '',
     date: '',
-    time: '',
-    additionalInfo: ''
+    time: ''
   }
 
   const [appointmentDetails, setAppointmentDetails] = useState<AppointmentDetails>(initialAppointmentDetails)
@@ -70,7 +69,6 @@ const CalendarManager = ({ initialEvents = [] }: CalendarViewProps) => {
           start: new Date(event.date),
           end: new Date(event.date),
           service: event.service?.name || '',
-          additionalInfo: `Status: ${event.status}`,
           className: isWashing ? 'washing-event' : 'maintenance-event'
         };
       });
@@ -121,7 +119,7 @@ const CalendarManager = ({ initialEvents = [] }: CalendarViewProps) => {
 
   const handleSubmit = async () => {
     try {
-      const { vehicle, service, date, time, additionalInfo } = appointmentDetails
+      const { vehicle, service, date, time } = appointmentDetails
       const start = new Date(date + 'T' + time)
       const end = new Date(start.getTime() + 60 * 60 * 1000)
 
@@ -192,8 +190,7 @@ const CalendarManager = ({ initialEvents = [] }: CalendarViewProps) => {
         vehicle: eventToEdit.vehicle || '',
         service: eventToEdit.service || '',
         date: formattedDate,
-        time: formattedTime,
-        additionalInfo: eventToEdit.additionalInfo || ''
+        time: formattedTime
       })
 
       setIsEditMode(true)

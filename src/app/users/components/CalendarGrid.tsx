@@ -46,104 +46,110 @@ const CalendarGrid = ({
         onSelectSlot={handleSelectSlot}
         className='vehicle-calendar'
       />
-      <style jsx global>{`
-        /* Style moderne pour le calendrier */
-        .vehicle-calendar {
-          font-family: system-ui, -apple-system, sans-serif;
-          background-color: #ffffff;
-        }
+<style jsx global>{`
+  /* Style moderne et cohérent avec les couleurs du header */
+  .vehicle-calendar {
+    font-family: system-ui, -apple-system, sans-serif;
+    background-color: #ffffff;
+  }
 
-        .vehicle-calendar .rbc-header {
-          background: linear-gradient(to right, rgb(79, 70, 229), rgb(99, 102, 241));
-          color: #ffffff;
-          padding: 12px;
-          font-weight: 600;
-          text-transform: capitalize;
-          border: none;
-          transition: all 0.3s ease;
-        }
+  .vehicle-calendar .rbc-header {
+    background: linear-gradient(to right, rgb(227, 242, 253), rgb(173, 216, 230)); /* Palette bleu clair comme le header */
+    color: #1565c0; /* Texte bleu vif */
+    padding: 12px;
+    font-weight: bold; /* Texte plus marqué */
+    text-transform: capitalize;
+    border: none;
+    transition: all 0.3s ease;
+  }
 
-        .vehicle-calendar .rbc-header:hover {
-          background: linear-gradient(to right, rgb(99, 102, 241), rgb(129, 140, 248));
-        }
+  .vehicle-calendar .rbc-header:hover {
+    background: linear-gradient(to right, rgb(173, 216, 230), rgb(135, 206, 250)); /* Effet lumineux au survol */
+  }
 
-        .vehicle-calendar .rbc-month-view {
-          border-radius: 12px;
-          border: 1px solid rgb(99, 102, 241);
-          background: #ffffff;
-          overflow: hidden;
-          box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.15);
-        }
+  .vehicle-calendar .rbc-month-view {
+    border-radius: 12px;
+    border: 1px solid rgb(173, 216, 230); /* Bordure harmonisée avec le header */
+    background: #ffffff;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(173, 216, 230, 0.2); /* Ombre douce */
+  }
 
-        .vehicle-calendar .rbc-day-bg {
-          transition: all 0.2s ease;
-          background-color: #ffffff;
-        }
+  .vehicle-calendar .rbc-day-bg {
+    transition: all 0.2s ease;
+    background-color: #ffffff; /* Fond blanc propre */
+  }
 
-        .vehicle-calendar .rbc-day-bg:hover {
-          background-color: rgb(238, 242, 255);
-        }
+  .vehicle-calendar .rbc-day-bg:hover {
+    background-color: rgb(227, 242, 253); /* Lumière subtile au survol */
+  }
 
-        .vehicle-calendar .rbc-today {
-          background-color: rgb(224, 231, 255);
-        }
+  .vehicle-calendar .rbc-today {
+    background-color: rgb(209, 233, 252); /* Accent bleu clair pour "aujourd'hui" */
+    border-radius: 6px; /* Arrondi pour douceur */
+  }
 
-        .vehicle-calendar .rbc-event {
-          background: linear-gradient(to right, rgb(79, 70, 229), rgb(99, 102, 241));
-          border: none;
-          border-radius: 6px;
-          box-shadow: 0 2px 4px rgba(79, 70, 229, 0.25);
-          padding: 4px 8px;
-          color: #ffffff;
-          font-weight: 500;
-          transition: all 0.2s ease;
-        }
+  .vehicle-calendar .rbc-event {
+    background: linear-gradient(to right, rgb(173, 216, 230), rgb(135, 206, 250)); /* Gradient bleu élégant */
+    border: none;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(135, 206, 250, 0.3); /* Ombre subtile */
+    padding: 6px 10px; /* Ajustement de l'espace */
+    color: #ffffff; /* Texte blanc pour contraste */
+    font-weight: 600; /* Texte marqué */
+    transition: all 0.3s ease; /* Transition fluide */
+  }
 
-        .vehicle-calendar .rbc-event:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 4px 6px rgba(79, 70, 229, 0.35);
-          background: linear-gradient(to right, rgb(99, 102, 241), rgb(129, 140, 248));
-        }
+  .vehicle-calendar .rbc-event:hover {
+    transform: translateY(-2px); /* Effet de levée au survol */
+    box-shadow: 0 4px 6px rgba(135, 206, 250, 0.4); /* Ombre amplifiée */
+    background: linear-gradient(to right, rgb(135, 206, 250), rgb(96, 185, 255)); /* Gradient accentué */
+  }
 
-        .vehicle-calendar .rbc-off-range-bg {
-          background-color: rgb(248, 250, 252);
-        }
+  .vehicle-calendar .rbc-off-range-bg {
+    background-color: rgb(240, 248, 253); /* Fond bleu doux pour jours hors plage */
+  }
 
-        .vehicle-calendar .rbc-date-cell {
-          padding: 8px;
-          font-weight: 500;
-          color: rgb(79, 70, 229);
-        }
+  .vehicle-calendar .rbc-date-cell {
+    padding: 10px; /* Espacement plus généreux */
+    font-weight: 500;
+    color: #1565c0; /* Texte principal en bleu header */
+  }
 
-        .vehicle-calendar .rbc-off-range {
-          color: rgb(199, 210, 254);
-        }
+  .vehicle-calendar .rbc-off-range {
+    color: #90caf9; /* Bleu clair pour jours hors plage */
+  }
 
-        .vehicle-calendar .rbc-date-cell.rbc-now {
-          color: rgb(79, 70, 229);
-          font-weight: 700;
-        }
+  .vehicle-calendar .rbc-date-cell.rbc-now {
+    color: #1565c0; /* Accent bleu vif */
+    font-weight: 700; /* Texte en gras */
+  }
 
-        .vehicle-calendar .rbc-row-segment {
-          padding: 2px 4px;
-        }
+  .vehicle-calendar .rbc-row-segment {
+    padding: 4px 6px; /* Ajustement de l'espacement */
+  }
 
-        .vehicle-calendar .rbc-show-more {
-          color: #000000;
-          font-weight: 500;
-          background: transparent;
-        }
+  .vehicle-calendar .rbc-show-more {
+    color: #1565c0; /* Texte cohérent avec le header */
+    font-weight: 600; /* Texte marqué */
+    background: transparent;
+  }
 
-        .vehicle-calendar .rbc-show-more:hover {
-          color: #1e293b;
-          text-decoration: underline;
-        }
+  .vehicle-calendar .rbc-show-more:hover {
+    color: #0d47a1; /* Accent bleu foncé au survol */
+    text-decoration: underline;
+  }
 
-        /* Masquer les boutons de navigation du calendrier */
-        .vehicle-calendar .rbc-toolbar {
-          display: none;
-        }
-      `}</style>
+  /* Masquer les boutons de navigation du calendrier */
+  .vehicle-calendar .rbc-toolbar {
+    display: none;
+  }
+`}</style>
+
+
+
+
+
     </>
   )
 }

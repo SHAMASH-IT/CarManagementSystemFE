@@ -3,9 +3,11 @@ import { useState, useEffect } from 'react'
 
 import moment from 'moment'
 import { Edit, Trash2 } from 'lucide-react'
+import { toast } from 'react-toastify'
 
 import type { CalendarEvent } from '../../types/index'
-import UpdateAppointmentModal from './UpdateAppointmentModal' // Import the modal component
+import UpdateAppointmentModal from './UpdateAppointmentModal'
+import DeleteConfirmationModal from './DeleteConfirmationModal'
 
 interface EventListProps {
   events: CalendarEvent[]
@@ -16,7 +18,9 @@ interface EventListProps {
 const EventList = ({ events, handleDeleteConfirmation }: EventListProps) => {
   const [eventsList, setEvents] = useState<CalendarEvent[]>([])
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [appointmentToUpdate, setAppointmentToUpdate] = useState<string | null>(null)
+  const [appointmentToDelete, setAppointmentToDelete] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const API_URL = process.env.NEXT_PUBLIC_APP_URL
@@ -41,8 +45,7 @@ const EventList = ({ events, handleDeleteConfirmation }: EventListProps) => {
         vehicle: event.vehicle?.id|| '',
         start: new Date(event.date),
         end: new Date(event.date),
-        service: event.service?.name || '',
-        additionalInfo: ''
+        service: event.service?.name || ''
       }))
 
       setEvents(formattedEvents)
@@ -89,9 +92,13 @@ const EventList = ({ events, handleDeleteConfirmation }: EventListProps) => {
       // Rafraîchir la liste des rendez-vous
       await fetchAppointments()
       
+      // Afficher une notification de succès
+      toast.success('Rendez-vous annulé avec succès')
+      
     } catch (err: any) {
       console.error('Error deleting appointment:', err)
       setError(err.message || 'Une erreur est survenue lors de la suppression du rendez-vous')
+      toast.error(err.message || 'Une erreur est survenue lors de l\'annulation du rendez-vous')
     } finally {
       setIsLoading(false)
     }
@@ -99,8 +106,16 @@ const EventList = ({ events, handleDeleteConfirmation }: EventListProps) => {
 
   // Fonction pour confirmer la suppression
   const confirmDelete = (eventId: string) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce rendez-vous ?')) {
-      handleDelete(eventId)
+    setAppointmentToDelete(eventId)
+    setIsDeleteModalOpen(true)
+  }
+
+  // Fonction pour gérer la confirmation de suppression
+  const handleDeleteConfirm = async () => {
+    if (appointmentToDelete) {
+      await handleDelete(appointmentToDelete)
+      setIsDeleteModalOpen(false)
+      setAppointmentToDelete(null)
     }
   }
 
@@ -141,10 +156,10 @@ const EventList = ({ events, handleDeleteConfirmation }: EventListProps) => {
                   <strong>Vehicle:</strong> {event.vehicleName}
                 </p>
                 <p>
-                  <strong>Date:</strong> {moment(event.start).format('DD/MM/YYYY')}
+                  <strong>Date:</strong> {moment.utc(event.start).format('DD/MM/YYYY')}
                 </p>
                 <p>
-                  <strong>Heure:</strong> {moment(event.start).format('HH:mm')} - {moment(event.end).format('HH:mm')}
+                  <strong>Heure:</strong> {moment.utc(event.start).format('HH:mm')} - {moment.utc(event.end).format('HH:mm')}
                 </p>
               </div>
             </div>
@@ -160,6 +175,17 @@ const EventList = ({ events, handleDeleteConfirmation }: EventListProps) => {
         onClose={() => setIsUpdateModalOpen(false)}
         appointmentId={appointmentToUpdate}
         onUpdateSuccess={handleUpdateSuccess}
+      />
+
+      {/* Add the DeleteConfirmationModal component */}
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false)
+          setAppointmentToDelete(null)
+        }}
+        onConfirm={handleDeleteConfirm}
+        eventId={appointmentToDelete}
       />
     </div>
   )

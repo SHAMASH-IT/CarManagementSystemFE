@@ -81,7 +81,6 @@ export interface CalendarEvent {
   vehicle: string
   vehicleName: string
   service: string
-  additionalInfo: string
 }
 
 export type CalendarView = 'month' | 'day' | 'list'
@@ -152,7 +151,6 @@ export interface AppointmentDetails {
   service: string
   date: string
   time: string
-  additionalInfo: string
 }
 
 /*export interface UserDetails {

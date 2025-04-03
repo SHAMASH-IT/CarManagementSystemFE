@@ -103,7 +103,7 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({ appointments: initi
                       {appointment.service}
                     </td>
                     <td className='p-3 text-gray-700 dark:text-gray-300 md:border md:border-gray-300 text-left block md:table-cell'>
-                      {moment.utc(appointment.date).local().format('DD/MM/YYYY HH:mm')}
+                      {moment(appointment.date).subtract(2, 'hours').format('DD/MM/YYYY HH:mm')}
                     </td>
                     <td
                       className={`p-3 md:border md:border-gray-300 text-left block md:table-cell ${statusStyle.container}`}

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 
 import moment from 'moment'
+import { toast } from 'react-toastify'
 
 import type { CalendarEvent } from '../../types/index'
 
@@ -54,7 +55,7 @@ const UpdateAppointmentModal = ({ isOpen, onClose, appointmentId, onUpdateSucces
       }
 
       // Format the date and time from the appointment data
-      const appointmentDate = moment(appointmentData.date)
+      const appointmentDate = moment.utc(appointmentData.date)
       setDate(appointmentDate.format('YYYY-MM-DD'))
       setTime(appointmentDate.format('HH:mm'))
     } catch (err) {
@@ -71,16 +72,15 @@ const UpdateAppointmentModal = ({ isOpen, onClose, appointmentId, onUpdateSucces
     setError('')
 
     try {
-      // Créer une date avec le fuseau horaire local
-      const [hours, minutes] = time.split(':').map(Number)
-      const adjustedHours = hours > 0 ? hours - 1 : 23
-      const adjustedTime = `${String(adjustedHours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
+      // Créer une date ISO avec la date et l'heure sélectionnées
+      // Utiliser un format ISO standard sans décalage horaire
+      const dateTime = `${date}T${time}:00.000Z`
 
       console.log('Sending update data:', {
-        date: date,
-        time: adjustedTime
+        date: dateTime
       })
 
+      // Envoyer la date et l'heure séparément comme le backend pourrait s'y attendre
       const response = await fetch(`${API_URL}/appointments/update/${appointmentId}`, {
         method: 'PATCH',
         headers: {
@@ -88,7 +88,7 @@ const UpdateAppointmentModal = ({ isOpen, onClose, appointmentId, onUpdateSucces
         },
         body: JSON.stringify({
           date: date,
-          time: adjustedTime
+          time: time
         }),
       })
 
@@ -100,11 +100,13 @@ const UpdateAppointmentModal = ({ isOpen, onClose, appointmentId, onUpdateSucces
       }
 
       console.log('Success response:', responseData)
+      toast.success('Rendez-vous modifié avec succès')
       onUpdateSuccess()
       onClose()
     } catch (err: any) {
       console.error('Full error:', err)
       setError(err.message || 'Une erreur est survenue lors de la mise à jour du rendez-vous')
+      toast.error(err.message || 'Une erreur est survenue lors de la mise à jour du rendez-vous')
     } finally {
       setIsLoading(false)
     }
