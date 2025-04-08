@@ -149,23 +149,56 @@ const Navbar = () => {
       setSelectedResult(null)
       let endpoint = ""
 
+      // D'abord, récupérer tous les rendez-vous pour debug
+      const allAppointmentsEndpoint = `${API_URL}/appointments/all-appointments`
+      console.log("Récupération de tous les rendez-vous...")
+      const allAppointmentsResponse = await fetch(allAppointmentsEndpoint)
+      const allAppointments = await allAppointmentsResponse.json()
+      console.log("Tous les rendez-vous disponibles:", allAppointments)
+      
+      // Afficher les dates des rendez-vous disponibles
+      allAppointments.forEach((appointment: any, index: number) => {
+        console.log(`Rendez-vous ${index + 1}:`, {
+          date: appointment.date,
+          dateFormatée: moment(appointment.date).format('YYYY-MM-DD'),
+          vehicle: appointment.vehicle
+        })
+      })
+
       if (searchType === "date") {
-        const formattedDate = moment(searchQuery).format("YYYY-MM-DD")
-        console.log("Date recherchée:", formattedDate)
-        if (!formattedDate || formattedDate === "Invalid date") {
+        // Vérifier si la date est valide
+        if (!searchQuery) {
+          throw new Error("Veuillez sélectionner une date")
+        }
+        
+        // Convertir la date en objet moment et s'assurer qu'elle est au début de la journée
+        const momentDate = moment(searchQuery).startOf('day')
+        console.log("Date sélectionnée:", searchQuery)
+        console.log("Date moment (début de journée):", momentDate.format())
+        
+        if (!momentDate.isValid()) {
           throw new Error("Format de date invalide")
         }
+        
+        // Formater la date en YYYY-MM-DD pour éviter les problèmes de fuseau horaire
+        const formattedDate = momentDate.format('YYYY-MM-DD')
+        console.log("Date formatée pour l'API:", formattedDate)
+        
         endpoint = `${API_URL}/appointments/date-appointments/${formattedDate}`
+        console.log("URL de recherche (date):", endpoint)
       } else {
         if (isNaN(Number(searchQuery))) {
           throw new Error("ID du véhicule invalide. Utilisez un nombre")
         }
         endpoint = `${API_URL}/appointments/vehicle-appointments/${searchQuery}`
+        console.log("URL de recherche (véhicule):", endpoint)
       }
 
-      console.log("URL de recherche:", endpoint)
+      console.log("Envoi de la requête à:", endpoint)
 
       const response = await fetch(endpoint)
+      console.log("Statut de la réponse:", response.status)
+      
       if (!response.ok) {
         const errorData = await response.text()
         console.error("Erreur API:", errorData)
@@ -173,6 +206,8 @@ const Navbar = () => {
       }
 
       const data = await response.json()
+      console.log("Données reçues:", data)
+      
       if (!Array.isArray(data)) {
         console.error("Format de données invalide:", data)
         throw new Error("Format de données invalide reçu du serveur")
@@ -180,7 +215,8 @@ const Navbar = () => {
 
       setSearchResults(data as SearchResult[])
       if (data.length === 0) {
-        setError("Aucun rendez-vous trouvé")
+        const formattedDate = moment(searchQuery).format("DD/MM/YYYY")
+        setError(`Aucun rendez-vous trouvé pour le ${formattedDate}. Veuillez vérifier la date ou essayer une autre date.`)
       }
     } catch (err: any) {
       console.error("Erreur complète:", err)
@@ -286,7 +322,11 @@ const Navbar = () => {
                       placeholder={searchType === "date" ? "Sélectionnez une date" : "ID du véhicule"}
                       className="w-full pl-8 pr-2 py-2 bg-transparent text-sm text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-0"
                       value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value
+                        console.log("Nouvelle valeur:", value)
+                        setSearchQuery(value)
+                      }}
                       onFocus={() => setSearchFocused(true)}
                       onBlur={() => setSearchFocused(false)}
                       onKeyPress={(e) => {

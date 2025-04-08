@@ -10,6 +10,7 @@ import {
   ChevronRight,
   UserCircle2,
   ParkingCircle,
+  Box, // Added icon for the Stock button
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 
@@ -28,6 +29,8 @@ const Sidebar = () => {
       setActiveItem('Rendez-vous')
     } else if (pathname === '/parking') {
       setActiveItem('Stationnement')
+    } else if (pathname === '/stock') {
+      setActiveItem('Stock')
     }
   }, [pathname])
 
@@ -40,6 +43,7 @@ const Sidebar = () => {
     { icon: <ClipboardList size={20} className="text-green-500" />, title: 'Liste des Rendez-vous', url: '/appointments' },
     { icon: <Users size={20} className="text-blue-500" />, title: 'Clients', url: '#' },
     { icon: <ParkingCircle size={20} className="text-orange-500" />, title: 'Stationnement', url: '/parking' },
+    { icon: <Box size={20} className="text-purple-500" />, title: 'Stock', url: '/stock' }, // New button for Stock
   ]
 
   return (

@@ -20,7 +20,8 @@ const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, eventId }: Delete
     if (!eventId) return
 
     setIsDeleting(true)
-    console.log('Starting deletion of appointment ID:', eventId)
+    console.log('Début de la suppression du rendez-vous avec ID:', eventId)
+    console.log('URL de l\'API:', `${API_URL}/appointments/cancel/${eventId}`)
 
     try {
       const response = await fetch(`${API_URL}/appointments/cancel/${eventId}`, {
@@ -30,18 +31,23 @@ const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, eventId }: Delete
         }
       })
 
+      console.log('Statut de la réponse:', response.status)
+      console.log('Headers de la réponse:', response.headers)
+
       if (!response.ok) {
-        throw new Error('Erreur lors de la suppression du rendez-vous')
+        const errorData = await response.json()
+        console.error('Erreur détaillée:', errorData)
+        throw new Error(errorData.message || 'Erreur lors de la suppression du rendez-vous')
       }
 
-      console.log('API call successful for deleting appointment:', eventId)
+      console.log('Appel API réussi pour la suppression du rendez-vous:', eventId)
 
       // Call the onConfirm function passed from the parent component
       onConfirm()
 
-      console.log('Appointment successfully deleted')
+      console.log('Rendez-vous supprimé avec succès')
     } catch (err) {
-      console.error('Error deleting appointment:', err)
+      console.error('Erreur lors de la suppression:', err)
       alert('Erreur lors de la suppression du rendez-vous')
     } finally {
       setIsDeleting(false)

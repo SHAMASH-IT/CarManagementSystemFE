@@ -25,6 +25,7 @@ const EventList = ({ events, handleDeleteConfirmation }: EventListProps) => {
   const [error, setError] = useState('')
   const API_URL = process.env.NEXT_PUBLIC_APP_URL
 
+    // Fonction pour récupérer les rendez-vous
   const fetchAppointments = async () => {
     try {
       const response = await fetch(`${API_URL}/appointments/all-appointments`)
@@ -121,7 +122,7 @@ const EventList = ({ events, handleDeleteConfirmation }: EventListProps) => {
 
   return (
     <div className='mb-6'>
-      <h2 className='text-xl font-semibold mb-4'>Liste des rendez-vous</h2>
+     
       {error && (
         <div className='mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded'>
           {error}

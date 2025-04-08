@@ -199,3 +199,21 @@ export interface AppointmentFormData {
   vehicleId: number
   serviceId: number
 }
+
+export interface Stock {
+  id: string
+  name: string
+  stock: number
+  threshold: number
+  price: number
+  categoryId: number
+  category: {
+    id: number
+    name: string
+  }
+}
+
+export interface Category {
+  id: number
+  name: string
+}
