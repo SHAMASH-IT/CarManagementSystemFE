@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { fetchAllLocations } from '../services/parkingService';
 
 interface ParkingSlot {
   id: number;
-  parkingName: string;
-  status: string;
+  name: string;
+  places: number;
+  serviceId: number;
 }
 
 export default function useParking() {
@@ -12,22 +13,23 @@ export default function useParking() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const loadParkingSlots = async () => {
-      try {
-        const data = await fetchAllLocations();
-        setParkingSlots(data);
-        setError(null);
-      } catch (err) {
-        setError('Erreur lors du chargement des places de parking');
-        console.error('Error loading parking slots:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadParkingSlots();
+  const loadParkingSlots = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await fetchAllLocations();
+      setParkingSlots(data);
+      setError(null);
+    } catch (err) {
+      console.error('Error loading parking slots:', err);
+      setError('Erreur lors du chargement des places de parking');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  return { parkingSlots, loading, error };
+  useEffect(() => {
+    loadParkingSlots();
+  }, [loadParkingSlots]);
+
+  return { parkingSlots, loading, error, refreshParkingSlots: loadParkingSlots };
 }

@@ -81,6 +81,7 @@ export interface CalendarEvent {
   vehicle: string
   vehicleName: string
   service: string
+  additionalInfo: any
 }
 
 export type CalendarView = 'month' | 'day' | 'list'

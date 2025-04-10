@@ -124,3 +124,59 @@ export const fetchAllLocations = async () => {
     throw error;
   }
 };
+
+// Crée un nouveau parking
+export const createParking = async (parkingData: { name: string; places: number; serviceId?: number }) => {
+  try {
+    const response = await fetch(`${API_URL}/parking/create-parking`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(parkingData),
+    });
+    if (!response.ok) {
+      throw new Error('Erreur lors de la création du parking');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error creating parking:', error);
+    throw error;
+  }
+};
+
+// Met à jour un parking existant
+export const updateParking = async (id: number, parkingData: { name?: string; places?: number }) => {
+  try {
+    const response = await fetch(`${API_URL}/parking/edit-parking/${id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(parkingData),
+    });
+    if (!response.ok) {
+      throw new Error('Erreur lors de la mise à jour du parking');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error updating parking:', error);
+    throw error;
+  }
+};
+
+// Supprime un parking
+export const deleteParking = async (id: number) => {
+  try {
+    const response = await fetch(`${API_URL}/parking/delete-parking/${id}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      throw new Error('Erreur lors de la suppression du parking');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error deleting parking:', error);
+    throw error;
+  }
+};
