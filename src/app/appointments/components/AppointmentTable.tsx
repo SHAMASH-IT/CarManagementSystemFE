@@ -3,7 +3,7 @@ import React, { useEffect } from 'react'
 import moment from 'moment'
 import 'moment/locale/fr' // Import de la locale française
 
-import { FaCheckCircle, FaTrashAlt } from 'react-icons/fa'
+import { FaCheckCircle, FaTrashAlt, FaTools } from 'react-icons/fa' // Import des icônes nécessaires
 
 import type { AppointmentTableProps } from '../../types/index'
 import { useAppointments } from '../hooks/useAppointments'
@@ -44,13 +44,12 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({ appointments: initi
         }
       default: // RESERVED
         return {
-          container: 'text-green-600 dark:text-green-400', // Green styling for reserved
+          container: 'text-green-600 dark:text-green-400',
           badge: 'bg-green-200 text-green-800',
-          label: 'Réservé' // Changed default to Reserved
+          label: 'Réservé'
         }
     }
   }
-
 
   const displayAppointments = appointments.length > 0 ? appointments : initialAppointments
 
@@ -58,7 +57,6 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({ appointments: initi
 
   return (
     <div className='space-y-6'>
-      {/* Table existante */}
       <div className='overflow-x-auto'>
         <h2 className='mb-4 text-2xl font-bold text-blue-700 dark:text-blue-300'>Détails des Rendez-vous</h2>
         <div className='inline-block min-w-full overflow-hidden rounded-lg shadow-md'>
@@ -117,12 +115,7 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({ appointments: initi
                     </td>
                     <td className='p-3 md:border md:border-gray-300 text-left block md:table-cell'>
                       <div className='flex space-x-2'>
-                        {appointment.status !== 'CONFIRMED' && (
-                          <div className='relative group'>
-                         
-
-                          </div>
-                        )}
+                        {/* Icône Rejeter */}
                         <div className='relative group'>
                           <button
                             className='bg-red-500 dark:bg-red-600 text-white p-1 rounded-full hover:bg-red-600 dark:hover:bg-red-700'
@@ -140,6 +133,27 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({ appointments: initi
                           </button>
                           <span className='absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs leading-none text-white bg-red-500 rounded opacity-0 group-hover:opacity-100 z-0'>
                             Rejeter
+                          </span>
+                        </div>
+
+                        {/* Icône Intervenir */}
+                        <div className='relative group'>
+                          <button
+                            className='bg-blue-500 dark:bg-blue-600 text-white p-1 rounded-full hover:bg-blue-600 dark:hover:bg-blue-700'
+                            onClick={() => {
+                              console.log(`Début de l'intervention pour le rendez-vous ${appointment.id}`)
+
+                              acceptAppointmentById(appointment.id)
+                                .then(() => console.log(`Intervention commencée pour le rendez-vous ${appointment.id}`))
+                                .catch(err =>
+                                  console.error(`Erreur lors du début de l'intervention ${appointment.id}:`, err)
+                                )
+                            }}
+                          >
+                            <FaTools className='w-5 h-5' />
+                          </button>
+                          <span className='absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs leading-none text-white bg-blue-500 rounded opacity-0 group-hover:opacity-100 z-0'>
+                            Intervenir
                           </span>
                         </div>
                       </div>

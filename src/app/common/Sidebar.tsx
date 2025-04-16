@@ -10,7 +10,8 @@ import {
   ChevronRight,
   UserCircle2,
   ParkingCircle,
-  Box, // Added icon for the Stock button
+  Box,
+  Wrench, // Icône ajoutée pour l'intervention
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 
@@ -31,6 +32,8 @@ const Sidebar = () => {
       setActiveItem('Stationnement')
     } else if (pathname === '/stock') {
       setActiveItem('Stock')
+    } else if (pathname === '/progress') {
+      setActiveItem('Intervention')
     }
   }, [pathname])
 
@@ -43,7 +46,8 @@ const Sidebar = () => {
     { icon: <ClipboardList size={20} className="text-green-500" />, title: 'Liste des Rendez-vous', url: '/appointments' },
     { icon: <Users size={20} className="text-blue-500" />, title: 'Clients', url: '#' },
     { icon: <ParkingCircle size={20} className="text-orange-500" />, title: 'Stationnement', url: '/parking' },
-    { icon: <Box size={20} className="text-purple-500" />, title: 'Stock', url: '/stock' }, // New button for Stock
+    { icon: <Box size={20} className="text-purple-500" />, title: 'Stock', url: '/stock' },
+    { icon: < Wrench size={20} className="text-red-500" />, title: 'Intervention', url: '/progress' }, // Nouveau bouton Intervention
   ]
 
   return (
@@ -92,7 +96,7 @@ const Sidebar = () => {
           )}
         </div>
 
-        {/* Menu Items with Minimal Spacing */}
+        {/* Menu Items */}
         <div className="flex-1 overflow-y-auto py-6">
           <ul className="space-y-2 px-4">
             {menuItems.map((item) => (
