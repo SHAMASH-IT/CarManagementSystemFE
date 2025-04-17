@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import useParking from '../hooks/useParking';
-import { FaCheckCircle, FaTimesCircle, FaParking, FaCarAlt, FaSpinner, FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
+import { FaCheckCircle, FaTimesCircle, FaParking, FaCarAlt, FaSpinner, FaTrash, FaPlus, FaPencilAlt } from 'react-icons/fa';
 import ParkingForm from './ParkingForm';
 import { deleteParking } from '../services/parkingService';
 
@@ -10,9 +10,17 @@ export default function ParkingList() {
   const [editingParking, setEditingParking] = useState<any>(null);
   const [deleteLoading, setDeleteLoading] = useState<number | null>(null);
 
-  const handleEdit = (parking: any) => {
-    setEditingParking(parking);
+  const handleAdd = () => {
+    setEditingParking(null);
     setShowForm(true);
+  };
+
+  const handleEdit = () => {
+    const parking = parkingSlots[0];
+    if (parking) {
+      setEditingParking(parking);
+      setShowForm(true);
+    }
   };
 
   const handleDelete = async (id: number) => {
@@ -60,12 +68,20 @@ export default function ParkingList() {
       <div className='w-full max-w-6xl bg-white shadow-lg rounded-xl p-6 mt-0 h-full'>
         <div className="flex justify-between items-center mb-6">
           <h1 className='text-4xl font-bold text-blue-800 tracking-wide'>Gestion du Parking 🅿️</h1>
-          <button
-            onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-          >
-            <FaPlus /> Ajouter un parking
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={handleAdd}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
+            >
+              <FaPlus /> Ajouter un parking
+            </button>
+            <button
+              onClick={handleEdit}
+              className="flex items-center gap-2 px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition-colors duration-200"
+            >
+              <FaPencilAlt /> Modifier le parking
+            </button>
+          </div>
         </div>
 
         {showForm && (
@@ -101,43 +117,35 @@ export default function ParkingList() {
                     place.status === 'Disponible' ? 'bg-green-50 hover:bg-green-100' : 'bg-red-50 hover:bg-red-100'
                   }`}
                 >
-                  <td className='px-4 py-3 font-medium border-b border-gray-300'>{place.id}</td>
-                  <td className='px-4 py-3 border-b border-gray-300'>{place.parkingName}</td>
-                  <td className='px-4 py-3 border-b border-gray-300'>
-                    {place.status === 'Disponible' ? (
-                      <span className='flex items-center gap-2 text-green-600'>
-                        <FaCheckCircle className='text-green-500' />
-                        <span>Disponible</span>
-                      </span>
-                    ) : (
-                      <span className='flex items-center gap-2 text-red-600'>
-                        <FaTimesCircle className='text-red-500' />
-                        <span>Occupée</span>
-                      </span>
-                    )}
-                  </td>
-                  <td className='px-4 py-3 border-b border-gray-300'>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleEdit(place)}
-                        className="p-1 text-blue-600 hover:text-blue-800"
-                        title="Modifier"
-                      >
-                        <FaEdit />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(place.id)}
-                        className="p-1 text-red-600 hover:text-red-800"
-                        title="Supprimer"
-                        disabled={deleteLoading === place.id}
-                      >
-                        {deleteLoading === place.id ? (
-                          <FaSpinner className="animate-spin" />
-                        ) : (
-                          <FaTrash />
-                        )}
-                      </button>
+                  <td className='px-4 py-3 border-b border-gray-200'>{place.id}</td>
+                  <td className='px-4 py-3 border-b border-gray-200'>{place.name}</td>
+                  <td className='px-4 py-3 border-b border-gray-200'>
+                    <div className='flex items-center gap-2'>
+                      {place.status === 'Disponible' ? (
+                        <>
+                          <FaCheckCircle className='text-green-500' />
+                          <span className='text-green-700'>Disponible</span>
+                        </>
+                      ) : (
+                        <>
+                          <FaTimesCircle className='text-red-500' />
+                          <span className='text-red-700'>Occupé</span>
+                        </>
+                      )}
                     </div>
+                  </td>
+                  <td className='px-4 py-3 border-b border-gray-200'>
+                    <button
+                      onClick={() => handleDelete(place.id)}
+                      className="text-red-600 hover:text-red-800 transition-colors duration-200"
+                      disabled={deleteLoading === place.id}
+                    >
+                      {deleteLoading === place.id ? (
+                        <FaSpinner className="animate-spin" />
+                      ) : (
+                        <FaTrash />
+                      )}
+                    </button>
                   </td>
                 </tr>
               ))}

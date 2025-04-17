@@ -76,20 +76,22 @@ export default function ParkingForm({ parking, onSuccess, onCancel }: ParkingFor
         />
       </div>
 
-      <div>
-        <label htmlFor="serviceId" className="block text-sm font-medium text-gray-700">
-          ID du service
-        </label>
-        <input
-          type="number"
-          id="serviceId"
-          value={formData.serviceId}
-          onChange={(e) => setFormData(prev => ({ ...prev, serviceId: parseInt(e.target.value) }))}
-          className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2"
-          required
-          min="1"
-        />
-      </div>
+      {!parking && (
+        <div>
+          <label htmlFor="serviceId" className="block text-sm font-medium text-gray-700">
+            ID du service
+          </label>
+          <input
+            type="number"
+            id="serviceId"
+            value={formData.serviceId}
+            onChange={(e) => setFormData(prev => ({ ...prev, serviceId: parseInt(e.target.value) }))}
+            className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2"
+            required
+            min="1"
+          />
+        </div>
+      )}
 
       {error && (
         <div className="text-red-600 text-sm">
@@ -101,14 +103,14 @@ export default function ParkingForm({ parking, onSuccess, onCancel }: ParkingFor
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+          className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md"
           disabled={loading}
         >
           Annuler
         </button>
         <button
           type="submit"
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md disabled:opacity-50"
           disabled={loading}
         >
           {loading ? 'Enregistrement...' : parking ? 'Modifier' : 'Ajouter'}

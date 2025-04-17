@@ -1,13 +1,8 @@
-// src/services/parkingService.ts
-
 import { transformParkingSlots } from './ApiTransformData';
 
-const API_URL = process.env.NEXT_PUBLIC_APP_URL
+const API_URL = process.env.NEXT_PUBLIC_APP_URL;
 
-/**
- * Fetches all parking slots from the API and transforms them to the frontend format
- * @returns Transformed parking slots data
- */
+// Récupère tous les emplacements de parking
 export const fetchParkingSlots = async () => {
   try {
     const response = await fetch(`${API_URL}/parking/all-parkings`);
@@ -19,12 +14,7 @@ export const fetchParkingSlots = async () => {
   }
 };
 
-/**
- * Updates the status of a parking slot
- * @param id - The ID of the parking slot to update
- * @param status - The new status ('EMPTY' or 'OCCUPIED')
- * @returns The updated parking slot data
- */
+// Met à jour le statut d'une place de parking
 export const updateParkingSlotStatus = async (id: number, status: 'EMPTY' | 'OCCUPIED') => {
   try {
     const response = await fetch(`${API_URL}/parking/${id}`, {
@@ -41,12 +31,7 @@ export const updateParkingSlotStatus = async (id: number, status: 'EMPTY' | 'OCC
   }
 };
 
-/**
- * Assigns a vehicle to a parking slot
- * @param locationId - The ID of the parking location
- * @param vehicleId - The ID of the vehicle
- * @returns The created position data
- */
+// Assigne un véhicule à une place de parking
 export const assignVehicleToParking = async (locationId: number, vehicleId: number) => {
   try {
     const response = await fetch(`${API_URL}/position`, {
@@ -63,11 +48,7 @@ export const assignVehicleToParking = async (locationId: number, vehicleId: numb
   }
 };
 
-/**
- * Removes a vehicle from a parking slot
- * @param positionId - The ID of the position to remove
- * @returns Success status
- */
+// Retire un véhicule d'une place de parking
 export const removeVehicleFromParking = async (positionId: number) => {
   try {
     const response = await fetch(`${API_URL}/position/${positionId}`, {
@@ -80,10 +61,7 @@ export const removeVehicleFromParking = async (positionId: number) => {
   }
 };
 
-/**
- * Fetches all parking areas
- * @returns List of parking areas
- */
+// Récupère toutes les zones de parking
 export const fetchParkingAreas = async () => {
   try {
     const response = await fetch(`${API_URL}/parking/areas`);
@@ -94,10 +72,7 @@ export const fetchParkingAreas = async () => {
   }
 };
 
-/**
- * Gets parking usage statistics
- * @returns Parking usage statistics
- */
+// Récupère les statistiques de parking
 export const getParkingStats = async () => {
   try {
     const response = await fetch(`${API_URL}/parking/stats`);
@@ -108,10 +83,7 @@ export const getParkingStats = async () => {
   }
 };
 
-/**
- * Fetches all locations from the API
- * @returns Array of locations
- */
+// Récupère tous les emplacements
 export const fetchAllLocations = async () => {
   try {
     const response = await fetch(`${API_URL}/parking/all-parkings`);
@@ -168,7 +140,7 @@ export const updateParking = async (id: number, parkingData: { name?: string; pl
 // Supprime un parking
 export const deleteParking = async (id: number) => {
   try {
-    const response = await fetch(`${API_URL}/parking/delete-parking/${id}`, {
+    const response = await fetch(`${API_URL}/parking/${id}`, {
       method: 'DELETE',
     });
     if (!response.ok) {

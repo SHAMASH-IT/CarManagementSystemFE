@@ -71,20 +71,7 @@ const VerticalNav = (props: VerticalNavProps) => {
   const breakpointReached = useMediaQuery(customBreakpoint ?? (breakpoint ? mergedBreakpoints[breakpoint] : breakpoint))
 
   // UseEffect, update verticalNav state to set initial values and update values on change
-  useEffect(() => {
-    updateVerticalNavState({
-      width,
-      transitionDuration,
-      isBreakpointReached: breakpointReached
-    })
-
-    if (!breakpointReached) {
-      updateVerticalNavState({ isToggled: false })
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [width, breakpointReached, updateVerticalNavState])
-
-  // Handle Backdrop(Content Overlay) Click
+ 
   const handleBackdropClick = () => {
     // Close the verticalNav
     updateVerticalNavState({ isToggled: false })

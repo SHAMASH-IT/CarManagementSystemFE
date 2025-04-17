@@ -1,7 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, ReactNode } from 'react';
 import { fetchAllLocations } from '../services/parkingService';
 
 interface ParkingSlot {
+  parkingName: ReactNode;
+  status: string;
   id: number;
   name: string;
   places: number;
