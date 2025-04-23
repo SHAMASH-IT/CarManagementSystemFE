@@ -24,7 +24,9 @@ export const mapStatusToFrontend = (status: string): string => {
     case 'CANCELLED':
       return 'CANCELED'
     case 'RESERVED':
+      return 'RESERVED'
     case 'PENDING':
+      return 'PENDING'
     default:
       return 'PENDING'
   }

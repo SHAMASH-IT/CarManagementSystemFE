@@ -1,24 +1,69 @@
 import { useState, useEffect } from 'react'
 
-import { fetchAppointments, acceptAppointment, deleteAppointment } from '../services/appointmentService'
+import { 
+  fetchAppointments, 
+  acceptAppointment, 
+  deleteAppointment,
+  getPendingAppointments,
+  getReservedAppointments,
+  updateAppointmentStatusToReserved
+} from '../services/appointmentService'
 import type { Appointment } from '../../types'
 
 export const useAppointments = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([])
+  const [pendingAppointments, setPendingAppointments] = useState<Appointment[]>([])
+  const [reservedAppointments, setReservedAppointments] = useState<Appointment[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const loadAppointments = () => {
-    setLoading(true)
-    fetchAppointments()
-      .then(setAppointments)
-      .catch(err => setError(err.message))
-      .finally(() => setLoading(false))
+  const loadAppointments = async () => {
+    try {
+      setLoading(true)
+      const data = await fetchAppointments()
+      setAppointments(data)
+      
+      // Filtrer les rendez-vous par statut
+      setPendingAppointments(data.filter(apt => apt.status === 'PENDING'))
+      setReservedAppointments(data.filter(apt => apt.status === 'RESERVED'))
+      
+      setError(null)
+    } catch (err: any) {
+      console.error('Error loading appointments:', err)
+      setError(err.message || 'Failed to load appointments')
+    } finally {
+      setLoading(false)
+    }
   }
 
+  // Charger tous les rendez-vous au montage du composant
   useEffect(() => {
     loadAppointments()
   }, [])
+
+  const updateToReserved = async (id: string | number) => {
+    try {
+      setLoading(true)
+      const numericId = typeof id === 'string' ? parseInt(id) : id
+      const updatedAppointment = await updateAppointmentStatusToReserved(numericId)
+
+      // Mettre à jour tous les états
+      setAppointments(prev => prev.map(apt => (apt.id === updatedAppointment.id ? updatedAppointment : apt)))
+      setPendingAppointments(prev => prev.filter(apt => apt.id !== id.toString()))
+      setReservedAppointments(prev => [...prev, updatedAppointment])
+
+      // Recharger les rendez-vous pour s'assurer que les données sont à jour
+      await loadAppointments()
+
+      return updatedAppointment
+    } catch (err: any) {
+      console.error('Error updating appointment to reserved:', err)
+      setError(err.message || 'Failed to update appointment')
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const acceptAppointmentById = async (id: string | number) => {
     try {
@@ -26,13 +71,14 @@ export const useAppointments = () => {
       const numericId = typeof id === 'string' ? parseInt(id) : id
       const updatedAppointment = await acceptAppointment(numericId)
 
+      // Mettre à jour tous les états
       setAppointments(prev => prev.map(apt => (apt.id === updatedAppointment.id ? updatedAppointment : apt)))
-
-      loadAppointments()
+      setReservedAppointments(prev => prev.filter(apt => apt.id !== id.toString()))
 
       return updatedAppointment
     } catch (err: any) {
-      setError(err.message)
+      console.error('Error accepting appointment:', err)
+      setError(err.message || 'Failed to accept appointment')
       throw err
     } finally {
       setLoading(false)
@@ -43,11 +89,14 @@ export const useAppointments = () => {
     try {
       setLoading(true)
       await deleteAppointment(parseInt(id))
+      
+      // Mettre à jour tous les états
       setAppointments(prev => prev.filter(apt => apt.id !== id))
-
-      loadAppointments()
+      setPendingAppointments(prev => prev.filter(apt => apt.id !== id))
+      setReservedAppointments(prev => prev.filter(apt => apt.id !== id))
     } catch (err: any) {
-      setError(err.message)
+      console.error('Error deleting appointment:', err)
+      setError(err.message || 'Failed to delete appointment')
       throw err
     } finally {
       setLoading(false)
@@ -56,8 +105,11 @@ export const useAppointments = () => {
 
   return {
     appointments,
+    pendingAppointments,
+    reservedAppointments,
     loading,
     error,
+    updateToReserved,
     acceptAppointmentById,
     deleteAppointmentById,
     refreshAppointments: loadAppointments

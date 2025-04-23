@@ -6,6 +6,12 @@ import { useProgress } from "../hooks/useProgress"
 import { type Intervention, Status, type UpdateInterventionDto } from "../services/progress.service"
 import Sidebar from "../../common/Sidebar"
 import Navbar from "../../common/Navbar"
+import { FaPrint, FaPlus } from 'react-icons/fa'
+import html2canvas from 'html2canvas'
+import jsPDF from 'jspdf'
+import { toast } from 'react-hot-toast'
+import { Toaster } from 'react-hot-toast'
+import FacturePdf from './FacturePdf'
 
 export default function InterventionManagement({ interventionId }: { interventionId: number }) {
   const router = useRouter()
@@ -16,6 +22,8 @@ export default function InterventionManagement({ interventionId }: { interventio
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [validationErrors, setValidationErrors] = useState<string[]>([])
   const [successMessage, setSuccessMessage] = useState<string>("")
+  const [showFacturePdf, setShowFacturePdf] = useState(false)
+  const [showAddPieceModal, setShowAddPieceModal] = useState(false)
 
   useEffect(() => {
     loadIntervention()
@@ -160,6 +168,48 @@ export default function InterventionManagement({ interventionId }: { interventio
     }
   }
 
+  const generatePDF = async () => {
+    const invoiceElement = document.getElementById('invoice-content')
+    if (!invoiceElement) return
+
+    try {
+      const canvas = await html2canvas(invoiceElement, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      })
+
+      const imgData = canvas.toDataURL('image/png')
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      })
+
+      const imgWidth = 210
+      const pageHeight = 297
+      const imgHeight = (canvas.height * imgWidth) / canvas.width
+      let heightLeft = imgHeight
+      let position = 0
+
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
+      heightLeft -= pageHeight
+
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight
+        pdf.addPage()
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
+        heightLeft -= pageHeight
+      }
+
+      pdf.save(`facture-intervention-${interventionId}.pdf`)
+    } catch (error) {
+      console.error('Erreur lors de la génération du PDF:', error)
+      toast.error('Erreur lors de la génération du PDF')
+    }
+  }
+
   if (loading) {
     return (
       <div className="container mx-auto p-4">
@@ -183,13 +233,14 @@ export default function InterventionManagement({ interventionId }: { interventio
 
   return (
     <div className="flex min-h-screen bg-gray-50">
+      <Toaster position="top-right" />
       <Sidebar />
       <div className="flex-1 flex flex-col">
         <Navbar />
         <main className="flex-1 p-6">
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h1 className="text-2xl font-bold">Intervention #{interventionId}</h1>
+              <h1 className="text-2xl font-bold">Intervention ID: {interventionId}</h1>
               <p className="text-gray-500">
                 {intervention.appointment
                   ? `Véhicule: ${intervention.appointment.vehicle?.brand} ${intervention.appointment.vehicle?.model}`
@@ -305,9 +356,20 @@ export default function InterventionManagement({ interventionId }: { interventio
                 </div>
               </div>
 
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-3">Pièces détachées</h3>
-                <div className="border rounded-md overflow-hidden">
+              <div className="mt-6">
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="text-lg font-semibold">Pièces détachées</h3>
+                  {isEditing && intervention.status !== Status.COMPLETED && (
+                    <button
+                      onClick={() => setShowAddPieceModal(true)}
+                      className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center gap-2 transition-all duration-200 hover:shadow-md"
+                    >
+                    
+                      Ajouter
+                    </button>
+                  )}
+                </div>
+                <div className="border rounded-md overflow-hidden shadow-sm">
                   <table className="w-full">
                     <thead className="bg-gray-50">
                       <tr>
@@ -317,10 +379,10 @@ export default function InterventionManagement({ interventionId }: { interventio
                         <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">Total (DT)</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y">
+                    <tbody className="divide-y divide-gray-100">
                       {intervention.interventionPieces?.length ? (
                         intervention.interventionPieces.map((piece) => (
-                          <tr key={piece.id}>
+                          <tr key={piece.id} className="hover:bg-gray-50 transition-colors">
                             <td className="px-4 py-2 text-sm font-medium">{piece.piece?.name || "Pièce inconnue"}</td>
                             <td className="px-4 py-2 text-sm">
                               {isEditing && intervention.status !== Status.COMPLETED ? (
@@ -328,7 +390,7 @@ export default function InterventionManagement({ interventionId }: { interventio
                                   type="number"
                                   value={piece.quantity}
                                   onChange={(event) => handlePieceQuantityChange(piece.id, parseInt(event.target.value))}
-                                  className="w-20 p-1 border rounded-md"
+                                  className="w-20 p-1 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                   min="0"
                                 />
                               ) : (
@@ -336,7 +398,7 @@ export default function InterventionManagement({ interventionId }: { interventio
                               )}
                             </td>
                             <td className="px-4 py-2 text-sm text-right">{piece.piece?.price?.toFixed(2) || "0.00"}</td>
-                            <td className="px-4 py-2 text-sm text-right">{piece.totalPrice?.toFixed(2) || "0.00"}</td>
+                            <td className="px-4 py-2 text-sm text-right font-medium">{piece.totalPrice?.toFixed(2) || "0.00"}</td>
                           </tr>
                         ))
                       ) : (
@@ -370,8 +432,11 @@ export default function InterventionManagement({ interventionId }: { interventio
           )}
 
           {activeTab === "invoice" && (
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h2 className="text-xl font-bold mb-4">Facture</h2>
+            <div className="bg-white p-6 rounded-lg shadow-md" id="invoice-content">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold">Facture</h2>
+              
+              </div>
               <p className="text-sm text-gray-500 mb-6">Détails de la facture pour l'intervention #{interventionId}</p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -469,13 +534,24 @@ export default function InterventionManagement({ interventionId }: { interventio
                   <span className="font-bold text-lg">{calculateTotal().toFixed(2)} DT</span>
                 </div>
                 <div className="mt-6 flex gap-2">
-                  <button className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Imprimer</button>
-                  <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                    Télécharger PDF
-                  </button>
+                 
+                  <button
+                  onClick={() => setShowFacturePdf(true)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2"
+                >
+                  <FaPrint />
+                  Imprimer la facture
+                </button>
                 </div>
               </div>
             </div>
+          )}
+
+          {showFacturePdf && intervention && (
+            <FacturePdf
+              intervention={intervention}
+              onClose={() => setShowFacturePdf(false)}
+            />
           )}
         </main>
       </div>

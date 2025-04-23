@@ -122,5 +122,14 @@ export const progressService = {
       throw error;
     }
   },
-  
-}; 
+
+  getCompletedInterventions: async (): Promise<Intervention[]> => {
+    try {
+      const response = await axios.get(`${API_URL}/progress/interventions/completed`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching completed interventions:', error);
+      throw error;
+    }
+  },
+};

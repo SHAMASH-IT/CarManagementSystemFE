@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 
 import moment from 'moment'
-import { Edit, Trash2 } from 'lucide-react'
+import { Edit, Trash2 , Eye } from 'lucide-react'
 import { toast } from 'react-toastify'
 
 import type { CalendarEvent } from '../../types/index'
@@ -135,6 +135,7 @@ const EventList = ({ events, handleDeleteConfirmation }: EventListProps) => {
               <div className='flex justify-between items-center mb-2'>
                 <h3 className='text-lg font-medium'>{event.title}</h3>
                 <div className='flex space-x-2'>
+               
                   <button
                     onClick={() => handleEditClick(event.id)}
                     className='flex items-center justify-center bg-[#f39c12] text-white border-none rounded p-2 cursor-pointer transition-colors'
@@ -150,6 +151,14 @@ const EventList = ({ events, handleDeleteConfirmation }: EventListProps) => {
                   >
                     <Trash2 size={16} />
                   </button>
+                  <button
+                      onClick={() => (window.location.href = `/progress/vehicle-progress-client`)}
+                      className="flex items-center justify-center bg-[#3498db] text-white border-none rounded p-2 cursor-pointer transition-colors"
+                      title="Voir"
+                    >
+                      <Eye size={16} />
+                    </button>
+
                 </div>
               </div>
               <div className='text-sm text-gray-600'>

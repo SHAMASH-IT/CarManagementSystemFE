@@ -1,10 +1,9 @@
 'use client'
-import React, { useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import moment from 'moment'
-import 'moment/locale/fr' // Import de la locale française
-
-import { FaCheckCircle, FaTrashAlt, FaTools } from 'react-icons/fa' // Import des icônes nécessaires
-
+import 'moment/locale/fr'
+import { motion, AnimatePresence } from 'framer-motion'
+import { FaCheckCircle, FaTrashAlt, FaTools, FaCheck, FaClock, FaSearch, FaFilter, FaCalendarAlt, FaListUl, FaUser, FaCar } from 'react-icons/fa'
 import type { AppointmentTableProps } from '../../types/index'
 import { useAppointments } from '../hooks/useAppointments'
 
@@ -12,159 +11,289 @@ import { useAppointments } from '../hooks/useAppointments'
 moment.locale('fr')
 
 const AppointmentTable: React.FC<AppointmentTableProps> = ({ appointments: initialAppointments }) => {
-  console.log('Initializing AppointmentTable component')
-  console.log('Initial appointments:', initialAppointments)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [filterStatus, setFilterStatus] = useState('ALL')
+  const [isFilterOpen, setIsFilterOpen] = useState(false)
+  
+  const { 
+    appointments, 
+    pendingAppointments, 
+    reservedAppointments,
+    updateToReserved, 
+    acceptAppointmentById, 
+    deleteAppointmentById 
+  } = useAppointments()
 
-  const { appointments, acceptAppointmentById, deleteAppointmentById } = useAppointments()
+  const displayAppointments = appointments.length > 0 ? appointments : initialAppointments
 
-  console.log('Appointments from hook:', appointments)
-
+  // Ajout du console.log pour déboguer
   useEffect(() => {
-    const timer = setTimeout(() => {
-      console.log('3 second timer executed')
-    }, 3000)
+    console.log('Appointments data:', displayAppointments)
+  }, [displayAppointments])
 
-    return () => clearTimeout(timer)
-  }, [])
+  const filteredAppointments = displayAppointments.filter(appointment => {
+    const matchesSearch = appointment.clientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         appointment.vehicleName?.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesStatus = filterStatus === 'ALL' || appointment.status === filterStatus
+    return matchesSearch && matchesStatus
+  })
 
-  // Helper function to get status styling
   const getStatusStyle = (status: string) => {
     switch (status) {
       case 'CONFIRMED':
         return {
-          container: 'text-green-600 dark:text-green-400',
-          badge: 'bg-green-200 text-green-800',
-          label: 'Accepté'
+          badge: 'bg-gradient-to-r from-green-500 to-green-600 text-white',
+          icon: <FaCheckCircle className="w-4 h-4" />,
+          label: 'Terminé'
+        }
+      case 'RESERVED':
+        return {
+          badge: 'bg-gradient-to-r from-blue-500 to-blue-600 text-white',
+          icon: <FaCalendarAlt className="w-4 h-4" />,
+          label: 'Réservé'
         }
       case 'CANCELED':
         return {
-          container: 'text-red-600 dark:text-red-400',
-          badge: 'bg-red-200 text-red-800',
+          badge: 'bg-gradient-to-r from-red-500 to-red-600 text-white',
+          icon: <FaTrashAlt className="w-4 h-4" />,
           label: 'Annulé'
         }
-      default: // RESERVED
+      default:
         return {
-          container: 'text-green-600 dark:text-green-400',
-          badge: 'bg-green-200 text-green-800',
-          label: 'Réservé'
+          badge: 'bg-gradient-to-r from-yellow-500 to-yellow-600 text-white',
+          icon: <FaClock className="w-4 h-4" />,
+          label: 'En attente'
         }
     }
   }
 
-  const displayAppointments = appointments.length > 0 ? appointments : initialAppointments
+  const filterOptions = [
+    { value: 'ALL', label: 'Tous les rendez-vous', icon: <FaListUl className="w-4 h-4" /> },
+    { value: 'PENDING', label: 'En attente', icon: <FaClock className="w-4 h-4" /> },
+    { value: 'RESERVED', label: 'Réservés', icon: <FaCalendarAlt className="w-4 h-4" /> },
+    { value: 'CONFIRMED', label: 'Terminés', icon: <FaCheckCircle className="w-4 h-4" /> },
+    { value: 'CANCELED', label: 'Annulés', icon: <FaTrashAlt className="w-4 h-4" /> }
+  ]
 
-  console.log('Display appointments:', displayAppointments)
+  const getCurrentFilterLabel = () => {
+    return filterOptions.find(option => option.value === filterStatus)?.label || 'Filtrer par statut'
+  }
 
   return (
-    <div className='space-y-6'>
-      <div className='overflow-x-auto'>
-        <h2 className='mb-4 text-2xl font-bold text-blue-700 dark:text-blue-300'>Détails des Rendez-vous</h2>
-        <div className='inline-block min-w-full overflow-hidden rounded-lg shadow-md'>
-          <table className='min-w-full bg-white dark:bg-gray-800 border-collapse block md:table'>
-            <thead className='block md:table-header-group'>
-              <tr className='border border-blue-300 dark:border-blue-700 bg-blue-200 dark:bg-blue-700 md:border-none block md:table-row'>
-                <th className='p-3 text-blue-700 dark:text-blue-300 font-bold md:border md:border-blue-300 text-left block md:table-cell'>
-                  Véhicule
+    <div className="space-y-6 p-4">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6"
+      >
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+          <div className="flex items-center space-x-3">
+            <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-lg">
+              <FaCalendarAlt className="w-6 h-6 text-white" />
+            </div>
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+              Gestion des Rendez-vous
+            </h2>
+          </div>
+          
+          <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+          
+            
+            <div className="relative">
+              <button
+                onClick={() => setIsFilterOpen(!isFilterOpen)}
+                className="flex items-center space-x-2 px-4 py-2 rounded-lg border border-blue-200 bg-white dark:bg-gray-700 dark:border-gray-600 hover:bg-blue-50 dark:hover:bg-gray-600 transition-all duration-200"
+              >
+                <FaFilter className="w-4 h-4 text-blue-500" />
+                <span className="text-sm text-gray-700 dark:text-gray-300">{getCurrentFilterLabel()}</span>
+              </button>
+
+              <AnimatePresence>
+                {isFilterOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50"
+                  >
+                    <div className="p-2">
+                      {filterOptions.map((option) => (
+                        <motion.button
+                          key={option.value}
+                          whileHover={{ x: 5 }}
+                          onClick={() => {
+                            setFilterStatus(option.value)
+                            setIsFilterOpen(false)
+                          }}
+                          className={`w-full flex items-center space-x-3 px-3 py-2 rounded-md text-sm transition-all duration-200 ${
+                            filterStatus === option.value
+                              ? 'bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 text-blue-600 dark:text-blue-400'
+                              : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                          }`}
+                        >
+                          <div className={`${
+                            filterStatus === option.value
+                              ? 'text-blue-600 dark:text-blue-400'
+                              : 'text-gray-500 dark:text-gray-400'
+                          }`}>
+                            {option.icon}
+                          </div>
+                          <span>{option.label}</span>
+                        </motion.button>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900">
+              <tr>
+                <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                  <div className="flex items-center space-x-2">
+                    <FaCar className="w-4 h-4" />
+                    <span>Véhicule</span>
+                  </div>
                 </th>
-                <th className='p-3 text-blue-700 dark:text-blue-300 font-bold md:border md:border-blue-300 text-left block md:table-cell'>
-                  Nom
+                <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                  <div className="flex items-center space-x-2">
+                    <FaUser className="w-4 h-4" />
+                    <span>Client</span>
+                  </div>
                 </th>
-                <th className='p-3 text-blue-700 dark:text-blue-300 font-bold md:border md:border-blue-300 text-left block md:table-cell'>
-                  Service
+                <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                  <div className="flex items-center space-x-2">
+                    <FaTools className="w-4 h-4" />
+                    <span>Service</span>
+                  </div>
                 </th>
-                <th className='p-3 text-blue-700 dark:text-blue-300 font-bold md:border md:border-blue-300 text-left block md:table-cell'>
-                  Date
+                <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                  <div className="flex items-center space-x-2">
+                    <FaCalendarAlt className="w-4 h-4" />
+                    <span>Date</span>
+                  </div>
                 </th>
-                <th className='p-3 text-blue-700 dark:text-blue-300 font-bold md:border md:border-blue-300 text-left block md:table-cell'>
-                  Statut
+                <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                  <div className="flex items-center space-x-2">
+                    <FaFilter className="w-4 h-4" />
+                    <span>Statut</span>
+                  </div>
                 </th>
-                <th className='p-3 text-blue-700 dark:text-blue-300 font-bold md:border md:border-blue-300 text-left block md:table-cell'>
-                  Action
+                <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                  Actions
                 </th>
               </tr>
             </thead>
-            <tbody className='block md:table-row-group'>
-              {displayAppointments.map(appointment => {
-                const statusStyle = getStatusStyle(appointment.status)
-
-                return (
-                  <tr
-                    key={appointment.id}
-                    className='border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-600 md:border-none block md:table-row transition duration-200 ease-in-out'
-                  >
-                    <td className='p-3 text-gray-700 dark:text-gray-300 md:border md:border-gray-300 text-left block md:table-cell'>
-                      {appointment.vehicleName}
-                    </td>
-                    <td className='p-3 text-gray-700 dark:text-gray-300 md:border md:border-gray-300 text-left block md:table-cell'>
-                      {appointment.clientName}
-                    </td>
-                    <td className='p-3 text-gray-700 dark:text-gray-300 md:border md:border-gray-300 text-left block md:table-cell'>
-                      {appointment.service}
-                    </td>
-                    <td className='p-3 text-gray-700 dark:text-gray-300 md:border md:border-gray-300 text-left block md:table-cell'>
-                      {moment(appointment.date).format('DD/MM/YYYY HH:mm')}
-                    </td>
-                    <td
-                      className={`p-3 md:border md:border-gray-300 text-left block md:table-cell ${statusStyle.container}`}
+            <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+              <AnimatePresence>
+                {filteredAppointments.map(appointment => {
+                  const statusStyle = getStatusStyle(appointment.status)
+                  
+                  // Ajout du console.log pour chaque rendez-vous
+                  console.log('Single appointment:', appointment)
+                  
+                  return (
+                    <motion.tr
+                      key={appointment.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.3 }}
+                      className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-150"
                     >
-                      <span
-                        className={`inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none rounded-full ${statusStyle.badge}`}
-                      >
-                        {statusStyle.label}
-                      </span>
-                    </td>
-                    <td className='p-3 md:border md:border-gray-300 text-left block md:table-cell'>
-                      <div className='flex space-x-2'>
-                        {/* Icône Rejeter */}
-                        <div className='relative group'>
-                          <button
-                            className='bg-red-500 dark:bg-red-600 text-white p-1 rounded-full hover:bg-red-600 dark:hover:bg-red-700'
-                            onClick={() => {
-                              console.log(`Tentative de suppression du rendez-vous ${appointment.id}`)
-
-                              deleteAppointmentById(appointment.id)
-                                .then(() => console.log(`Rendez-vous ${appointment.id} supprimé avec succès`))
-                                .catch(err =>
-                                  console.error(`Erreur lors de la suppression du rendez-vous ${appointment.id}:`, err)
-                                )
-                            }}
-                          >
-                            <FaTrashAlt className='w-5 h-5' />
-                          </button>
-                          <span className='absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs leading-none text-white bg-red-500 rounded opacity-0 group-hover:opacity-100 z-0'>
-                            Rejeter
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="h-10 w-10 flex-shrink-0 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-md">
+                            <FaCar className="h-5 w-5 text-white" />
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900 dark:text-gray-200">
+                              {appointment.vehicleName}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="h-8 w-8 flex-shrink-0 rounded-full bg-gradient-to-br from-gray-500 to-gray-600 flex items-center justify-center">
+                            <FaUser className="h-4 w-4 text-white" />
+                          </div>
+                          <div className="ml-3">
+                            <div className="text-sm text-gray-900 dark:text-gray-200">
+                              {appointment.clientName || 'Client non spécifié'}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900 dark:text-gray-200">
+                          {appointment.service}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900 dark:text-gray-200">
+                          {moment(appointment.date).format('DD/MM/YYYY HH:mm')}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <span className={`px-3 py-1.5 rounded-full text-xs font-medium flex items-center space-x-1 ${statusStyle.badge} shadow-sm`}>
+                            {statusStyle.icon}
+                            <span>{statusStyle.label}</span>
                           </span>
                         </div>
-
-                        {/* Icône Intervenir */}
-                        <div className='relative group'>
-                          <button
-                            className='bg-blue-500 dark:bg-blue-600 text-white p-1 rounded-full hover:bg-blue-600 dark:hover:bg-blue-700'
-                            onClick={() => {
-                              console.log(`Début de l'intervention pour le rendez-vous ${appointment.id}`)
-
-                              acceptAppointmentById(appointment.id)
-                                .then(() => console.log(`Intervention commencée pour le rendez-vous ${appointment.id}`))
-                                .catch(err =>
-                                  console.error(`Erreur lors du début de l'intervention ${appointment.id}:`, err)
-                                )
-                            }}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <div className="flex space-x-2">
+                          <motion.button
+                            whileHover={appointment.status === 'PENDING' ? { scale: 1.05 } : {}}
+                            whileTap={appointment.status === 'PENDING' ? { scale: 0.95 } : {}}
+                            className={`p-2 rounded-lg transition-all duration-200 ${
+                              appointment.status === 'PENDING'
+                                ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 shadow-md hover:shadow-lg cursor-pointer'
+                                : 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+                            }`}
+                            onClick={() => appointment.status === 'PENDING' && updateToReserved(appointment.id)}
+                            title={appointment.status === 'PENDING' ? "Réserver" : "Non disponible"}
+                            disabled={appointment.status !== 'PENDING'}
                           >
-                            <FaTools className='w-5 h-5' />
-                          </button>
-                          <span className='absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs leading-none text-white bg-blue-500 rounded opacity-0 group-hover:opacity-100 z-0'>
-                            Intervenir
-                          </span>
+                            <FaClock className="w-4 h-4" />
+                          </motion.button>
+                          
+                          <motion.button
+                            whileHover={appointment.status !== 'CANCELED' && appointment.status !== 'CONFIRMED' ? { scale: 1.05 } : {}}
+                            whileTap={appointment.status !== 'CANCELED' && appointment.status !== 'CONFIRMED' ? { scale: 0.95 } : {}}
+                            className={`p-2 rounded-lg transition-all duration-200 ${
+                              appointment.status !== 'CANCELED' && appointment.status !== 'CONFIRMED'
+                                ? 'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 shadow-md hover:shadow-lg cursor-pointer'
+                                : 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+                            }`}
+                            onClick={() => appointment.status !== 'CANCELED' && appointment.status !== 'CONFIRMED' && deleteAppointmentById(appointment.id)}
+                            title={
+                              appointment.status === 'CONFIRMED'
+                                ? "Impossible d'annuler un rendez-vous terminé"
+                                : appointment.status === 'CANCELED'
+                                ? "Déjà annulé"
+                                : "Annuler"
+                            }
+                            disabled={appointment.status === 'CANCELED' || appointment.status === 'CONFIRMED'}
+                          >
+                            <FaTrashAlt className="w-4 h-4" />
+                          </motion.button>
                         </div>
-                      </div>
-                    </td>
-                  </tr>
-                )
-              })}
+                      </td>
+                    </motion.tr>
+                  )
+                })}
+              </AnimatePresence>
             </tbody>
           </table>
         </div>
-      </div>
+      </motion.div>
     </div>
   )
 }
