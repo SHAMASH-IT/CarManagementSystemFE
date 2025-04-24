@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useProgress } from "../hooks/useProgress"
 import { type Intervention, Status, type UpdateInterventionDto } from "../services/progress.service"
+import { stockService } from "../../stock/services/stockService"
 import Sidebar from "../../common/Sidebar"
 import Navbar from "../../common/Navbar"
 import { FaPrint, FaPlus } from 'react-icons/fa'
@@ -12,6 +13,25 @@ import jsPDF from 'jspdf'
 import { toast } from 'react-hot-toast'
 import { Toaster } from 'react-hot-toast'
 import FacturePdf from './FacturePdf'
+
+interface StockPiece {
+  id: number;
+  name: string;
+  price: number;
+  stock: number;
+}
+
+interface InterventionPiece {
+  id: number;
+  pieceId: number;
+  quantity: number;
+  totalPrice: number;
+  piece?: {
+    id: number;
+    name: string;
+    price: number;
+  };
+}
 
 export default function InterventionManagement({ interventionId }: { interventionId: number }) {
   const router = useRouter()
@@ -24,9 +44,13 @@ export default function InterventionManagement({ interventionId }: { interventio
   const [successMessage, setSuccessMessage] = useState<string>("")
   const [showFacturePdf, setShowFacturePdf] = useState(false)
   const [showAddPieceModal, setShowAddPieceModal] = useState(false)
+  const [selectedPiece, setSelectedPiece] = useState<StockPiece | null>(null)
+  const [pieceQuantity, setPieceQuantity] = useState(1)
+  const [pieces, setPieces] = useState<StockPiece[]>([])
 
   useEffect(() => {
     loadIntervention()
+    loadPieces()
   }, [interventionId])
 
   const loadIntervention = async () => {
@@ -38,6 +62,24 @@ export default function InterventionManagement({ interventionId }: { interventio
     } catch (err) {
       console.error("Error loading intervention:", err)
       setValidationErrors(["Erreur lors du chargement de l'intervention"])
+    }
+  }
+
+  const loadPieces = async () => {
+    try {
+      const piecesData = await stockService.getAllStocks()
+      console.log('Structure des pièces chargées:', piecesData)
+      // Conversion des données pour assurer le bon format
+      const formattedPieces = piecesData.map(piece => ({
+        id: typeof piece.id === 'string' ? parseInt(piece.id) : piece.id,
+        name: piece.name,
+        price: typeof piece.price === 'string' ? parseFloat(piece.price) : piece.price,
+        stock: typeof piece.stock === 'string' ? parseInt(piece.stock) : piece.stock
+      }))
+      setPieces(formattedPieces)
+    } catch (err) {
+      console.error("Error loading pieces:", err)
+      toast.error("Erreur lors du chargement des pièces")
     }
   }
 
@@ -210,6 +252,70 @@ export default function InterventionManagement({ interventionId }: { interventio
     }
   }
 
+  const handleAddPiece = async () => {
+    if (!intervention || !selectedPiece) return
+    
+    try {
+      // Vérifier si la pièce est en stock
+      const piece = pieces.find(p => p.id === selectedPiece.id)
+      if (!piece || piece.stock < pieceQuantity) {
+        toast.error("Stock insuffisant pour cette pièce")
+        return
+      }
+      
+      const existingPiece = intervention.interventionPieces?.find(p => p.pieceId === selectedPiece.id)
+      
+      if (existingPiece) {
+        const newPieces = intervention.interventionPieces?.map(piece => {
+          if (piece.pieceId === selectedPiece.id) {
+            return {
+              ...piece,
+              quantity: piece.quantity + pieceQuantity,
+              totalPrice: (piece.quantity + pieceQuantity) * selectedPiece.price
+            }
+          }
+          return piece
+        })
+        
+        setIntervention({
+          ...intervention,
+          interventionPieces: newPieces
+        })
+      } else {
+        const newPiece: InterventionPiece = {
+          id: Date.now(),
+          pieceId: selectedPiece.id,
+          quantity: pieceQuantity,
+          totalPrice: pieceQuantity * selectedPiece.price,
+          piece: {
+            id: selectedPiece.id,
+            name: selectedPiece.name,
+            price: selectedPiece.price
+          }
+        }
+        
+        setIntervention({
+          ...intervention,
+          interventionPieces: [...(intervention.interventionPieces || []), newPiece]
+        })
+      }
+      
+      // Mettre à jour le stock
+      await stockService.updateStock(selectedPiece.id.toString(), {
+        stock: piece.stock - pieceQuantity
+      })
+      
+      setShowAddPieceModal(false)
+      setSelectedPiece(null)
+      setPieceQuantity(1)
+      await loadPieces() // Recharger les pièces pour avoir les stocks à jour
+      toast.success("Pièce ajoutée avec succès")
+    } catch (err) {
+      console.error("Error adding piece:", err)
+      toast.error("Erreur lors de l'ajout de la pièce")
+    }
+  }
+
   if (loading) {
     return (
       <div className="container mx-auto p-4">
@@ -359,15 +465,7 @@ export default function InterventionManagement({ interventionId }: { interventio
               <div className="mt-6">
                 <div className="flex justify-between items-center mb-3">
                   <h3 className="text-lg font-semibold">Pièces détachées</h3>
-                  {isEditing && intervention.status !== Status.COMPLETED && (
-                    <button
-                      onClick={() => setShowAddPieceModal(true)}
-                      className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center gap-2 transition-all duration-200 hover:shadow-md"
-                    >
-                    
-                      Ajouter
-                    </button>
-                  )}
+                 
                 </div>
                 <div className="border rounded-md overflow-hidden shadow-sm">
                   <table className="w-full">
@@ -411,6 +509,81 @@ export default function InterventionManagement({ interventionId }: { interventio
                     </tbody>
                   </table>
                 </div>
+              </div>
+
+              <div className="mt-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-medium text-gray-900">Pièces utilisées</h3>
+                  <button
+                    onClick={() => setShowAddPieceModal(true)}
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  >
+                    <FaPlus className="mr-2" />
+                    Ajouter une pièce
+                  </button>
+                </div>
+                
+                {intervention.interventionPieces && intervention.interventionPieces.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pièce</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantité</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prix unitaire</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {intervention.interventionPieces.map((piece) => (
+                          <tr key={piece.id}>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {piece.piece?.name}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {isEditing ? (
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={piece.quantity}
+                                  onChange={(e) => handlePieceQuantityChange(piece.id, parseInt(e.target.value))}
+                                  className="w-20 px-2 py-1 border rounded"
+                                />
+                              ) : (
+                                piece.quantity
+                              )}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {piece.piece?.price.toFixed(2)} DT
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {(piece.totalPrice || 0).toFixed(2)} DT
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {isEditing && (
+                                <button
+                                  onClick={() => {
+                                    const newPieces = intervention.interventionPieces?.filter(p => p.id !== piece.id)
+                                    setIntervention({
+                                      ...intervention,
+                                      interventionPieces: newPieces
+                                    })
+                                  }}
+                                  className="text-red-600 hover:text-red-900"
+                                >
+                                  Supprimer
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-center py-4">Aucune pièce utilisée</p>
+                )}
               </div>
 
               <div className="flex justify-between items-center pt-4 border-t">
@@ -552,6 +725,97 @@ export default function InterventionManagement({ interventionId }: { interventio
               intervention={intervention}
               onClose={() => setShowFacturePdf(false)}
             />
+          )}
+
+          {showAddPieceModal && (
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center">
+              <div className="bg-white rounded-lg p-6 max-w-md w-full">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Ajouter une pièce</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Pièce</label>
+                    <select
+                      value={selectedPiece?.id || ''}
+                      onChange={(e) => {
+                        const pieceId = parseInt(e.target.value)
+                        console.log('ID de la pièce sélectionnée:', pieceId)
+                        console.log('Liste des pièces disponibles:', pieces)
+                        const piece = pieces.find(p => p.id === pieceId)
+                        console.log('Pièce trouvée:', piece)
+                        if (piece) {
+                          const newSelectedPiece: StockPiece = {
+                            id: piece.id,
+                            name: piece.name,
+                            price: piece.price,
+                            stock: piece.stock
+                          }
+                          console.log('Nouvelle pièce sélectionnée:', newSelectedPiece)
+                          setSelectedPiece(newSelectedPiece)
+                        }
+                      }}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    >
+                      <option value="">Sélectionner une pièce</option>
+                      {pieces.map((piece) => (
+                        <option key={piece.id} value={piece.id}>
+                          {piece.name} - Prix: {piece.price.toFixed(2)} DT - Stock: {piece.stock}
+                        </option>
+                      ))}
+                    </select>
+                    {selectedPiece && (
+                      <p className="mt-1 text-sm text-gray-500">
+                        Pièce sélectionnée: {selectedPiece.name} - Prix: {selectedPiece.price.toFixed(2)} DT - Stock disponible: {selectedPiece.stock}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Quantité</label>
+                    <input
+                      type="number"
+                      min="1"
+                      max={selectedPiece?.stock || 1}
+                      value={pieceQuantity}
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value) || 1
+                        const maxStock = selectedPiece?.stock || 1
+                        setPieceQuantity(Math.min(value, maxStock))
+                      }}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    />
+                    {selectedPiece && (
+                      <p className="mt-1 text-sm text-gray-500">
+                        Stock disponible: {selectedPiece.stock}
+                      </p>
+                    )}
+                  </div>
+                  {selectedPiece && (
+                    <div className="mt-4 p-4 bg-gray-50 rounded-md">
+                      <h4 className="text-sm font-medium text-gray-900 mb-2">Résumé</h4>
+                      <p className="text-sm text-gray-600">Total: {(selectedPiece.price * pieceQuantity).toFixed(2)} DT</p>
+                    </div>
+                  )}
+                </div>
+                <div className="mt-6 flex justify-end space-x-3">
+                  <button
+                    onClick={() => {
+                      setShowAddPieceModal(false)
+                      setSelectedPiece(null)
+                      setPieceQuantity(1)
+                    }}
+                    className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    onClick={handleAddPiece}
+                    disabled={!selectedPiece || pieceQuantity < 1 || pieceQuantity > (selectedPiece?.stock || 0)}
+                    className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                  >
+                    Ajouter
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
         </main>
       </div>

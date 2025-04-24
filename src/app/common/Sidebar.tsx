@@ -11,7 +11,10 @@ import {
   UserCircle2,
   ParkingCircle,
   Box,
-  Wrench, // Icône ajoutée pour l'intervention
+  Wrench,
+  CalendarPlus,
+  Search,
+  History,
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 
@@ -44,10 +47,13 @@ const Sidebar = () => {
   const menuItems = [
     { icon: <Home size={20} className="text-pink-500" />, title: 'Dashboard', url: '/appointments/dashboard' },
     { icon: <ClipboardList size={20} className="text-green-500" />, title: 'Liste des Rendez-vous', url: '/appointments' },
+    { icon: <CalendarPlus size={20} className="text-yellow-500" />, title: 'Prendre un rendez-vous', url: '/users' },
+    { icon: <Search size={20} className="text-teal-500" />, title: 'Rechercher un rendez-vous', url: '/progress/vehicle-progress-client' },
+    { icon: <History size={20} className="text-cyan-500" />, title: 'Historique des rendez-vous', url: '/history' },
     { icon: <Users size={20} className="text-blue-500" />, title: 'Clients', url: '#' },
     { icon: <ParkingCircle size={20} className="text-orange-500" />, title: 'Stationnement', url: '/parking' },
     { icon: <Box size={20} className="text-purple-500" />, title: 'Stock', url: '/stock' },
-    { icon: < Wrench size={20} className="text-red-500" />, title: 'Intervention', url: '/progress' }, // Nouveau bouton Intervention
+    { icon: <Wrench size={20} className="text-red-500" />, title: 'Intervention', url: '/progress' },
   ]
 
   return (
