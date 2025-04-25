@@ -31,7 +31,7 @@ const AddParkingForm: React.FC<AddParkingFormProps> = ({ onParkingAdded }) => {
         serviceId: serviceId ? parseInt(serviceId) : undefined
       };
       
-      const response = await fetch('http://localhost:3000/parking/create-parking', {
+      const response = await fetch('http://localhost:3005/parking/create-parking', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
