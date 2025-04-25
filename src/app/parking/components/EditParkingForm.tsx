@@ -92,7 +92,7 @@ const EditParkingForm: React.FC<EditParkingFormProps> = ({
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label htmlFor="name" className="block mb-2 font-medium text-gray-700">
-              Nom du parking *
+              Nom du parking 
             </label>
             <input
               type="text"
@@ -106,7 +106,7 @@ const EditParkingForm: React.FC<EditParkingFormProps> = ({
           
           <div className="mb-4">
             <label htmlFor="places" className="block mb-2 font-medium text-gray-700">
-              Nombre de places *
+              Nombre de places 
             </label>
             <input
               type="number"
