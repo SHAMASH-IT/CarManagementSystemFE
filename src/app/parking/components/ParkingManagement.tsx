@@ -53,7 +53,7 @@ const ParkingManagement: React.FC = () => {
       setLoading(true);
       console.log(`🗑️ Suppression du parking ID: ${id}`);
 
-      const response = await fetch(`http://localhost:3000/parking/${id}`, {
+      const response = await fetch(`http://localhost:3005/parking/${id}`, {
         method: 'DELETE',
       });
       
@@ -61,7 +61,9 @@ const ParkingManagement: React.FC = () => {
         throw new Error('Erreur lors de la suppression du parking');
       }
       
-      await fetchParkings(); // ✅ Recharge la liste après suppression
+      // Mettre à jour l'état local immédiatement
+      setParkings(prevParkings => prevParkings.filter(parking => parking.id !== id));
+      await fetchParkings(); // Recharger la liste depuis le serveur
       setConfirmDelete(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Une erreur est survenue');
@@ -115,6 +117,7 @@ const ParkingManagement: React.FC = () => {
                     <th className="px-4 py-3 text-left">Nom</th>
                     <th className="px-4 py-3 text-left">Places</th>
                     <th className="px-4 py-3 text-left">Service ID</th>
+                    <th className="px-4 py-3 text-left">Emplacements</th>
                     <th className="px-4 py-3 text-left">Disponibilité</th>
                     <th className="px-4 py-3 text-right">Actions</th>
                   </tr>
@@ -126,6 +129,22 @@ const ParkingManagement: React.FC = () => {
                       <td className="px-4 py-3 font-medium">{parking.name}</td>
                       <td className="px-4 py-3">{parking.places}</td>
                       <td className="px-4 py-3">{parking.serviceId || '-'}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex flex-wrap gap-1">
+                          {parking.locations.map(location => (
+                            <span 
+                              key={location.id}
+                              className={`inline-block px-2 py-1 rounded text-sm ${
+                                location.status === 'EMPTY' 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : 'bg-red-100 text-red-800'
+                              }`}
+                            >
+                              {location.name}
+                            </span>
+                          ))}
+                        </div>
+                      </td>
                       <td className="px-4 py-3">
                         {parking.locations.filter(loc => loc.status === 'EMPTY').length} / {parking.places}
                       </td>

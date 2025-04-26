@@ -47,8 +47,8 @@ const EditParkingForm: React.FC<EditParkingFormProps> = ({
         places: parseInt(places)
       };
       
-      const response = await fetch(`http://localhost:3000/parking/edit-parking/${parking.id}`, {
-        method: 'PATCH',
+      const response = await fetch(`http://localhost:3005/parking/edit-parking/${parking.id}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },

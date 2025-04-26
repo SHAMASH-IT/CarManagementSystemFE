@@ -11,6 +11,7 @@ import {
   UserCircle2,
   ParkingCircle,
   Box,
+  ShoppingCart,
   Wrench,
   CalendarPlus,
   Search,
@@ -24,17 +25,24 @@ const Sidebar = () => {
   const [activeItem, setActiveItem] = useState('')
 
   useEffect(() => {
-    // Met à jour automatiquement l'élément actif en fonction du pathname
     if (pathname === '/appointments/dashboard') {
       setActiveItem('Dashboard')
     } else if (pathname === '/appointments') {
       setActiveItem('Liste des Rendez-vous')
     } else if (pathname === '/page') {
       setActiveItem('Rendez-vous')
+    } else if (pathname === '/users') {
+      setActiveItem('Prendre un rendez-vous')
+    } else if (pathname === '/progress/vehicle-progress-client') {
+      setActiveItem('Rechercher un rendez-vous')
+    } else if (pathname === '/history') {
+      setActiveItem('Historique des rendez-vous')
     } else if (pathname === '/parking') {
       setActiveItem('Stationnement')
     } else if (pathname === '/stock') {
       setActiveItem('Stock')
+    } else if (pathname === '/stock/order') {
+      setActiveItem('Commande')
     } else if (pathname === '/progress') {
       setActiveItem('Intervention')
     }
@@ -53,6 +61,7 @@ const Sidebar = () => {
     { icon: <Users size={20} className="text-blue-500" />, title: 'Clients', url: '#' },
     { icon: <ParkingCircle size={20} className="text-orange-500" />, title: 'Stationnement', url: '/parking' },
     { icon: <Box size={20} className="text-purple-500" />, title: 'Stock', url: '/stock' },
+    { icon: <ShoppingCart size={20} className="text-purple-500" />, title: 'Commande', url: '/stock/order' },
     { icon: <Wrench size={20} className="text-red-500" />, title: 'Intervention', url: '/progress' },
   ]
 
