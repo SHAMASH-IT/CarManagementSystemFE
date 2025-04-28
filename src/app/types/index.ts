@@ -82,6 +82,7 @@ export interface CalendarEvent {
   vehicleName: string
   service: string
   additionalInfo: any
+  status?: 'RESERVED' | 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
 }
 
 export type CalendarView = 'month' | 'day' | 'list'
@@ -222,3 +223,4 @@ export interface Category {
 export interface CategoryFormData {
   name: string;
 }
+
