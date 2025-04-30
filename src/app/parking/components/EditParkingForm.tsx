@@ -48,7 +48,7 @@ const EditParkingForm: React.FC<EditParkingFormProps> = ({
       };
       
       const response = await fetch(`http://localhost:3005/parking/edit-parking/${parking.id}`, {
-        method: 'PUT',
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },

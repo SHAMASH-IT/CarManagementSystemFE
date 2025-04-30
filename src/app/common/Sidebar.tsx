@@ -16,6 +16,7 @@ import {
   Search,
   History,
   Car,
+  UserCog,
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 
@@ -44,6 +45,10 @@ const Sidebar = () => {
       setActiveItem('Rechercher un rendez-vous')
     } else if (pathname === '/history') {
       setActiveItem('Historique des rendez-vous')
+    } else if (pathname === '/admin/users') {
+      setActiveItem('Gestion Utilisateurs')
+    } else if (pathname === '/profile') {
+      setActiveItem('Modifier le profil')
     }
   }, [pathname])
 
@@ -58,10 +63,11 @@ const Sidebar = () => {
     { icon: <Car size={20} className="text-blue-700" />, title: 'Ajouter un véhicule', url: '/users/vehicle' },
     { icon: <Search size={20} className="text-teal-500" />, title: 'Rechercher un rendez-vous', url: '/progress/vehicle-progress-client' },
     { icon: <History size={20} className="text-cyan-500" />, title: 'Historique des rendez-vous', url: '/history' },
-    { icon: <Users size={20} className="text-blue-500" />, title: 'Clients', url: '#' },
+    { icon: <UserCircle2 size={20} className="text-violet-500" />, title: 'Modifier le profil', url: '/profile' },
+    { icon: <UserCog size={20} className="text-indigo-500" />, title: 'Gestion Utilisateurs', url: '/admin/users' },
     { icon: <ParkingCircle size={20} className="text-orange-500" />, title: 'Stationnement', url: '/parking' },
     { icon: <Box size={20} className="text-purple-500" />, title: 'Stock', url: '/stock' },
-    { icon: <Box size={20} className="text-purple-500" />, title: 'Commande', url: '/stock/order' }, // Ajout du bouton Commande
+    { icon: <Box size={20} className="text-purple-500" />, title: 'Commande', url: '/stock/order' },
     { icon: <Wrench size={20} className="text-red-500" />, title: 'Intervention', url: '/progress' },
   ]
 
