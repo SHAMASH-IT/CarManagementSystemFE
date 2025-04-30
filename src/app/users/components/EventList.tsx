@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 
 import moment from 'moment'
-import { Edit, Trash2 , Eye } from 'lucide-react'
+import { Edit, Trash2, Eye, Clock, CheckCircle2, XCircle, Car, Calendar as CalendarIcon } from 'lucide-react'
 import { toast } from 'react-toastify'
 
 import type { CalendarEvent } from '../../types/index'
@@ -121,73 +121,147 @@ const EventList = ({ events, handleDeleteConfirmation }: EventListProps) => {
   }
 
   return (
-    <div className='mb-6'>
-     
+    <div className="mb-6">
       {error && (
         <div className='mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded'>
           {error}
         </div>
       )}
       {eventsList.length > 0 ? (
-        <div className='space-y-4'>
-          {eventsList.map(event => (
-            <div key={event.id} className='bg-white p-4 rounded-lg shadow-md'>
-              <div className='flex justify-between items-center mb-2'>
-                <h3 className='text-lg font-medium'>{event.title}</h3>
-                <div className='flex space-x-2'>
-               
-                  <button
-                    onClick={() => handleEditClick(event.id)}
-                    className='flex items-center justify-center bg-[#f39c12] text-white border-none rounded p-2 cursor-pointer transition-colors'
-                    title='Modifier'
-                  >
-                    <Edit size={16} />
-                  </button>
-                  <button
-                    onClick={() => confirmDelete(event.id)}
-                    className='flex items-center justify-center bg-[#e74c3c] text-white border-none rounded p-2 cursor-pointer transition-colors'
-                    title='Supprimer'
-                    disabled={isLoading}
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                  <button
-                      onClick={() => (window.location.href = `/progress/vehicle-progress-client`)}
-                      className="flex items-center justify-center bg-[#3498db] text-white border-none rounded p-2 cursor-pointer transition-colors"
-                      title="Voir"
-                    >
-                      <Eye size={16} />
-                    </button>
-
+        <div className="relative flex flex-col md:flex-row md:space-x-8">
+          {/* Timeline verticale */}
+          <div className="hidden md:block absolute left-4 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-200 via-gray-200 to-gray-200 rounded-full z-0" />
+          <div className="flex-1 flex flex-col space-y-8 w-full">
+            {eventsList.map((event, idx) => (
+              <div key={event.id} className="relative flex items-start group">
+                {/* Dot timeline animé */}
+                <div className="z-10 flex flex-col items-center mr-6">
+                  <span className="w-4 h-4 rounded-full border-4 border-white shadow-lg bg-blue-400 animate-pulse group-hover:scale-110 transition-transform" />
+                  {idx !== eventsList.length - 1 && (
+                    <span className="flex-1 w-1 bg-gradient-to-b from-blue-200 via-gray-200 to-gray-200" />
+                  )}
+                </div>
+                {/* Carte événement */}
+                <div className="flex-1 bg-white p-6 rounded-2xl shadow-lg border border-gray-100 hover:shadow-2xl transition-shadow relative">
+                  <div className="flex flex-wrap items-center mb-2 gap-2 justify-between">
+                    <h3 className="text-lg font-semibold flex-1">{event.title}</h3>
+                    {/* Boutons d'action à droite du titre */}
+                    <div className="flex gap-2 ml-2">
+                      {event.status === 'CANCELLED' ? (
+                        <>
+                          <span title="Action non disponible" className="flex items-center justify-center rounded-full p-3 text-gray-400 cursor-not-allowed">
+                            <Edit size={18} />
+                          </span>
+                          <span title="Action non disponible" className="flex items-center justify-center rounded-full p-3 text-gray-400 cursor-not-allowed">
+                            <Trash2 size={18} />
+                          </span>
+                          <span title="Action non disponible" className="flex items-center justify-center rounded-full p-3 text-gray-400 cursor-not-allowed">
+                            <Eye size={18} />
+                          </span>
+                        </>
+                      ) : (event.status === 'COMPLETED' || event.status === 'IN_PROGRESS' || event.status === 'RESERVED') ? (
+                        <>
+                          <span title="Action non disponible" className="flex items-center justify-center rounded-full p-3 text-gray-400 cursor-not-allowed">
+                            <Edit size={18} />
+                          </span>
+                          <span title="Action non disponible" className="flex items-center justify-center rounded-full p-3 text-gray-400 cursor-not-allowed">
+                            <Trash2 size={18} />
+                          </span>
+                          <button
+                            onClick={() => (window.location.href = `/progress/vehicle-progress-client`)}
+                            className="flex items-center justify-center bg-blue-400 hover:bg-blue-500 text-white rounded-full p-3 shadow transition-transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                            title="Voir"
+                          >
+                            <Eye size={18} />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => handleEditClick(event.id)}
+                            className="flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-500 hover:from-purple-600 hover:to-indigo-600 text-white rounded-full p-3 shadow transition-transform hover:shadow-xl hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-purple-400"
+                            title="Modifier"
+                          >
+                            <Edit size={18} />
+                          </button>
+                          <button
+                            onClick={() => confirmDelete(event.id)}
+                            className="flex items-center justify-center bg-red-400 hover:bg-red-500 text-white rounded-full p-3 shadow transition-transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-red-300"
+                            title="Supprimer"
+                            disabled={isLoading}
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                          <button
+                            onClick={() => (window.location.href = `/progress/vehicle-progress-client`)}
+                            className="flex items-center justify-center bg-blue-400 hover:bg-blue-500 text-white rounded-full p-3 shadow transition-transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                            title="Voir"
+                          >
+                            <Eye size={18} />
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-4 items-center text-sm text-gray-600 mb-2">
+                    <span className="flex items-center gap-1">
+                      <Car className="w-4 h-4" /> {event.vehicleName}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <CalendarIcon className="w-4 h-4" /> {moment(event.start).format('DD/MM/YYYY')}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-4 h-4" /> {moment(event.start).format('HH:mm')}
+                    </span>
+                  </div>
+                  {/* Statut et service sous les infos du rendez-vous */}
+                  <div className="flex flex-wrap gap-2 items-center mt-2">
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium shadow-sm ring-2 ring-offset-2 ring-opacity-40 animate-fade-in ${
+                      event.status === 'RESERVED'
+                        ? 'bg-blue-100 text-blue-800 ring-blue-200'
+                      : event.status === 'PENDING'
+                        ? 'bg-amber-100 text-amber-800 ring-amber-200'
+                      : event.status === 'IN_PROGRESS'
+                        ? 'bg-orange-100 text-orange-800 ring-orange-200'
+                      : event.status === 'COMPLETED'
+                        ? 'bg-green-100 text-green-800 ring-green-200'
+                      : event.status === 'CANCELLED'
+                        ? 'bg-red-100 text-red-800 ring-red-200'
+                      : 'bg-gray-100 text-gray-800 ring-gray-200'
+                    }`}>
+                      {event.status === 'RESERVED' ? (
+                        <><Clock className="w-3 h-3 mr-1 text-blue-600" />Réservé</>
+                      ) : event.status === 'PENDING' ? (
+                        <><Clock className="w-3 h-3 mr-1 text-amber-600" />En attente</>
+                      ) : event.status === 'IN_PROGRESS' ? (
+                        <><Clock className="w-3 h-3 mr-1 text-orange-600" />En cours</>
+                      ) : event.status === 'COMPLETED' ? (
+                        <><CheckCircle2 className="w-3 h-3 mr-1 text-green-600" />Terminé</>
+                      ) : event.status === 'CANCELLED' ? (
+                        <><XCircle className="w-3 h-3 mr-1 text-red-600" />Annulé</>
+                      ) : (
+                        event.status
+                      )}
+                    </span>
+                    {event.service && (
+                      <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full text-xs font-semibold shadow-sm">{event.service}</span>
+                    )}
+                  </div>
                 </div>
               </div>
-              <div className='text-sm text-gray-600'>
-                <p>
-                  <strong>Vehicle:</strong> {event.vehicleName}
-                </p>
-                <p>
-                  <strong>Date:</strong> {moment.utc(event.start).format('DD/MM/YYYY')}
-                </p>
-                <p>
-                  <strong>Heure:</strong> {moment.utc(event.start).format('HH:mm')} - {moment.utc(event.end).format('HH:mm')}
-                </p>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       ) : (
         <p className='text-gray-500 italic'>Aucun rendez-vous programmé</p>
       )}
-
-      {/* Add the UpdateAppointmentModal component */}
+      {/* Modals */}
       <UpdateAppointmentModal
         isOpen={isUpdateModalOpen}
         onClose={() => setIsUpdateModalOpen(false)}
         appointmentId={appointmentToUpdate}
         onUpdateSuccess={handleUpdateSuccess}
       />
-
-      {/* Add the DeleteConfirmationModal component */}
       <DeleteConfirmationModal
         isOpen={isDeleteModalOpen}
         onClose={() => {

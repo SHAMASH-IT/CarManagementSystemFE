@@ -1,10 +1,10 @@
+
 "use client"
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useProgress } from "../hooks/useProgress"
 import { type Intervention, Status, type UpdateInterventionDto } from "../services/progress.service"
-import { stockService } from "../../stock/services/stockService"
 import Sidebar from "../../common/Sidebar"
 import Navbar from "../../common/Navbar"
 import { FaPrint, FaPlus } from 'react-icons/fa'
@@ -13,30 +13,14 @@ import jsPDF from 'jspdf'
 import { toast } from 'react-hot-toast'
 import { Toaster } from 'react-hot-toast'
 import FacturePdf from './FacturePdf'
-
-interface StockPiece {
-  id: number;
-  name: string;
-  price: number;
-  stock: number;
-}
-
-interface InterventionPiece {
-  id: number;
-  pieceId: number;
-  quantity: number;
-  totalPrice: number;
-  piece?: {
-    id: number;
-    name: string;
-    price: number;
-  };
-}
+import AddPieceModal from './AddPieceModal'
+import { stockService } from '../../stock/services/stockService'
 
 export default function InterventionManagement({ interventionId }: { interventionId: number }) {
   const router = useRouter()
   const { loading, error, getIntervention, updateIntervention, completeIntervention } = useProgress()
   const [intervention, setIntervention] = useState<Intervention | null>(null)
+  const [pendingIntervention, setPendingIntervention] = useState<Intervention | null>(null)
   const [isEditing, setIsEditing] = useState(false)
   const [activeTab, setActiveTab] = useState("details")
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -44,19 +28,31 @@ export default function InterventionManagement({ interventionId }: { interventio
   const [successMessage, setSuccessMessage] = useState<string>("")
   const [showFacturePdf, setShowFacturePdf] = useState(false)
   const [showAddPieceModal, setShowAddPieceModal] = useState(false)
-  const [selectedPiece, setSelectedPiece] = useState<StockPiece | null>(null)
-  const [pieceQuantity, setPieceQuantity] = useState(1)
-  const [pieces, setPieces] = useState<StockPiece[]>([])
+  const [pendingInterventionPieces, setPendingInterventionPieces] = useState<any[]>([])
+  const [pieces, setPieces] = useState<any[]>([])
 
   useEffect(() => {
     loadIntervention()
-    loadPieces()
   }, [interventionId])
 
   const loadIntervention = async () => {
     try {
       const data = await getIntervention(interventionId)
-      setIntervention(data)
+      const stocks = await stockService.getAllStocks()
+      const interventionPieces = data.interventionPieces?.map((piece) => {
+        const stockPiece = stocks.find((s) => Number(s.id) === piece.pieceId)
+        return {
+          ...piece,
+          piece: stockPiece
+            ? { id: Number(stockPiece.id), name: stockPiece.name, price: stockPiece.price }
+            : piece.piece,
+        }
+      }) || []
+      const updatedIntervention = { ...data, interventionPieces }
+      setIntervention(updatedIntervention)
+      setPendingIntervention(updatedIntervention)
+      setPendingInterventionPieces(interventionPieces)
+      setPieces(stocks)
       setValidationErrors([])
       setSuccessMessage("")
     } catch (err) {
@@ -65,23 +61,40 @@ export default function InterventionManagement({ interventionId }: { interventio
     }
   }
 
-  const loadPieces = async () => {
-    try {
-      const piecesData = await stockService.getAllStocks()
-      console.log('Structure des pièces chargées:', piecesData)
-      // Conversion des données pour assurer le bon format
-      const formattedPieces = piecesData.map(piece => ({
-        id: typeof piece.id === 'string' ? parseInt(piece.id) : piece.id,
-        name: piece.name,
-        price: typeof piece.price === 'string' ? parseFloat(piece.price) : piece.price,
-        stock: typeof piece.stock === 'string' ? parseInt(piece.stock) : piece.stock
-      }))
-      setPieces(formattedPieces)
-    } catch (err) {
-      console.error("Error loading pieces:", err)
-      toast.error("Erreur lors du chargement des pièces")
-    }
-  }
+  const handleStartEditing = () => {
+    if (!intervention) return;
+    setPendingIntervention({ 
+      id: intervention.id,
+      description: intervention.description,
+      startDate: intervention.startDate,
+      endDate: intervention.endDate,
+      price: intervention.price,
+      status: intervention.status,
+      appointmentId: intervention.appointmentId,
+      appointment: intervention.appointment,
+      interventionPieces: intervention.interventionPieces || []
+    });
+    setPendingInterventionPieces([...(intervention.interventionPieces || [])]);
+    setIsEditing(true);
+  };
+
+  const handleCancelEditing = () => {
+    if (!intervention) return;
+    setPendingIntervention({ 
+      id: intervention.id,
+      description: intervention.description,
+      startDate: intervention.startDate,
+      endDate: intervention.endDate,
+      price: intervention.price,
+      status: intervention.status,
+      appointmentId: intervention.appointmentId,
+      appointment: intervention.appointment,
+      interventionPieces: intervention.interventionPieces || []
+    });
+    setPendingInterventionPieces([...(intervention.interventionPieces || [])]);
+    setIsEditing(false);
+    setValidationErrors([]);
+  };
 
   const validateIntervention = (intervention: Intervention): string[] => {
     const errors: string[] = []
@@ -104,38 +117,36 @@ export default function InterventionManagement({ interventionId }: { interventio
   }
 
   const handleUpdate = async () => {
-    if (!intervention) return
-    
-    const errors = validateIntervention(intervention)
+    if (!pendingIntervention) return;
+    const errors = validateIntervention({ ...pendingIntervention, interventionPieces: pendingInterventionPieces });
     if (errors.length > 0) {
-      setValidationErrors(errors)
-      return
+      setValidationErrors(errors);
+      return;
     }
-    
     try {
-      setIsSubmitting(true)
-      const updateData: UpdateInterventionDto = {
-        description: intervention.description,
-        price: intervention.price,
-        status: intervention.status,
-        endDate: intervention.endDate,
-        pieces: intervention.interventionPieces?.map((piece) => ({
+      setIsSubmitting(true);
+      const updateData = {
+        description: pendingIntervention.description,
+        price: pendingIntervention.price,
+        status: pendingIntervention.status,
+        endDate: pendingIntervention.endDate,
+        pieces: pendingInterventionPieces.map((piece: any) => ({
           id: piece.pieceId,
           quantity: piece.quantity,
           price: piece.piece?.price || 0,
         })),
-      }
-      await updateIntervention(interventionId, updateData)
-      setIsEditing(false)
-      setSuccessMessage("Intervention mise à jour avec succès")
-      await loadIntervention()
+      };
+      await updateIntervention(interventionId, updateData);
+      setIsEditing(false);
+      setSuccessMessage("Intervention mise à jour avec succès");
+      await loadIntervention();
     } catch (err) {
-      console.error("Error updating intervention:", err)
-      setValidationErrors(["Erreur lors de la mise à jour de l'intervention"])
+      console.error("Error updating intervention:", err);
+      setValidationErrors(["Erreur lors de la mise à jour de l'intervention"]);
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   const handleComplete = async () => {
     if (!intervention) return
@@ -152,29 +163,19 @@ export default function InterventionManagement({ interventionId }: { interventio
   }
 
   const handlePieceQuantityChange = (pieceId: number, quantity: number) => {
-    if (!intervention) return
-    
-    const newPieces = intervention.interventionPieces?.map((piece) => {
-      if (piece.id === pieceId) {
-        return {
-          ...piece,
-          quantity: Math.max(0, quantity),
-          totalPrice: Math.max(0, quantity) * (piece.piece?.price || 0),
-        }
-      }
-      return piece
-    })
-    
-    setIntervention({
-      ...intervention,
-      interventionPieces: newPieces,
-    })
-  }
+    setPendingInterventionPieces(prev =>
+      prev.map((p: any) =>
+        p.pieceId === pieceId
+          ? { ...p, quantity: Math.max(0, quantity), totalPrice: Math.max(0, quantity) * (p.piece?.price || 0) }
+          : p
+      )
+    );
+  };
 
   const calculateTotal = () => {
-    if (!intervention) return 0
-    const piecesTotal = intervention.interventionPieces?.reduce((sum, piece) => sum + (piece.totalPrice || 0), 0) || 0
-    return piecesTotal + intervention.price
+    if (!pendingInterventionPieces) return 0
+    const piecesTotal = pendingInterventionPieces.reduce((sum, piece) => sum + (piece.totalPrice || 0), 0) || 0
+    return piecesTotal + (pendingIntervention?.price || 0)
   }
 
   const getStatusBadge = (status: Status) => {
@@ -252,69 +253,35 @@ export default function InterventionManagement({ interventionId }: { interventio
     }
   }
 
-  const handleAddPiece = async () => {
-    if (!intervention || !selectedPiece) return
-    
-    try {
-      // Vérifier si la pièce est en stock
-      const piece = pieces.find(p => p.id === selectedPiece.id)
-      if (!piece || piece.stock < pieceQuantity) {
-        toast.error("Stock insuffisant pour cette pièce")
-        return
-      }
-      
-      const existingPiece = intervention.interventionPieces?.find(p => p.pieceId === selectedPiece.id)
-      
-      if (existingPiece) {
-        const newPieces = intervention.interventionPieces?.map(piece => {
-          if (piece.pieceId === selectedPiece.id) {
-            return {
-              ...piece,
-              quantity: piece.quantity + pieceQuantity,
-              totalPrice: (piece.quantity + pieceQuantity) * selectedPiece.price
-            }
-          }
-          return piece
-        })
-        
-        setIntervention({
-          ...intervention,
-          interventionPieces: newPieces
-        })
+  const handleAddPiece = (pieceId: number, quantity: number) => {
+    const pieceData = pieces.find(p => Number(p.id) === Number(pieceId));
+    if (!pieceData) return;
+    setPendingInterventionPieces(prev => {
+      const existing = prev.find((p: any) => p.pieceId === pieceId);
+      if (existing) {
+        return prev.map((p: any) =>
+          p.pieceId === pieceId
+            ? { ...p, quantity: p.quantity + quantity, totalPrice: (p.quantity + quantity) * (pieceData.price || 0) }
+            : p
+        );
       } else {
-        const newPiece: InterventionPiece = {
-          id: Date.now(),
-          pieceId: selectedPiece.id,
-          quantity: pieceQuantity,
-          totalPrice: pieceQuantity * selectedPiece.price,
-          piece: {
-            id: selectedPiece.id,
-            name: selectedPiece.name,
-            price: selectedPiece.price
+        return [
+          ...prev,
+          {
+            id: Date.now(),
+            pieceId,
+            quantity,
+            totalPrice: quantity * (pieceData.price || 0),
+            piece: pieceData
           }
-        }
-        
-        setIntervention({
-          ...intervention,
-          interventionPieces: [...(intervention.interventionPieces || []), newPiece]
-        })
+        ];
       }
-      
-      // Mettre à jour le stock
-      await stockService.updateStock(selectedPiece.id.toString(), {
-        stock: piece.stock - pieceQuantity
-      })
-      
-      setShowAddPieceModal(false)
-      setSelectedPiece(null)
-      setPieceQuantity(1)
-      await loadPieces() // Recharger les pièces pour avoir les stocks à jour
-      toast.success("Pièce ajoutée avec succès")
-    } catch (err) {
-      console.error("Error adding piece:", err)
-      toast.error("Erreur lors de l'ajout de la pièce")
-    }
-  }
+    });
+  };
+
+  const handleRemovePiece = (pieceId: number) => {
+    setPendingInterventionPieces(prev => prev.filter((p: any) => p.pieceId !== pieceId));
+  };
 
   if (loading) {
     return (
@@ -336,6 +303,8 @@ export default function InterventionManagement({ interventionId }: { interventio
       </div>
     )
   }
+
+  const displayedPieces = isEditing ? pendingInterventionPieces : intervention.interventionPieces || [];
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -393,7 +362,7 @@ export default function InterventionManagement({ interventionId }: { interventio
                 <h2 className="text-xl font-bold">Détails de l'intervention</h2>
                 <button
                   className={`px-3 py-1 rounded-md ${isEditing ? "bg-red-600 text-white hover:bg-red-700" : "bg-gray-200 hover:bg-gray-300"}`}
-                  onClick={() => setIsEditing(!isEditing)}
+                  onClick={() => isEditing ? handleCancelEditing() : handleStartEditing()}
                   disabled={intervention.status === Status.COMPLETED}
                 >
                   {isEditing ? "Annuler" : "Modifier"}
@@ -408,8 +377,8 @@ export default function InterventionManagement({ interventionId }: { interventio
                     </label>
                     <input
                       id="description"
-                      value={intervention.description || ""}
-                      onChange={(event) => setIntervention({ ...intervention, description: event.target.value })}
+                      value={isEditing ? pendingIntervention?.description || "" : intervention?.description || ""}
+                      onChange={(event) => setPendingIntervention(prev => ({ ...prev!, description: event.target.value }))}
                       disabled={!isEditing || intervention.status === Status.COMPLETED}
                       className="w-full p-2 border rounded-md"
                     />
@@ -422,9 +391,9 @@ export default function InterventionManagement({ interventionId }: { interventio
                     <input
                       id="price"
                       type="number"
-                      value={intervention.price}
+                      value={isEditing ? pendingIntervention?.price : intervention?.price}
                       onChange={(event) =>
-                        setIntervention({ ...intervention, price: Number.parseFloat(event.target.value) })
+                        setPendingIntervention(prev => ({ ...prev!, price: Number.parseFloat(event.target.value) }))
                       }
                       disabled={!isEditing || intervention.status === Status.COMPLETED}
                       className="w-full p-2 border rounded-md"
@@ -453,8 +422,11 @@ export default function InterventionManagement({ interventionId }: { interventio
                     <input
                       id="endDate"
                       type="datetime-local"
-                      value={new Date(intervention.endDate).toISOString().slice(0, 16)}
-                      onChange={(event) => setIntervention({ ...intervention, endDate: event.target.value })}
+                      value={isEditing 
+                        ? new Date(pendingIntervention?.endDate || "").toISOString().slice(0, 16)
+                        : new Date(intervention.endDate).toISOString().slice(0, 16)
+                      }
+                      onChange={(event) => setPendingIntervention(prev => ({ ...prev!, endDate: event.target.value }))}
                       disabled={!isEditing || intervention.status === Status.COMPLETED}
                       className="w-full p-2 border rounded-md"
                     />
@@ -463,127 +435,114 @@ export default function InterventionManagement({ interventionId }: { interventio
               </div>
 
               <div className="mt-6">
-                <div className="flex justify-between items-center mb-3">
-                  <h3 className="text-lg font-semibold">Pièces détachées</h3>
-                 
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold text-gray-800">Pièces détachées</h3>
+                  {isEditing && intervention.status !== Status.COMPLETED && (
+                    <button
+                      onClick={() => setShowAddPieceModal(true)}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 transition-all duration-200 hover:shadow-md hover:scale-105"
+                    >
+                      <FaPlus className="text-sm" />
+                      <span>Ajouter une pièce</span>
+                    </button>
+                  )}
                 </div>
-                <div className="border rounded-md overflow-hidden shadow-sm">
+                <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
                   <table className="w-full">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Nom</th>
-                        <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Quantité</th>
-                        <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">Prix unitaire (DT)</th>
-                        <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">Total (DT)</th>
+                        <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Pièce</th>
+                        <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Quantité</th>
+                        <th className="px-6 py-4 text-right text-sm font-medium text-gray-600">Prix unitaire</th>
+                        <th className="px-6 py-4 text-right text-sm font-medium text-gray-600">Total</th>
+                        {isEditing && intervention.status !== Status.COMPLETED && (
+                          <th className="px-6 py-4 text-center text-sm font-medium text-gray-600">Actions</th>
+                        )}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                      {intervention.interventionPieces?.length ? (
-                        intervention.interventionPieces.map((piece) => (
-                          <tr key={piece.id} className="hover:bg-gray-50 transition-colors">
-                            <td className="px-4 py-2 text-sm font-medium">{piece.piece?.name || "Pièce inconnue"}</td>
-                            <td className="px-4 py-2 text-sm">
-                              {isEditing && intervention.status !== Status.COMPLETED ? (
-                                <input
-                                  type="number"
-                                  value={piece.quantity}
-                                  onChange={(event) => handlePieceQuantityChange(piece.id, parseInt(event.target.value))}
-                                  className="w-20 p-1 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                  min="0"
-                                />
+                      {displayedPieces.length ? (
+                        displayedPieces.map((piece) => (
+                          <tr key={piece.pieceId} className="hover:bg-gray-50 transition-colors duration-150">
+                            <td className="px-6 py-4">
+                              <div className="flex items-center">
+                                <div className="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                  <svg className="h-6 w-6 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                  </svg>
+                                </div>
+                                <div className="ml-4">
+                                  <div className="text-sm font-medium text-gray-900">
+                                    {piece.piece?.name || "Pièce inconnue"}
+                                  </div>
+                                  <div className="text-sm text-gray-500">
+                                    ID: {piece.pieceId}
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              {isEditing ? (
+                                <div className="flex items-center gap-2">
+                                  <input
+                                    type="number"
+                                    value={piece.quantity}
+                                    onChange={(event) => handlePieceQuantityChange(piece.pieceId, parseInt(event.target.value))}
+                                    className="w-20 px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    min="1"
+                                  />
+                                  <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                  </svg>
+                                </div>
                               ) : (
-                                piece.quantity
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm text-gray-900">{piece.quantity}</span>
+                                  <span className="text-xs text-gray-400">unités</span>
+                                </div>
                               )}
                             </td>
-                            <td className="px-4 py-2 text-sm text-right">{piece.piece?.price?.toFixed(2) || "0.00"}</td>
-                            <td className="px-4 py-2 text-sm text-right font-medium">{piece.totalPrice?.toFixed(2) || "0.00"}</td>
+                            <td className="px-6 py-4 text-right">
+                              <span className="text-sm text-gray-900">
+                                {piece.piece?.price?.toFixed(2) || "0.00"} DT
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <span className="text-sm font-medium text-gray-900">
+                                {piece.totalPrice?.toFixed(2) || "0.00"} DT
+                              </span>
+                            </td>
+                            {isEditing && intervention.status !== Status.COMPLETED && (
+                              <td className="px-6 py-4 text-center">
+                                <button
+                                  onClick={() => handleRemovePiece(piece.pieceId)}
+                                  className="text-red-600 hover:text-red-800 transition-colors duration-200"
+                                  title="Supprimer la pièce"
+                                >
+                                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                </button>
+                              </td>
+                            )}
                           </tr>
                         ))
                       ) : (
                         <tr>
-                          <td colSpan={4} className="px-4 py-6 text-center text-sm text-gray-500">
-                            Aucune pièce détachée pour cette intervention
+                          <td colSpan={isEditing ? 5 : 4} className="px-6 py-8 text-center">
+                            <div className="flex flex-col items-center justify-center text-gray-500">
+                              <svg className="h-12 w-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                              </svg>
+                              <p className="text-sm">Aucune pièce détachée pour cette intervention</p>
+                            </div>
                           </td>
                         </tr>
                       )}
                     </tbody>
                   </table>
                 </div>
-              </div>
-
-              <div className="mt-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-medium text-gray-900">Pièces utilisées</h3>
-                  <button
-                    onClick={() => setShowAddPieceModal(true)}
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                  >
-                    <FaPlus className="mr-2" />
-                    Ajouter une pièce
-                  </button>
-                </div>
-                
-                {intervention.interventionPieces && intervention.interventionPieces.length > 0 ? (
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pièce</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantité</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prix unitaire</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {intervention.interventionPieces.map((piece) => (
-                          <tr key={piece.id}>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {piece.piece?.name}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {isEditing ? (
-                                <input
-                                  type="number"
-                                  min="0"
-                                  value={piece.quantity}
-                                  onChange={(e) => handlePieceQuantityChange(piece.id, parseInt(e.target.value))}
-                                  className="w-20 px-2 py-1 border rounded"
-                                />
-                              ) : (
-                                piece.quantity
-                              )}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {piece.piece?.price.toFixed(2)} DT
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {(piece.totalPrice || 0).toFixed(2)} DT
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {isEditing && (
-                                <button
-                                  onClick={() => {
-                                    const newPieces = intervention.interventionPieces?.filter(p => p.id !== piece.id)
-                                    setIntervention({
-                                      ...intervention,
-                                      interventionPieces: newPieces
-                                    })
-                                  }}
-                                  className="text-red-600 hover:text-red-900"
-                                >
-                                  Supprimer
-                                </button>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <p className="text-gray-500 text-center py-4">Aucune pièce utilisée</p>
-                )}
               </div>
 
               <div className="flex justify-between items-center pt-4 border-t">
@@ -674,8 +633,8 @@ export default function InterventionManagement({ interventionId }: { interventio
                       </tr>
                     </thead>
                     <tbody className="divide-y">
-                      {intervention.interventionPieces?.length ? (
-                        intervention.interventionPieces.map((piece) => (
+                      {pendingInterventionPieces?.length ? (
+                        pendingInterventionPieces.map((piece) => (
                           <tr key={piece.id}>
                             <td className="px-4 py-2 text-sm font-medium">{piece.piece?.name || "Pièce inconnue"}</td>
                             <td className="px-4 py-2 text-sm text-right">{piece.quantity}</td>
@@ -726,99 +685,15 @@ export default function InterventionManagement({ interventionId }: { interventio
               onClose={() => setShowFacturePdf(false)}
             />
           )}
-
-          {showAddPieceModal && (
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center">
-              <div className="bg-white rounded-lg p-6 max-w-md w-full">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Ajouter une pièce</h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Pièce</label>
-                    <select
-                      value={selectedPiece?.id || ''}
-                      onChange={(e) => {
-                        const pieceId = parseInt(e.target.value)
-                        console.log('ID de la pièce sélectionnée:', pieceId)
-                        console.log('Liste des pièces disponibles:', pieces)
-                        const piece = pieces.find(p => p.id === pieceId)
-                        console.log('Pièce trouvée:', piece)
-                        if (piece) {
-                          const newSelectedPiece: StockPiece = {
-                            id: piece.id,
-                            name: piece.name,
-                            price: piece.price,
-                            stock: piece.stock
-                          }
-                          console.log('Nouvelle pièce sélectionnée:', newSelectedPiece)
-                          setSelectedPiece(newSelectedPiece)
-                        }
-                      }}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                    >
-                      <option value="">Sélectionner une pièce</option>
-                      {pieces.map((piece) => (
-                        <option key={piece.id} value={piece.id}>
-                          {piece.name} - Prix: {piece.price.toFixed(2)} DT - Stock: {piece.stock}
-                        </option>
-                      ))}
-                    </select>
-                    {selectedPiece && (
-                      <p className="mt-1 text-sm text-gray-500">
-                        Pièce sélectionnée: {selectedPiece.name} - Prix: {selectedPiece.price.toFixed(2)} DT - Stock disponible: {selectedPiece.stock}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Quantité</label>
-                    <input
-                      type="number"
-                      min="1"
-                      max={selectedPiece?.stock || 1}
-                      value={pieceQuantity}
-                      onChange={(e) => {
-                        const value = parseInt(e.target.value) || 1
-                        const maxStock = selectedPiece?.stock || 1
-                        setPieceQuantity(Math.min(value, maxStock))
-                      }}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                    />
-                    {selectedPiece && (
-                      <p className="mt-1 text-sm text-gray-500">
-                        Stock disponible: {selectedPiece.stock}
-                      </p>
-                    )}
-                  </div>
-                  {selectedPiece && (
-                    <div className="mt-4 p-4 bg-gray-50 rounded-md">
-                      <h4 className="text-sm font-medium text-gray-900 mb-2">Résumé</h4>
-                      <p className="text-sm text-gray-600">Total: {(selectedPiece.price * pieceQuantity).toFixed(2)} DT</p>
-                    </div>
-                  )}
-                </div>
-                <div className="mt-6 flex justify-end space-x-3">
-                  <button
-                    onClick={() => {
-                      setShowAddPieceModal(false)
-                      setSelectedPiece(null)
-                      setPieceQuantity(1)
-                    }}
-                    className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                  >
-                    Annuler
-                  </button>
-                  <button
-                    onClick={handleAddPiece}
-                    disabled={!selectedPiece || pieceQuantity < 1 || pieceQuantity > (selectedPiece?.stock || 0)}
-                    className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-                  >
-                    Ajouter
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
         </main>
       </div>
+
+      <AddPieceModal
+        isOpen={showAddPieceModal}
+        onClose={() => setShowAddPieceModal(false)}
+        onAddPiece={handleAddPiece}
+        interventionId={interventionId}
+      />
     </div>
   )
 }

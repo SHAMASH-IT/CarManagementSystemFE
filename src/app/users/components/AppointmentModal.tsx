@@ -6,7 +6,7 @@ import Modal from 'react-modal'
 
 import { toast } from 'react-toastify'
 
-import type { AppointmentDetails } from '../../types/index'
+import type { AppointmentDetails, Vehicle } from '../../types/index'
 import { createAppointment } from '@/app/appointments/services/appointmentService'
 
 interface AppointmentModalProps {
@@ -28,9 +28,23 @@ const AppointmentModal = ({
 }: AppointmentModalProps) => {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [vehicles, setVehicles] = useState<Vehicle[]>([])
 
   useEffect(() => {
     Modal.setAppElement('body')
+    const fetchVehicles = async () => {
+      try {
+        const userId = 1; // À remplacer par l'ID réel du client connecté plus tard
+        const API_URL = process.env.NEXT_PUBLIC_APP_URL;
+        const response = await fetch(`${API_URL}/users/vehicle/user/${userId}`)
+        if (!response.ok) throw new Error('Erreur lors de la récupération des véhicules')
+        const data = await response.json()
+        setVehicles(data)
+      } catch (err) {
+        setVehicles([])
+      }
+    }
+    fetchVehicles()
   }, [])
 
   const handleFormSubmit = async (e: React.FormEvent) => {
@@ -108,15 +122,20 @@ const AppointmentModal = ({
             <label className='block text-gray-700 mb-1'>
               Véhicule<span className='text-red-500'>*</span>
             </label>
-            <input
-              type='text'
+            <select
               name='vehicle'
               value={appointmentDetails.vehicle}
               onChange={handleInputChange}
-              className='w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500'
-              placeholder='Marque et modèle du véhicule'
+              className='w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white'
               required
-            />
+            >
+              <option value=''>Sélectionnez un véhicule</option>
+              {vehicles.map(vehicle => (
+                <option key={vehicle.id} value={vehicle.id}>
+                  {vehicle.brand} {vehicle.model} ({vehicle.registration})
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className='mb-4'>
