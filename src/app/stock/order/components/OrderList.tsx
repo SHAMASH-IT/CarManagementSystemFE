@@ -3,7 +3,8 @@
 import type React from "react"
 import { useEffect, useState } from "react"
 import { useOrders } from "../hooks/useOrders"
-import type { Order } from "../service/OrderService"
+import type { Order, Piece } from "../service/OrderService"
+import { orderService } from "../service/OrderService"
 import { Calendar, Package, User, ShoppingCart, Loader2, AlertCircle, X, Check, Search, RefreshCw } from "lucide-react"
 
 interface OrderListProps {
@@ -14,10 +15,25 @@ const OrderList: React.FC<OrderListProps> = ({ filterStatus = null }) => {
   const { orders, loading, error, cancelOrder, completeOrder, refreshOrders } = useOrders()
   const [searchTerm, setSearchTerm] = useState("")
   const [activeTab, setActiveTab] = useState("Toutes")
+  const [pieces, setPieces] = useState<Map<number, Piece>>(new Map())
 
   useEffect(() => {
     console.log("Liste des commandes mise à jour:", orders)
   }, [orders])
+
+  // Charger les pièces au montage du composant
+  useEffect(() => {
+    const loadPieces = async () => {
+      try {
+        const piecesData = await orderService.getAllPieces()
+        const piecesMap = new Map(piecesData.map(piece => [piece.id, piece]))
+        setPieces(piecesMap)
+      } catch (err) {
+        console.error('Erreur lors du chargement des pièces:', err)
+      }
+    }
+    loadPieces()
+  }, [])
 
   const handleCancelOrder = async (id: number) => {
     try {
@@ -61,6 +77,12 @@ const OrderList: React.FC<OrderListProps> = ({ filterStatus = null }) => {
       default:
         return null
     }
+  }
+
+  // Obtenir le nom de la pièce à partir de son ID
+  const getPieceName = (pieceId: number) => {
+    const piece = pieces.get(pieceId)
+    return piece ? piece.name : `Pièce #${pieceId}`
   }
 
   // Filtrer les commandes en fonction du terme de recherche et du statut actif
@@ -252,6 +274,9 @@ const OrderList: React.FC<OrderListProps> = ({ filterStatus = null }) => {
                       ID
                     </th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-gray-600 uppercase tracking-wider border-b">
+                      Nom Pièce
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-600 uppercase tracking-wider border-b">
                       Date
                     </th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-gray-600 uppercase tracking-wider border-b">
@@ -259,9 +284,6 @@ const OrderList: React.FC<OrderListProps> = ({ filterStatus = null }) => {
                     </th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-gray-600 uppercase tracking-wider border-b">
                       Quantité
-                    </th>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-600 uppercase tracking-wider border-b">
-                      ID Pièce
                     </th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-gray-600 uppercase tracking-wider border-b">
                       ID Utilisateur
@@ -274,7 +296,17 @@ const OrderList: React.FC<OrderListProps> = ({ filterStatus = null }) => {
                 <tbody className="divide-y divide-gray-200">
                   {filteredOrders.map((order: Order) => (
                     <tr key={order.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap font-medium">{order.id}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          {order.id}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <Package className="h-5 w-5 text-gray-500 mr-2" />
+                          {getPieceName(order.pieceId)}
+                        </div>
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <Calendar className="h-5 w-5 text-gray-500 mr-2" />
@@ -299,12 +331,6 @@ const OrderList: React.FC<OrderListProps> = ({ filterStatus = null }) => {
                         <div className="flex items-center">
                           <ShoppingCart className="h-5 w-5 text-gray-500 mr-2" />
                           {order.quantity}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <Package className="h-5 w-5 text-gray-500 mr-2" />
-                          {order.pieceId}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">

@@ -1,7 +1,16 @@
 import axios from 'axios';
 
+const API_URL = 'http://localhost:3005/stock';
+
+export interface Piece {
+  id: number;
+  name: string;
+  stock: number;
+  categoryId: number;
+}
+
 export interface CreateOrderDto {
-  pieceId: number;
+  pieceName: string;
   userId: number;
   quantity: number;
 }
@@ -21,13 +30,11 @@ export interface Order {
   pieceId: number;
 }
 
-const API_URL = 'http://localhost:3005/stock';
-
 export const orderService = {
   async placeOrder(dto: CreateOrderDto): Promise<Order> {
     try {
       console.log('Envoi de la commande:', dto);
-      const response = await axios.post(`${API_URL}/orders`, dto);
+      const response = await axios.post(`${API_URL}/order-by-name`, dto);
       console.log('Réponse de la commande:', response.data);
       return response.data;
     } catch (error) {
@@ -89,6 +96,16 @@ export const orderService = {
       return response.data;
     } catch (error) {
       console.error('Erreur lors de la récupération de la commande:', error);
+      throw error;
+    }
+  },
+
+  async getAllPieces(): Promise<Piece[]> {
+    try {
+      const response = await axios.get(`${API_URL}/pieces`);
+      return response.data;
+    } catch (error) {
+      console.error('Erreur lors de la récupération des pièces:', error);
       throw error;
     }
   }
