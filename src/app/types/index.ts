@@ -208,6 +208,8 @@ export interface Stock {
   stock: number
   threshold: number
   price: number
+  initialPrice: number
+  marque: string
   categoryId: number
   category: {
     id: number
@@ -223,4 +225,3 @@ export interface Category {
 export interface CategoryFormData {
   name: string;
 }
-

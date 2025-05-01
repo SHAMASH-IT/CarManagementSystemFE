@@ -21,8 +21,17 @@ const UpdateStockModal = ({ isOpen, onClose, stockId, onUpdateSuccess }: UpdateS
   const [stock, setStock] = useState('')
   const [threshold, setThreshold] = useState('')
   const [price, setPrice] = useState('')
+  const [initialPrice, setInitialPrice] = useState('')
+  const [marque, setMarque] = useState('')
   const [categoryId, setCategoryId] = useState('')
-  const [errors, setErrors] = useState({ stock: '', threshold: '', price: '', categoryId: '' })
+  const [errors, setErrors] = useState({ 
+    stock: '', 
+    threshold: '', 
+    price: '', 
+    initialPrice: '',
+    marque: '',
+    categoryId: '' 
+  })
   const [isLoading, setIsLoading] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
   const { updateStock, stocks, categories, fetchCategories } = useStock()
@@ -40,13 +49,22 @@ const UpdateStockModal = ({ isOpen, onClose, stockId, onUpdateSuccess }: UpdateS
         setStock(stockToUpdate.stock.toString())
         setThreshold(stockToUpdate.threshold.toString())
         setPrice(stockToUpdate.price.toString())
+        setInitialPrice(stockToUpdate.initialPrice.toString())
+        setMarque(stockToUpdate.marque)
         setCategoryId(stockToUpdate.categoryId.toString())
       }
     }
   }, [stockId, stocks])
 
   const validateFields = () => {
-    const newErrors = { stock: '', threshold: '', price: '', categoryId: '' }
+    const newErrors = { 
+      stock: '', 
+      threshold: '', 
+      price: '', 
+      initialPrice: '',
+      marque: '',
+      categoryId: '' 
+    }
     let isValid = true
 
     if (!stock || parseInt(stock) <= 0) {
@@ -61,6 +79,16 @@ const UpdateStockModal = ({ isOpen, onClose, stockId, onUpdateSuccess }: UpdateS
 
     if (!price || parseFloat(price) <= 0) {
       newErrors.price = 'Le prix doit être supérieur à 0'
+      isValid = false
+    }
+
+    if (!initialPrice || parseFloat(initialPrice) <= 0) {
+      newErrors.initialPrice = 'Le prix initial doit être supérieur à 0'
+      isValid = false
+    }
+
+    if (!marque) {
+      newErrors.marque = 'La marque est requise'
       isValid = false
     }
 
@@ -89,6 +117,8 @@ const UpdateStockModal = ({ isOpen, onClose, stockId, onUpdateSuccess }: UpdateS
         stock: parseInt(stock),
         threshold: parseInt(threshold),
         price: parseFloat(price),
+        initialPrice: parseFloat(initialPrice),
+        marque,
         categoryId: parseInt(categoryId)
       })
 
@@ -113,8 +143,17 @@ const UpdateStockModal = ({ isOpen, onClose, stockId, onUpdateSuccess }: UpdateS
     setStock('')
     setThreshold('')
     setPrice('')
+    setInitialPrice('')
+    setMarque('')
     setCategoryId('')
-    setErrors({ stock: '', threshold: '', price: '', categoryId: '' })
+    setErrors({ 
+      stock: '', 
+      threshold: '', 
+      price: '', 
+      initialPrice: '',
+      marque: '',
+      categoryId: '' 
+    })
   }
 
   return (
@@ -132,15 +171,14 @@ const UpdateStockModal = ({ isOpen, onClose, stockId, onUpdateSuccess }: UpdateS
         </div>
       ) : (
         <>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-3xl font-bold text-gray-800">Modifier une pièce</h2>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition transform hover:scale-110"
-            >
-              <X size={28} />
-            </button>
-          </div>
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+          >
+            <X size={24} />
+          </button>
+
+          <h2 className="text-2xl font-bold text-gray-800 mb-6">Modifier la pièce</h2>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Stock */}
@@ -159,6 +197,22 @@ const UpdateStockModal = ({ isOpen, onClose, stockId, onUpdateSuccess }: UpdateS
               {errors.stock && <p className="text-red-500 text-sm">{errors.stock}</p>}
             </div>
 
+            {/* Marque */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-600">Marque</label>
+              <input
+                type="text"
+                value={marque}
+                onChange={(e) => setMarque(e.target.value)}
+                className={`w-full px-4 py-3 rounded-lg border ${
+                  errors.marque ? 'border-red-500' : 'border-gray-300'
+                } shadow focus:ring focus:ring-blue-200 focus:border-blue-500 transition-all`}
+                placeholder="Marque"
+                required
+              />
+              {errors.marque && <p className="text-red-500 text-sm">{errors.marque}</p>}
+            </div>
+
             {/* Threshold */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-600">Seuil d'alerte</label>
@@ -175,9 +229,26 @@ const UpdateStockModal = ({ isOpen, onClose, stockId, onUpdateSuccess }: UpdateS
               {errors.threshold && <p className="text-red-500 text-sm">{errors.threshold}</p>}
             </div>
 
+            {/* Initial Price */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-600">Prix Initial (DT)</label>
+              <input
+                type="number"
+                step="0.01"
+                value={initialPrice}
+                onChange={(e) => setInitialPrice(e.target.value)}
+                className={`w-full px-4 py-3 rounded-lg border ${
+                  errors.initialPrice ? 'border-red-500' : 'border-gray-300'
+                } shadow focus:ring focus:ring-blue-200 focus:border-blue-500 transition-all`}
+                placeholder="Prix initial (DT)"
+                required
+              />
+              {errors.initialPrice && <p className="text-red-500 text-sm">{errors.initialPrice}</p>}
+            </div>
+
             {/* Price */}
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-600">Prix (€)</label>
+              <label className="block text-sm font-medium text-gray-600">Prix de Vente (DT)</label>
               <input
                 type="number"
                 step="0.01"
@@ -186,7 +257,7 @@ const UpdateStockModal = ({ isOpen, onClose, stockId, onUpdateSuccess }: UpdateS
                 className={`w-full px-4 py-3 rounded-lg border ${
                   errors.price ? 'border-red-500' : 'border-gray-300'
                 } shadow focus:ring focus:ring-blue-200 focus:border-blue-500 transition-all`}
-                placeholder="Prix unitaire (€)"
+                placeholder="Prix de vente (DT)"
                 required
               />
               {errors.price && <p className="text-red-500 text-sm">{errors.price}</p>}

@@ -6,10 +6,12 @@ interface CreateStockData {
   stock: number
   threshold: number
   price: number
+  initialPrice: number
+  marque: string
   categoryId: number
 }
 
-class StockService {
+export class StockService {
   private API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005'
 
   // Récupérer toutes les catégories
@@ -37,10 +39,17 @@ class StockService {
   // Ajouter un stock
   async addStock(stockData: CreateStockData): Promise<Stock> {
     try {
+      console.log('Données envoyées au serveur:', stockData)
+      console.log('URL:', `${this.API_URL}/stock/pieces`)
       const response = await axios.post(`${this.API_URL}/stock/pieces`, stockData)
+      console.log('Réponse du serveur:', response.data)
       return response.data
     } catch (error) {
-      console.error('Erreur lors de l\'ajout du stock:', error)
+      console.error('Erreur détaillée lors de l\'ajout du stock:', error)
+      if (error.response) {
+        console.error('Réponse d\'erreur:', error.response.data)
+        console.error('Status:', error.response.status)
+      }
       throw new Error('Erreur lors de l\'ajout du stock')
     }
   }
@@ -79,4 +88,5 @@ class StockService {
   }
 }
 
-export const stockService = new StockService()
+const stockService = new StockService()
+export default stockService
