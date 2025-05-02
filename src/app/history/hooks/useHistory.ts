@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { progressService, Intervention } from '../../progress/services/progress.service';
+import { historyService } from '../services/history.service';
+import { Intervention } from '../../progress/services/progress.service';
 
 export const useHistory = () => {
   const [completedInterventions, setCompletedInterventions] = useState<Intervention[]>([]);
@@ -11,7 +12,7 @@ export const useHistory = () => {
     try {
       setIsLoading(true);
       setError(null);
-      const interventions = await progressService.getCompletedInterventions();
+      const interventions = await historyService.getCompletedInterventions();
       setCompletedInterventions(interventions);
       setFilteredInterventions(interventions);
     } catch (err) {
@@ -38,6 +39,20 @@ export const useHistory = () => {
     }
   };
 
+  const rateIntervention = async (id: number, rate: number, commentaire: string) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      await historyService.rateIntervention(id, rate, commentaire);
+      await fetchCompletedInterventions();
+    } catch (err) {
+      setError("Erreur lors de l'enregistrement de la note");
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchCompletedInterventions();
   }, []);
@@ -48,6 +63,7 @@ export const useHistory = () => {
     isLoading,
     error,
     filterInterventions,
-    fetchCompletedInterventions
+    fetchCompletedInterventions,
+    rateIntervention,
   };
 };

@@ -32,5 +32,18 @@ export const historyService = {
       console.error(`Error fetching interventions for vehicle ${registration}:`, error);
       throw error;
     }
-  }
+  },
+
+  rateIntervention: async (id: number, rate: number, commentaire: string) => {
+    try {
+      const response = await axios.patch(
+        `${API_URL}/progress/intervention/rate/${id}`,
+        { rate, commentaire }
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Error rating intervention ${id}:`, error);
+      throw error;
+    }
+  },
 }; 

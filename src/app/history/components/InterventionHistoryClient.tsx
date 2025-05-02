@@ -28,7 +28,14 @@ import { format } from "date-fns"
 import { fr } from "date-fns/locale"
 
 export function InterventionHistory() {
-  const { completedInterventions, filteredInterventions, isLoading, error, filterInterventions } = useHistory()
+  const {
+    completedInterventions,
+    filteredInterventions,
+    isLoading,
+    error,
+    filterInterventions,
+    rateIntervention,
+  } = useHistory()
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedIntervention, setSelectedIntervention] = useState<number | null>(null)
   const [showFilters, setShowFilters] = useState(false)
@@ -91,15 +98,9 @@ export function InterventionHistory() {
     if (rating === 0) return
     setIsSubmitting(true)
     try {
-      // TODO: Implémenter l'appel API pour sauvegarder l'avis
-      console.log("Saving review:", { interventionId, rating, comment })
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-
+      await rateIntervention(interventionId, rating, comment)
       setRating(0)
       setComment("")
-      // Close the review panel after submission
       setSelectedIntervention(null)
     } catch (error) {
       console.error("Error saving review:", error)
