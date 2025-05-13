@@ -22,6 +22,7 @@ import {
   Tag,
 } from "lucide-react"
 import moment from "moment"
+import { getUserProfile } from '../profile/services/profileService'
 
 // Define the interface for search results
 interface SearchResult {
@@ -82,6 +83,15 @@ const Navbar = () => {
   const [searchFocused, setSearchFocused] = useState(false)
   const searchRef = useRef<HTMLDivElement>(null)
   const API_URL = process.env.NEXT_PUBLIC_APP_URL
+  const [userName, setUserName] = useState<string | null>(null)
+  const [userEmail, setUserEmail] = useState<string | null>(null)
+
+  const handleLogout = () => {
+    // Supprimer le token du localStorage
+    localStorage.removeItem('token')
+    // Rediriger vers la page de login
+    window.location.href = '/login'
+  }
 
   // Effet pour faire disparaître automatiquement le message d'erreur
   useEffect(() => {
@@ -141,6 +151,38 @@ const Navbar = () => {
       window.removeEventListener("keydown", handleKeyDown)
     }
   }, [searchResults, selectedResult])
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const token = localStorage.getItem('token')
+      if (token) {
+        try {
+          const base64Url = token.split('.')[1]
+          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+          const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+          }).join(''))
+
+          const userData = JSON.parse(jsonPayload)
+          setUserEmail(userData.email)
+
+          // Récupérer le profil utilisateur pour obtenir le nom
+          if (userData.sub) {
+            try {
+              const profile = await getUserProfile(userData.sub)
+              setUserName(profile.name)
+            } catch (error) {
+              console.error('Erreur lors de la récupération du profil:', error)
+            }
+          }
+        } catch (error) {
+          console.error('Erreur lors du décodage du token:', error)
+        }
+      }
+    }
+
+    fetchUserData()
+  }, [])
 
   const handleSearch = async () => {
     try {
@@ -600,7 +642,7 @@ const Navbar = () => {
                   <UserCircle2 size={24} className="text-indigo-600" />
                 </div>
                 <div className="hidden md:flex items-center">
-                  <span className="text-sm font-medium text-gray-700">Marie Dupont</span>
+                  <span className="text-sm font-medium text-gray-700">{userName || 'Chargement...'}</span>
                   <ChevronDown className="ml-1 h-4 w-4 text-gray-500" />
                 </div>
               </button>
@@ -613,13 +655,18 @@ const Navbar = () => {
                   }}
                 >
                   <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
-                    <p className="text-sm font-medium text-gray-900">Marie Dupont</p>
-                    <p className="text-xs text-gray-500 mt-1">marie.dupont@example.com</p>
+                    <p className="text-sm font-medium text-gray-900">{userName || 'Chargement...'}</p>
+                    <p className="text-xs text-gray-500 mt-1">{userEmail || 'Chargement...'}</p>
                   </div>
-                  <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                    <Settings className="inline mr-2 h-4 w-4" /> Paramètres
-                  </a>
-                  <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                 
+                  <a 
+                    href="#" 
+                    onClick={(e) => {
+                      e.preventDefault()
+                      handleLogout()
+                    }} 
+                    className="block px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 hover:text-red-700 transition-all duration-200 flex items-center border-t border-gray-100 hover:border-red-200"
+                  >
                     <LogOut className="inline mr-2 h-4 w-4" /> Déconnexion
                   </a>
                 </div>

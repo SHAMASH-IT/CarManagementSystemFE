@@ -1128,7 +1128,7 @@ const UserManagement = () => {
                   }}
                 >
                   <MenuItem value="CLIENT">Client</MenuItem>
-                  <MenuItem value="PROVIDER">Fournisseur</MenuItem>
+                  <MenuItem value="PROVIDER">Prestataire</MenuItem>
                   <MenuItem value="ADMIN">Administrateur</MenuItem>
                 </Select>
               </FormControl>

@@ -9,6 +9,12 @@ export const useProfile = (userId: number) => {
 
   useEffect(() => {
     const fetchProfile = async () => {
+      // Ne pas faire l'appel API si userId est 0
+      if (!userId) {
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         const data = await getUserProfile(userId);
@@ -25,6 +31,10 @@ export const useProfile = (userId: number) => {
   }, [userId]);
 
   const updateProfile = async (data: UpdateProfileDto) => {
+    if (!userId) {
+      throw new Error('ID utilisateur non valide');
+    }
+
     try {
       setIsUpdating(true);
       await updateUserProfile(userId, data);

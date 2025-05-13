@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -18,13 +17,62 @@ import {
   History,
   Car,
   UserCog,
+  Package,
+  ShoppingCart,
+  LayoutDashboard,
+  ClipboardCheck,
+  Warehouse,
+  PackageCheck,
+  Settings,
+  FileText,
+  CarFront,
+  CalendarClock,
+  UserRound,
 } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { authService } from '../login/services/auth.service'
+import { getUserProfile } from '../profile/services/profileService'
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(true)
   const pathname = usePathname()
   const [activeItem, setActiveItem] = useState('')
+  const [userRole, setUserRole] = useState<string | null>(null)
+  const [userName, setUserName] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const token = localStorage.getItem('token')
+      if (token) {
+        try {
+          const base64Url = token.split('.')[1]
+          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+          const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+          }).join(''))
+
+          const userData = JSON.parse(jsonPayload)
+          console.log('Token décodé:', userData)
+          setUserRole(userData.role)
+
+          // Récupérer le profil utilisateur pour obtenir le nom
+          if (userData.sub) {
+            try {
+              const profile = await getUserProfile(userData.sub)
+              console.log('Profil récupéré:', profile)
+              setUserName(profile.name)
+            } catch (error) {
+              console.error('Erreur lors de la récupération du profil:', error)
+            }
+          }
+        } catch (error) {
+          console.error('Erreur lors du décodage du token:', error)
+        }
+      }
+    }
+
+    fetchUserData()
+  }, [])
 
   useEffect(() => {
     // Met à jour automatiquement l'élément actif en fonction du pathname
@@ -57,89 +105,214 @@ const Sidebar = () => {
     setIsOpen(!isOpen)
   }
 
-  const menuItems = [
-    { icon: <Home size={20} className="text-pink-500" />, title: 'Dashboard', url: '/appointments/dashboard' },
-    { icon: <ClipboardList size={20} className="text-green-500" />, title: 'Liste des Rendez-vous', url: '/appointments' },
-    { icon: <CalendarPlus size={20} className="text-yellow-500" />, title: 'Prendre un rendez-vous', url: '/users' },
-    { icon: <Car size={20} className="text-blue-700" />, title: 'Ajouter un véhicule', url: '/users/vehicle' },
-    { icon: <Search size={20} className="text-teal-500" />, title: 'Rechercher un rendez-vous', url: '/progress/vehicle-progress-client' },
-    { icon: <History size={20} className="text-cyan-500" />, title: 'Historique des rendez-vous', url: '/history' },
-    { icon: <UserCircle2 size={20} className="text-violet-500" />, title: 'Modifier le profil', url: '/profile' },
-    { icon: <UserCog size={20} className="text-indigo-500" />, title: 'Gestion Utilisateurs', url: '/admin/users' },
-    { icon: <ParkingCircle size={20} className="text-orange-500" />, title: 'Stationnement', url: '/parking' },
-    { icon: <Box size={20} className="text-purple-500" />, title: 'Stock', url: '/stock' },
-    { icon: <Box size={20} className="text-purple-500" />, title: 'Commande', url: '/stock/order' },
-    { icon: <Wrench size={20} className="text-red-500" />, title: 'Intervention', url: '/progress' },
+  // Menu items pour les clients
+  const clientMenuItems = [
+    { 
+      icon: <CalendarClock size={22} className="text-yellow-500 group-hover:scale-110 transition-transform duration-200" />, 
+      title: 'Prendre un rendez-vous', 
+      url: '/users' 
+    },
+    { 
+      icon: <CarFront size={22} className="text-blue-700 group-hover:scale-110 transition-transform duration-200" />, 
+      title: 'Ajouter un véhicule', 
+      url: '/users/vehicle' 
+    },
+    { 
+      icon: <Search size={22} className="text-teal-500 group-hover:scale-110 transition-transform duration-200" />, 
+      title: 'Rechercher un rendez-vous', 
+      url: '/progress/vehicle-progress-client' 
+    },
+    { 
+      icon: <FileText size={22} className="text-cyan-500 group-hover:scale-110 transition-transform duration-200" />, 
+      title: 'Historique des rendez-vous', 
+      url: '/history' 
+    },
+    { 
+      icon: <UserRound size={22} className="text-violet-500 group-hover:scale-110 transition-transform duration-200" />, 
+      title: 'Modifier le profil', 
+      url: '/profile' 
+    },
   ]
 
+  // Menu items pour les prestataires
+  const providerMenuItems = [
+    { 
+      icon: <LayoutDashboard size={22} className="text-pink-500 group-hover:scale-110 transition-transform duration-200" />, 
+      title: 'Dashboard', 
+      url: '/appointments/dashboard' 
+    },
+    { 
+      icon: <ClipboardCheck size={22} className="text-green-500 group-hover:scale-110 transition-transform duration-200" />, 
+      title: 'Liste des Rendez-vous', 
+      url: '/appointments' 
+    },
+    { 
+      icon: <ParkingCircle size={22} className="text-orange-500 group-hover:scale-110 transition-transform duration-200" />, 
+      title: 'Stationnement', 
+      url: '/parking' 
+    },
+    { 
+      icon: <Warehouse size={22} className="text-purple-500 group-hover:scale-110 transition-transform duration-200" />, 
+      title: 'Stock', 
+      url: '/stock' 
+    },
+    { 
+      icon: <ShoppingCart size={22} className="text-indigo-500 group-hover:scale-110 transition-transform duration-200" />, 
+      title: 'Commande', 
+      url: '/stock/order' 
+    },
+    { 
+      icon: <Wrench size={22} className="text-red-500 group-hover:scale-110 transition-transform duration-200" />, 
+      title: 'Intervention', 
+      url: '/progress' 
+    },
+    { 
+      icon: <Settings size={22} className="text-violet-500 group-hover:scale-110 transition-transform duration-200" />, 
+      title: 'Modifier le profil', 
+      url: '/profile' 
+    },
+  ]
+
+  // Menu items pour les administrateurs
+  const adminMenuItems = [
+    { 
+      icon: <LayoutDashboard size={22} className="text-pink-500 group-hover:scale-110 transition-transform duration-200" />, 
+      title: 'Dashboard', 
+      url: '/appointments/dashboard' 
+    },
+    { 
+      icon: <ClipboardCheck size={22} className="text-green-500 group-hover:scale-110 transition-transform duration-200" />, 
+      title: 'Liste des Rendez-vous', 
+      url: '/appointments' 
+    },
+    { 
+      icon: <UserCog size={22} className="text-indigo-500 group-hover:scale-110 transition-transform duration-200" />, 
+      title: 'Gestion Utilisateurs', 
+      url: '/admin/users' 
+    },
+    { 
+      icon: <ParkingCircle size={22} className="text-orange-500 group-hover:scale-110 transition-transform duration-200" />, 
+      title: 'Stationnement', 
+      url: '/parking' 
+    },
+    { 
+      icon: <Warehouse size={22} className="text-purple-500 group-hover:scale-110 transition-transform duration-200" />, 
+      title: 'Stock', 
+      url: '/stock' 
+    },
+    { 
+      icon: <PackageCheck size={22} className="text-indigo-500 group-hover:scale-110 transition-transform duration-200" />, 
+      title: 'Commande', 
+      url: '/stock/order' 
+    },
+    { 
+      icon: <Wrench size={22} className="text-red-500 group-hover:scale-110 transition-transform duration-200" />, 
+      title: 'Intervention', 
+      url: '/progress' 
+    },
+    { 
+      icon: <Settings size={22} className="text-violet-500 group-hover:scale-110 transition-transform duration-200" />, 
+      title: 'Modifier le profil', 
+      url: '/profile' 
+    },
+  ]
+
+  // Sélectionner les menu items en fonction du rôle
+  const menuItems = userRole === 'ADMIN' 
+    ? adminMenuItems 
+    : userRole === 'PROVIDER' 
+      ? providerMenuItems 
+      : clientMenuItems
+
   return (
-    <div className="flex h-screen bg-gradient-to-br from-gray-50 to-gray-200">
+    <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-gray-200">
       <motion.div
         initial={{ width: isOpen ? 280 : 72 }}
         animate={{ width: isOpen ? 280 : 72 }}
-        transition={{ duration: 0.4, type: 'spring' }}
-        className="h-screen bg-gradient-to-br from-white via-gray-100 to-gray-50 shadow-lg flex flex-col border-r border-gray-300 relative"
+        transition={{ duration: 0.4, type: 'spring', bounce: 0.2 }}
+        className="h-full bg-white shadow-xl flex flex-col border-r border-gray-200 relative backdrop-blur-sm bg-opacity-90"
       >
         {/* Toggle Button */}
-        <button
+        <motion.button
           onClick={toggleSidebar}
-          className="absolute -right-3 top-16 bg-gradient-to-r from-gray-200 to-gray-300 border border-gray-300 rounded-full p-1.5 shadow-md z-10 hover:bg-gray-400"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+          className="absolute -right-3 top-16 bg-white border border-gray-200 rounded-full p-1.5 shadow-lg z-10 hover:bg-gray-50 transition-colors duration-200"
           aria-label={isOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
         >
-          {isOpen ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
-        </button>
+          {isOpen ? <ChevronLeft size={16} className="text-gray-600" /> : <ChevronRight size={16} className="text-gray-600" />}
+        </motion.button>
 
         {/* Profile Section */}
-        <div
-          className={`p-6 border-b border-gray-300 flex items-center ${
-            !isOpen ? 'justify-center' : 'justify-between'
-          }`}
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className={`p-6 border-b border-gray-200 flex items-center ${!isOpen ? 'justify-center' : 'justify-between'} bg-gradient-to-r from-indigo-50 to-white`}
         >
           {isOpen ? (
             <div className="flex items-center space-x-3">
               <div className="relative">
-                <div className="flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-tr from-indigo-300 to-indigo-500 border-2 border-indigo-500 shadow-md">
+                <motion.div 
+                  whileHover={{ scale: 1.05 }}
+                  className="flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 border-2 border-white shadow-lg"
+                >
                   <UserCircle2 size={32} className="text-white" />
-                </div>
-                <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></span>
+                </motion.div>
+                <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-400 border-2 border-white rounded-full shadow-sm"></span>
               </div>
               <div>
-                <h1 className="font-bold text-gray-800 text-base">Espace Prestataire</h1>
-                <p className="text-sm text-gray-500">Marie Dupont</p>
+                <h1 className="font-bold text-gray-800 text-base">
+                  {userRole === 'ADMIN' 
+                    ? 'Administration' 
+                    : userRole === 'PROVIDER' 
+                      ? userName ? `Bienvenue, ${userName}` : 'Tableau de bord'
+                      : 'Mon espace'}
+                </h1>
+                <p className="text-sm text-gray-500 font-medium">
+                  {userRole === 'ADMIN' 
+                    ? 'Gestion du système' 
+                    : userRole === 'PROVIDER' 
+                      ? 'Centre de services'
+                      : 'Espace client'}
+                </p>
               </div>
             </div>
           ) : (
-            <div className="relative">
-              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-300 to-indigo-500 border-2 border-indigo-500 shadow-md">
+            <motion.div 
+              whileHover={{ scale: 1.05 }}
+              className="relative"
+            >
+              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 border-2 border-white shadow-lg">
                 <UserCircle2 size={20} className="text-white" />
               </div>
-              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full"></span>
-            </div>
+              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-400 border-2 border-white rounded-full shadow-sm"></span>
+            </motion.div>
           )}
-        </div>
+        </motion.div>
 
-        {/* Menu Items */}
-        <div className="flex-1 overflow-y-auto py-6">
-          <ul className="space-y-2 px-4">
+        {/* Menu Items with Modern Icons */}
+        <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+          <ul className="space-y-2 p-4">
             {menuItems.map((item) => (
-              <li key={item.title}>
+              <motion.li 
+                key={item.title}
+                whileHover={{ x: 5 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
                 <a
                   href={item.url}
-                  className={`flex items-center px-4 py-2 text-sm font-medium rounded-lg group transition-all duration-200 
+                  className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg group transition-all duration-200 
                     ${activeItem === item.title ? 'bg-gradient-to-r from-indigo-100 to-indigo-200 text-indigo-700 shadow-xl' : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'} 
                     ${!isOpen && 'justify-center'}`}
                   onClick={() => setActiveItem(item.title)}
                 >
-                  <div
-                    className={`${activeItem === item.title ? 'text-indigo-700' : 'text-gray-500'} ${
-                      !isOpen && 'mx-auto'
-                    }`}
-                  >
+                  <div className={`${activeItem === item.title ? 'text-indigo-700' : 'text-gray-500'} ${!isOpen && 'mx-auto'} transition-colors duration-200`}>
                     {item.icon}
                   </div>
                   {isOpen && <span className="ml-4">{item.title}</span>}
                 </a>
-              </li>
+              </motion.li>
             ))}
           </ul>
         </div>
