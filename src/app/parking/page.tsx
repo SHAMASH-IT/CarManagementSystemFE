@@ -21,4 +21,7 @@ export default function ParkingPage() {
       </div>
     </div>
   )
+
 }
+
+

@@ -3,9 +3,11 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { useOrders } from "../hooks/useOrders"
-import type { CreateOrderDto } from "../service/OrderService"
+import type { CreateOrderDto, Piece } from "../service/OrderService"
+import { orderService } from "../service/OrderService"
 import { Check, Loader2, PackageOpen, ShoppingCart, User, X, Plus } from "lucide-react"
 
+// Ajout du type pour les pièces
 interface CreateOrderFormProps {
   onSuccess?: () => void
 }
@@ -13,10 +15,11 @@ interface CreateOrderFormProps {
 const CreateOrderForm: React.FC<CreateOrderFormProps> = ({ onSuccess }) => {
   const { placeOrder, refreshOrders } = useOrders()
   const [formData, setFormData] = useState<CreateOrderDto>({
-    pieceId: 0,
+    pieceName: "",
     userId: 0,
     quantity: 0,
   })
+  const [pieces, setPieces] = useState<Piece[]>([])
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -39,6 +42,23 @@ const CreateOrderForm: React.FC<CreateOrderFormProps> = ({ onSuccess }) => {
     }
   }, [success, onSuccess])
 
+  // Charger la liste des pièces au montage du composant
+  useEffect(() => {
+    const fetchPieces = async () => {
+      try {
+        const data = await orderService.getAllPieces()
+        setPieces(data)
+      } catch (err) {
+        console.error('Erreur lors du chargement des pièces:', err)
+        setError('Erreur lors du chargement des pièces')
+      }
+    }
+    
+    if (isFormOpen) {
+      fetchPieces()
+    }
+  }, [isFormOpen])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
@@ -47,7 +67,7 @@ const CreateOrderForm: React.FC<CreateOrderFormProps> = ({ onSuccess }) => {
 
     try {
       await placeOrder(formData)
-      setFormData({ pieceId: 0, userId: 0, quantity: 0 })
+      setFormData({ pieceName: "", userId: 0, quantity: 0 })
       setSuccess("Commande créée avec succès !")
       refreshOrders() // Rafraîchir la liste des commandes
     } catch (err: any) {
@@ -118,18 +138,22 @@ const CreateOrderForm: React.FC<CreateOrderFormProps> = ({ onSuccess }) => {
                 <div className="bg-blue-100 p-1 rounded-md">
                   <PackageOpen className="h-4 w-4 text-blue-600" />
                 </div>
-                ID Pièce
+                Pièce
               </label>
-              <input
-                type="number"
-                name="pieceId"
-                value={formData.pieceId || ""}
-                onChange={handleChange}
+              <select
+                name="pieceName"
+                value={formData.pieceName}
+                onChange={(e) => setFormData(prev => ({ ...prev, pieceName: e.target.value }))}
                 className="w-full px-3 py-2 border border-blue-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 required
-                min="1"
-                placeholder="Entrez l'ID de la pièce"
-              />
+              >
+                <option value="">Sélectionnez une pièce</option>
+                {pieces.map((piece) => (
+                  <option key={piece.id} value={piece.name}>
+                    {piece.name} (Stock: {piece.stock})
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="space-y-2">
