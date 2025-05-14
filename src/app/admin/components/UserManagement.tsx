@@ -124,6 +124,7 @@ const UserManagement = () => {
     total: users.length,
     admins: users.filter(u => u.role === 'ADMIN').length,
     providers: users.filter(u => u.role === 'PROVIDER').length,
+    suppliers: users.filter(u => u.role === 'SUPPLIER').length,
     clients: users.filter(u => u.role === 'CLIENT').length
   };
 
@@ -274,8 +275,10 @@ const UserManagement = () => {
         return 'error';
       case 'PROVIDER':
         return 'warning';
-      default:
+      case 'SUPPLIER':
         return 'info';
+      default:
+        return 'success';
     }
   };
 
@@ -284,6 +287,8 @@ const UserManagement = () => {
       case 'ADMIN':
         return <SecurityIcon />;
       case 'PROVIDER':
+        return <GroupIcon />;
+      case 'SUPPLIER':
         return <GroupIcon />;
       default:
         return <AccountCircleIcon />;
@@ -313,13 +318,13 @@ const UserManagement = () => {
           Gérez les comptes utilisateurs, les rôles et les permissions
         </Typography>
 
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={6} md={3}>
+        <Grid container spacing={3}>
+          <Grid item xs={12} sm={6} md={2.4}>
             <Card 
               sx={{ 
                 p: 2,
                 background: '#FFFFFF',
-                borderRadius: '10px',
+                borderRadius: '12px',
                 boxShadow: '0 2px 4px rgba(0,0,0,0.08)',
                 height: '100%',
                 display: 'flex',
@@ -334,9 +339,9 @@ const UserManagement = () => {
             >
               <Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                  <GroupIcon sx={{ fontSize: 20, color: '#5c6bc0', mr: 1 }} />
+                  <GroupIcon sx={{ fontSize: 24, color: '#5c6bc0', mr: 1 }} />
                   <Typography variant="subtitle1" sx={{ color: '#2D3748', fontWeight: 600 }}>
-                    Utilisateurs
+                    Total Utilisateurs
                   </Typography>
                 </Box>
                 <Typography variant="h4" sx={{ color: '#2D3748', fontWeight: 700, mb: 0.5 }}>
@@ -349,10 +354,10 @@ const UserManagement = () => {
             </Card>
           </Grid>
 
-          <Grid item xs={12} md={3}>
+          <Grid item xs={12} sm={6} md={2.4}>
             <Card 
               sx={{ 
-                p: 2.5,
+                p: 2,
                 background: '#FFFFFF',
                 color: '#c62828',
                 borderRadius: '12px',
@@ -360,28 +365,32 @@ const UserManagement = () => {
                 transition: 'all 0.3s ease',
                 position: 'relative',
                 overflow: 'hidden',
+                height: '100%',
                 '&:hover': {
-                  transform: 'translateY(-5px)',
+                  transform: 'translateY(-2px)',
                   boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
                 }
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <SecurityIcon sx={{ fontSize: 28, color: '#ef5350' }} />
-                <Typography variant="h6" sx={{ ml: 1.5, fontWeight: 600, color: '#c62828' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <SecurityIcon sx={{ fontSize: 24, color: '#ef5350' }} />
+                <Typography variant="subtitle1" sx={{ ml: 1, fontWeight: 600, color: '#c62828' }}>
                   Administrateurs
                 </Typography>
               </Box>
-              <Typography variant="h3" sx={{ mb: 1, fontWeight: 700, color: '#d32f2f' }}>
+              <Typography variant="h4" sx={{ mb: 0.5, fontWeight: 700, color: '#d32f2f' }}>
                 {userStats.admins}
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#ef5350' }}>
+                {((userStats.admins / userStats.total) * 100).toFixed(1)}% des utilisateurs
               </Typography>
             </Card>
           </Grid>
 
-          <Grid item xs={12} md={3}>
+          <Grid item xs={12} sm={6} md={2.4}>
             <Card 
               sx={{ 
-                p: 2.5,
+                p: 2,
                 background: '#FFFFFF',
                 color: '#2e7d32',
                 borderRadius: '12px',
@@ -389,28 +398,32 @@ const UserManagement = () => {
                 transition: 'all 0.3s ease',
                 position: 'relative',
                 overflow: 'hidden',
+                height: '100%',
                 '&:hover': {
-                  transform: 'translateY(-5px)',
+                  transform: 'translateY(-2px)',
                   boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
                 }
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <AccountCircleIcon sx={{ fontSize: 28, color: '#66bb6a' }} />
-                <Typography variant="h6" sx={{ ml: 1.5, fontWeight: 600, color: '#2e7d32' }}>
-                  Fournisseurs
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <AccountCircleIcon sx={{ fontSize: 24, color: '#66bb6a' }} />
+                <Typography variant="subtitle1" sx={{ ml: 1, fontWeight: 600, color: '#2e7d32' }}>
+                  Prestataires
                 </Typography>
               </Box>
-              <Typography variant="h3" sx={{ mb: 1, fontWeight: 700, color: '#388e3c' }}>
+              <Typography variant="h4" sx={{ mb: 0.5, fontWeight: 700, color: '#388e3c' }}>
                 {userStats.providers}
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#66bb6a' }}>
+                {((userStats.providers / userStats.total) * 100).toFixed(1)}% des utilisateurs
               </Typography>
             </Card>
           </Grid>
 
-          <Grid item xs={12} md={3}>
+          <Grid item xs={12} sm={6} md={2.4}>
             <Card 
               sx={{ 
-                p: 2.5,
+                p: 2,
                 background: '#FFFFFF',
                 color: '#f57f17',
                 borderRadius: '12px',
@@ -418,20 +431,57 @@ const UserManagement = () => {
                 transition: 'all 0.3s ease',
                 position: 'relative',
                 overflow: 'hidden',
+                height: '100%',
                 '&:hover': {
-                  transform: 'translateY(-5px)',
+                  transform: 'translateY(-2px)',
                   boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
                 }
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <GroupIcon sx={{ fontSize: 28, color: '#ffd54f' }} />
-                <Typography variant="h6" sx={{ ml: 1.5, fontWeight: 600, color: '#f57f17' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <GroupIcon sx={{ fontSize: 24, color: '#ffd54f' }} />
+                <Typography variant="subtitle1" sx={{ ml: 1, fontWeight: 600, color: '#f57f17' }}>
                   Clients
                 </Typography>
               </Box>
-              <Typography variant="h3" sx={{ mb: 1, fontWeight: 700, color: '#ffa000' }}>
+              <Typography variant="h4" sx={{ mb: 0.5, fontWeight: 700, color: '#ffa000' }}>
                 {userStats.clients}
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#ffd54f' }}>
+                {((userStats.clients / userStats.total) * 100).toFixed(1)}% des utilisateurs
+              </Typography>
+            </Card>
+          </Grid>
+
+          <Grid item xs={12} sm={6} md={2.4}>
+            <Card 
+              sx={{ 
+                p: 2,
+                background: '#FFFFFF',
+                color: '#1976d2',
+                borderRadius: '12px',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.08)',
+                transition: 'all 0.3s ease',
+                position: 'relative',
+                overflow: 'hidden',
+                height: '100%',
+                '&:hover': {
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+                }
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <GroupIcon sx={{ fontSize: 24, color: '#2196f3' }} />
+                <Typography variant="subtitle1" sx={{ ml: 1, fontWeight: 600, color: '#1976d2' }}>
+                  Fournisseurs
+                </Typography>
+              </Box>
+              <Typography variant="h4" sx={{ mb: 0.5, fontWeight: 700, color: '#1565c0' }}>
+                {userStats.suppliers}
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#2196f3' }}>
+                {((userStats.suppliers / userStats.total) * 100).toFixed(1)}% des utilisateurs
               </Typography>
             </Card>
           </Grid>
@@ -587,7 +637,8 @@ const UserManagement = () => {
             >
               <MenuItem value="all">Tous</MenuItem>
               <MenuItem value="ADMIN">Administrateurs</MenuItem>
-              <MenuItem value="PROVIDER">Fournisseurs</MenuItem>
+              <MenuItem value="PROVIDER">Prestataires</MenuItem>
+              <MenuItem value="SUPPLIER">Fournisseurs</MenuItem>
               <MenuItem value="CLIENT">Clients</MenuItem>
             </Select>
           </FormControl>
@@ -1129,6 +1180,7 @@ const UserManagement = () => {
                 >
                   <MenuItem value="CLIENT">Client</MenuItem>
                   <MenuItem value="PROVIDER">Prestataire</MenuItem>
+                  <MenuItem value="SUPPLIER">Fournisseur</MenuItem>
                   <MenuItem value="ADMIN">Administrateur</MenuItem>
                 </Select>
               </FormControl>

@@ -299,6 +299,27 @@ export default function Login() {
                     <p className="text-gray-600">Connectez-vous à votre espace de gestion automobile</p>
                   </div>
 
+                  {error && (
+                    <div className="relative p-4 mb-6 bg-gradient-to-r from-red-50 to-red-100 border border-red-200 rounded-xl shadow-sm animate-fade-in">
+                      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-400 to-red-500 rounded-t-xl"></div>
+                      <div className="flex items-start space-x-4">
+                        <div className="flex-shrink-0">
+                          <div className="p-2 bg-red-100 rounded-full">
+                            <AlertCircle className="h-6 w-6 text-red-500" />
+                          </div>
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-base font-semibold text-red-800 mb-1">Connexion impossible</h3>
+                          <p className="text-sm text-red-600 leading-relaxed">{error}</p>
+                          <div className="mt-2 flex items-center text-xs text-red-500">
+                            <Shield className="h-4 w-4 mr-1" />
+                            <span>Vérifiez vos identifiants et réessayez</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <form onSubmit={handleLoginSubmit} className="space-y-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>

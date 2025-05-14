@@ -15,10 +15,18 @@ export const useAuth = () => {
       setLoading(true);
       setError(null);
       const response = await  authService.login(data);
+      const base64Url = response.access_token.split('.')[1]
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+      }).join(''))
+
+      const userData = JSON.parse(jsonPayload)
+      console.log("response login",response);
       setUser(response.access_token);
-      if (response.role === 'CLIENT'){
+      if (userData.role === 'CLIENT'){
         router.push('/users'); 
-      }else if (response.role === 'PROVIDER'){
+      }else if (userData.role === 'PROVIDER'){
         router.push('/appointments');
       }else{
         router.push('/appointments');
@@ -68,5 +76,5 @@ export const useAuth = () => {
     
     user,
     isAuthenticated: authService.isAuthenticated(),
-  };
-}; 
+  };
+};

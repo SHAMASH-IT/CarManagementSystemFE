@@ -74,8 +74,19 @@ class AuthService {
       const token = response.data.access_token || response.data.token;
       if (token && this.isClient) {
         localStorage.setItem('token', token);
+        if (response.data.role) {
+          localStorage.setItem('userRole', response.data.role);
+        }
       }
-      return response.data;
+
+      return {
+        access_token: token,
+        role: response.data.role,
+        id: response.data.id,
+        name: response.data.name,
+        email: response.data.email,
+        phone: response.data.phone
+      };
     } catch (error: any) {
       console.error('Erreur lors de la connexion:', error.message);
       throw error;
@@ -105,11 +116,8 @@ class AuthService {
     if (this.isClient) {
       console.log('Tentative de déconnexion');
       localStorage.removeItem('token');
-      console.log('Token supprimé du localStorage');
-      
-      // Vérification après suppression
-      const token = localStorage.getItem('token');
-      console.log('Vérification après déconnexion:', token ? 'toujours présent' : 'supprimé');
+      localStorage.removeItem('userRole');
+      console.log('Token et rôle supprimés du localStorage');
     }
   }
 
