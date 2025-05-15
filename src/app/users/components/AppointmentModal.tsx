@@ -6,8 +6,9 @@ import Modal from 'react-modal'
 
 import { toast } from 'react-toastify'
 
-import type { AppointmentDetails, Vehicle } from '../../types/index'
+import type { AppointmentDetails, Vehicle, Service } from '../../types/index'
 import { createAppointment } from '@/app/appointments/services/appointmentService'
+import { useServices } from '../hooks/useServices'
 
 interface AppointmentModalProps {
   isOpen: boolean
@@ -29,23 +30,50 @@ const AppointmentModal = ({
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [vehicles, setVehicles] = useState<Vehicle[]>([])
+  const { services, loading: servicesLoading, error: servicesError } = useServices()
 
   useEffect(() => {
     Modal.setAppElement('body')
     const fetchVehicles = async () => {
       try {
-        const userId = 1; // À remplacer par l'ID réel du client connecté plus tard
+        const token = localStorage.getItem('token')
+        if (!token) {
+          toast.error('Vous devez être connecté pour voir vos véhicules')
+          return
+        }
+
+        // Décoder le token pour obtenir l'ID de l'utilisateur
+        const base64Url = token.split('.')[1]
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+        }).join(''))
+
+        const userData = JSON.parse(jsonPayload)
+        const userId = userData.sub
+
         const API_URL = process.env.NEXT_PUBLIC_APP_URL;
-        const response = await fetch(`${API_URL}/users/vehicle/user/${userId}`)
-        if (!response.ok) throw new Error('Erreur lors de la récupération des véhicules')
+        const response = await fetch(`${API_URL}/users/vehicle/user/${userId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+
+        if (!response.ok) {
+          throw new Error('Erreur lors de la récupération des véhicules')
+        }
+
         const data = await response.json()
         setVehicles(data)
       } catch (err) {
         setVehicles([])
+        toast.error('Erreur lors de la récupération des véhicules')
       }
     }
-    fetchVehicles()
-  }, [])
+    if (isOpen) {
+      fetchVehicles()
+    }
+  }, [isOpen])
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -150,9 +178,17 @@ const AppointmentModal = ({
               required
             >
               <option value=''>Sélectionnez un service</option>
-              <option value='1'>Lavage</option>
-              <option value='Réparation'>Réparation</option>
-              <option value='Entretien'>Entretien</option>
+              {servicesLoading ? (
+                <option value='' disabled>Chargement des services...</option>
+              ) : servicesError ? (
+                <option value='' disabled>Erreur lors du chargement des services</option>
+              ) : (
+                services.map(service => (
+                  <option key={service.id} value={service.id}>
+                    {service.name}
+                  </option>
+                ))
+              )}
             </select>
           </div>
 

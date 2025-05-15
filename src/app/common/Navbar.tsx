@@ -174,9 +174,6 @@ const Navbar = () => {
           const userId = parseInt(userData.sub, 10)
           if (!isNaN(userId)) {
             loadNotifications(userId)
-            // Rafraîchir les notifications toutes les 30 secondes
-            const interval = setInterval(() => loadNotifications(userId), 30000)
-            return () => clearInterval(interval)
           }
         }
       } catch (error) {
@@ -640,12 +637,32 @@ const Navbar = () => {
                 </button>
 
                 {isNotificationMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg py-2 z-50">
-                    <div className="px-4 py-2 border-b">
+                  <div 
+                    className="absolute right-0 mt-2 w-96 bg-white rounded-xl shadow-xl py-2 z-50 border border-gray-100 transform transition-all duration-200 ease-in-out"
+                    style={{
+                      animation: "slideIn 0.2s ease-out forwards",
+                      transformOrigin: "top right"
+                    }}
+                  >
+                    <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-indigo-50/50 to-white">
                       <div className="flex justify-between items-center">
-                        <h3 className="text-lg font-semibold">Notifications</h3>
+                        <div className="flex items-center space-x-2">
+                          <div className="relative">
+                            <Bell className="h-5 w-5 text-indigo-500" />
+                            {unreadCount > 0 && (
+                              <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                            )}
+                          </div>
+                          <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
+                          {unreadCount > 0 && (
+                            <span className="px-2 py-0.5 text-xs font-medium bg-indigo-100 text-indigo-800 rounded-full animate-bounce">
+                              {unreadCount} non lue{unreadCount > 1 ? 's' : ''}
+                            </span>
+                          )}
+                        </div>
                         {unreadCount > 0 && (
                           <button
+                            type="button"
                             onClick={() => {
                               const token = localStorage.getItem('token');
                               if (token) {
@@ -658,61 +675,147 @@ const Navbar = () => {
                                 handleMarkAllAsRead(userData.sub);
                               }
                             }}
-                            className="text-sm text-blue-600 hover:text-blue-800"
+                            className="flex items-center px-3 py-1.5 text-xs font-semibold rounded-full bg-indigo-100 text-indigo-700 border border-indigo-200 hover:bg-indigo-200 transition"
                           >
+                            <CheckCircle className="h-4 w-4 mr-1 text-indigo-500" />
                             Tout marquer comme lu
                           </button>
                         )}
                       </div>
                     </div>
 
-                    <div className="max-h-96 overflow-y-auto">
+                    <div className="max-h-[480px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
                       {isLoadingNotifications ? (
-                        <div className="flex justify-center items-center py-4">
-                          <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+                        <div className="flex justify-center items-center py-8">
+                          <div className="relative">
+                            <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
+                            <div className="absolute inset-0 bg-white/50 backdrop-blur-sm rounded-full"></div>
+                          </div>
                         </div>
                       ) : notifications.length === 0 ? (
-                        <div className="px-4 py-2 text-center text-gray-500">
-                          Aucune notification
+                        <div className="px-4 py-8 text-center">
+                          <div className="relative w-16 h-16 mx-auto mb-3">
+                            <Bell className="h-12 w-12 text-gray-300 absolute inset-0" />
+                            <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 to-white rounded-full animate-pulse"></div>
+                          </div>
+                          <p className="text-gray-500 font-medium">Aucune notification</p>
+                          <p className="text-sm text-gray-400 mt-1">Vous serez notifié ici des mises à jour importantes</p>
                         </div>
                       ) : (
-                        notifications.map((notification) => {
-                          console.log('Rendering notification:', notification);
-                          return (
-                            <div
-                              key={notification.id}
-                              className={`px-4 py-2 hover:bg-gray-50 ${
-                                !notification.read ? 'bg-blue-50' : ''
-                              }`}
-                            >
-                              {notification.appointment && (
-                                <div className="flex items-start space-x-3">
-                                  <CalendarDays className="h-5 w-5 text-blue-500 mt-1" />
-                                  <div>
-                                    <p className="text-sm font-medium">
-                                      Rendez-vous le {moment(notification.appointment.date).format('DD/MM/YYYY')} à {notification.appointment.time}
-                                    </p>
-                                  </div>
-                                </div>
-                              )}
-                              {notification.intervention && (
-                                <div className="flex items-start space-x-3">
-                                  <Wrench className="h-5 w-5 text-green-500 mt-1" />
-                                  <div>
-                                    <p className="text-sm font-medium">
-                                      Intervention: {notification.intervention.description}
-                                    </p>
-                                    <p className="text-xs text-gray-500">
-                                      Statut: {notification.intervention.status}
-                                    </p>
-                                  </div>
-                                </div>
-                              )}
+                        notifications.map((notification, index) => (
+                          <div
+                            key={notification.id}
+                            className={`relative flex items-start space-x-3 p-4 rounded-xl transition mb-3 border border-gray-100
+                              ${!notification.read ? 'bg-gradient-to-r from-indigo-50 to-white shadow-lg ring-2 ring-indigo-100' : 'bg-white shadow-sm hover:shadow-md'}`}
+                            style={{ animation: `slideIn 0.2s ease-out ${index * 0.05}s forwards`, opacity: 0, transform: 'translateX(10px)' }}
+                          >
+                            {!notification.read && (
+                              <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-400" />
+                            )}
+                            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-50">
+                              {notification.type === 'Appointment Created' && <Calendar className="h-6 w-6 text-blue-400" />}
+                              {notification.type === 'Appointment Annuler' && <X className="h-6 w-6 text-red-300" />}
+                              {notification.type === 'Appointment accepter' && <CheckCircle className="h-6 w-6 text-green-400" />}
+                              {(notification.type === 'Intervention commance' || notification.type === 'Intervention commencer') && <Wrench className="h-6 w-6 text-yellow-400" />}
+                              {notification.type === 'Intervention progresser' && <Loader2 className="h-6 w-6 text-orange-400 animate-spin-slow" />}
+                              {notification.type === 'Intervention completer' && <CheckCircle className="h-6 w-6 text-green-400" />}
                             </div>
-                          );
-                        })
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between">
+                                <span className="font-semibold text-gray-900">
+                                  {/* Message principal selon le type */}
+                                  {(notification.type === 'Appointment Created') && 'Nouveau rendez-vous créé'}
+                                  {(notification.type === 'Appointment Annuler') && 'Votre rendez-vous a été annulé'}
+                                  {(notification.type === 'Appointment accepter') && 'Votre rendez-vous a été accepté'}
+                                  {(notification.type === 'Intervention commance' || notification.type === 'Intervention commencer') && (
+                                    notification.intervention?.startDate
+                                      ? `Votre intervention est commencée le ${moment(notification.intervention.startDate).locale('fr').format('DD/MM/YYYY à HH:mm')}`
+                                      : notification.createdAt
+                                        ? `Votre intervention est commencée le ${moment(notification.createdAt).locale('fr').format('DD/MM/YYYY à HH:mm')}`
+                                        : "Votre intervention est commencée (date inconnue)"
+                                  )}
+                                  {notification.type === 'Intervention progresser' && 'Votre intervention est en cours de progression'}
+                                  {notification.type === 'Intervention completer' && (
+                                    notification.intervention?.endDate
+                                      ? `Votre intervention est terminée le ${moment(notification.intervention.endDate).locale('fr').format('DD/MM/YYYY à HH:mm')}`
+                                      : notification.createdAt
+                                        ? `Votre intervention est terminée le ${moment(notification.createdAt).locale('fr').format('DD/MM/YYYY à HH:mm')}`
+                                        : "Votre intervention est terminée (date inconnue)"
+                                  )}
+                                </span>
+                                {/* Badge de statut */}
+                                <span className={`ml-2 px-2 py-0.5 text-xs font-medium rounded-full border ${
+                                  notification.type === 'Appointment Created' ? 'bg-blue-50 text-blue-700 border-blue-100' :
+                                  notification.type === 'Appointment Annuler' ? 'bg-red-50 text-red-600 border-red-100' :
+                                  notification.type === 'Appointment accepter' ? 'bg-green-50 text-green-700 border-green-100' :
+                                  (notification.type === 'Intervention commance' || notification.type === 'Intervention commencer') ? 'bg-yellow-50 text-yellow-700 border-yellow-100' :
+                                  notification.type === 'Intervention progresser' ? 'bg-orange-50 text-orange-700 border-orange-100' :
+                                  notification.type === 'Intervention completer' ? 'bg-green-50 text-green-700 border-green-100' :
+                                  'bg-gray-50 text-gray-700 border-gray-100'
+                                }`}>
+                                  {notification.type === 'Appointment Created' && 'Créé'}
+                                  {notification.type === 'Appointment Annuler' && 'Annulé'}
+                                  {notification.type === 'Appointment accepter' && 'Accepté'}
+                                  {(notification.type === 'Intervention commance' || notification.type === 'Intervention commencer') && 'En cours'}
+                                  {notification.type === 'Intervention progresser' && 'En progression'}
+                                  {notification.type === 'Intervention completer' && 'Terminé'}
+                                </span>
+                              </div>
+                              <div className="flex items-center mt-1 space-x-2">
+                                {/* Date/heure */}
+                                {(notification.type === 'Appointment Created' || notification.type === 'Appointment Annuler' || notification.type === 'Appointment accepter') && (
+                                  <span className="text-xs text-gray-500">
+                                    {moment(notification.appointment?.date).locale('fr').format('DD/MM/YYYY à HH:mm')}
+                                  </span>
+                                )}
+                                {(notification.type === 'Intervention commance' || notification.type === 'Intervention commencer') && (
+                                  <span className="text-xs text-gray-500">
+                                    {notification.intervention?.startDate
+                                      ? moment(notification.intervention.startDate).locale('fr').format('DD/MM/YYYY à HH:mm')
+                                      : notification.createdAt
+                                        ? moment(notification.createdAt).locale('fr').format('DD/MM/YYYY à HH:mm')
+                                        : "(date inconnue)"}
+                                  </span>
+                                )}
+                                {notification.type === 'Intervention progresser' && (
+                                  <span className="text-xs text-gray-500">
+                                    {notification.createdAt
+                                      ? moment(notification.createdAt).locale('fr').format('DD/MM/YYYY à HH:mm')
+                                      : "(date inconnue)"}
+                                  </span>
+                                )}
+                                {notification.type === 'Intervention completer' && (
+                                  <span className="text-xs text-gray-500">
+                                    {notification.intervention?.endDate
+                                      ? moment(notification.intervention.endDate).locale('fr').format('DD/MM/YYYY à HH:mm')
+                                      : notification.createdAt
+                                        ? moment(notification.createdAt).locale('fr').format('DD/MM/YYYY à HH:mm')
+                                        : "(date inconnue)"}
+                                  </span>
+                                )}
+                                {/* Badge Nouveau */}
+                                {!notification.read && (
+                                  <span className="flex items-center px-2 py-0.5 text-xs font-semibold rounded-full bg-indigo-100 text-indigo-700 border border-indigo-200 shadow-sm ml-2">
+                                    <Bell className="h-3 w-3 mr-1 text-indigo-400" /> Nouveau
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))
                       )}
                     </div>
+
+                    {notifications.length > 0 && (
+                      <div className="px-4 py-2 border-t border-gray-100 bg-gradient-to-r from-gray-50/50 to-white">
+                        <button
+                          onClick={() => setIsNotificationMenuOpen(false)}
+                          className="w-full text-sm text-gray-600 hover:text-gray-900 font-medium transition-colors duration-200 hover:bg-gray-100 py-1.5 rounded-lg"
+                        >
+                          Fermer
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -872,6 +975,47 @@ const Navbar = () => {
               opacity: 1;
               transform: translateY(0);
             }
+          }
+
+          @keyframes slideIn {
+            from {
+              opacity: 0;
+              transform: translateY(-10px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+
+          @keyframes pulse {
+            0%, 100% {
+              opacity: 1;
+            }
+            50% {
+              opacity: 0.5;
+            }
+          }
+
+          .scrollbar-thin::-webkit-scrollbar {
+            width: 6px;
+          }
+
+          .scrollbar-thin::-webkit-scrollbar-track {
+            background: transparent;
+          }
+
+          .scrollbar-thin::-webkit-scrollbar-thumb {
+            background-color: #D1D5DB;
+            border-radius: 3px;
+          }
+
+          .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+            background-color: #9CA3AF;
+          }
+
+          .animate-spin-slow {
+            animation: spin 2s linear infinite;
           }
         `}</style>
       </div>

@@ -2,14 +2,32 @@ import { useState, useEffect } from 'react';
 import { vehicleService } from '../services/vehicleService';
 import type { Vehicle } from '../../types';
 
-export const useVehicles = (userId: number) => {
+export const useVehicles = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const getUserIdFromToken = () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Vous devez être connecté pour voir vos véhicules');
+    }
+
+    // Décoder le token pour obtenir l'ID de l'utilisateur
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+
+    const userData = JSON.parse(jsonPayload);
+    return userData.sub;
+  };
+
   const fetchVehicles = async () => {
     setLoading(true);
     try {
+      const userId = getUserIdFromToken();
       const data = await vehicleService.getVehiclesByUser(userId);
       setVehicles(data);
     } catch (err: any) {
@@ -20,12 +38,16 @@ export const useVehicles = (userId: number) => {
   };
 
   const addVehicle = async (vehicle: Vehicle) => {
-    await vehicleService.addVehicle(vehicle);
+    const userId = getUserIdFromToken();
+    const vehicleWithUserId = { ...vehicle, userId };
+    await vehicleService.addVehicle(vehicleWithUserId);
     fetchVehicles();
   };
 
   const updateVehicle = async (id: number, vehicle: Vehicle) => {
-    await vehicleService.updateVehicle(id, vehicle);
+    const userId = getUserIdFromToken();
+    const vehicleWithUserId = { ...vehicle, userId };
+    await vehicleService.updateVehicle(id, vehicleWithUserId);
     fetchVehicles();
   };
 
@@ -36,7 +58,7 @@ export const useVehicles = (userId: number) => {
 
   useEffect(() => {
     fetchVehicles();
-  }, [userId]);
+  }, []);
 
   return { vehicles, loading, error, addVehicle, updateVehicle, deleteVehicle, fetchVehicles };
 }; 

@@ -3,8 +3,6 @@ import { useVehicles } from '../hooks/useVehicles';
 import type { Vehicle } from '../../types';
 import { Car, Edit, Trash2, PlusCircle, ImagePlus, MoreVertical, Loader2, CheckCircle2, AlertCircle, XCircle, Info } from 'lucide-react';
 
-const userId = 1; // À remplacer par l'ID réel du client connecté
-
 const initialForm: Partial<Vehicle & { image?: string }> = { brand: '', model: '', year: undefined, registration: '', image: '' };
 
 function Drawer({ open, onClose, children }: { open: boolean, onClose: () => void, children: React.ReactNode }) {
@@ -186,7 +184,7 @@ function Banner({ message, type, onClose }: BannerProps) {
 }
 
 export default function GarageVehicleManager() {
-  const { vehicles, loading, error, addVehicle, updateVehicle, deleteVehicle } = useVehicles(userId);
+  const { vehicles, loading, error, addVehicle, updateVehicle, deleteVehicle } = useVehicles();
   const [form, setForm] = useState<Partial<Vehicle & { image?: string }>>(initialForm);
   const [editId, setEditId] = useState<number | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -238,7 +236,6 @@ export default function GarageVehicleManager() {
     const vehicleToSend = {
       ...form,
       year: Number(form.year),
-      userId
     } as Vehicle;
     try {
       if (editId) {
@@ -294,7 +291,6 @@ export default function GarageVehicleManager() {
       const vehicleToSend = {
         ...form,
         year: Number(form.year),
-        userId
       } as Vehicle;
 
       if (editId !== null) {
