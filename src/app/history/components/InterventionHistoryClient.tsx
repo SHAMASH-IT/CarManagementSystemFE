@@ -129,7 +129,7 @@ export function InterventionHistory() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 bg-gray-50/50 min-h-screen">
+    <div className="w-full px-0 pt-2 pb-8 bg-gray-50/50 min-h-screen">
       {/* Header avec statistiques */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}

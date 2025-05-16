@@ -56,11 +56,12 @@ const CalendarGrid = ({
   .vehicle-calendar .rbc-header {
     background: linear-gradient(to right, rgb(227, 242, 253), rgb(173, 216, 230)); /* Palette bleu clair comme le header */
     color: #1565c0; /* Texte bleu vif */
-    padding: 12px;
+    padding: 8px;
     font-weight: bold; /* Texte plus marqué */
     text-transform: capitalize;
     border: none;
     transition: all 0.3s ease;
+    font-size: 0.9rem;
   }
 
   .vehicle-calendar .rbc-header:hover {
@@ -89,21 +90,26 @@ const CalendarGrid = ({
     border-radius: 6px; /* Arrondi pour douceur */
   }
 
+  /* Événements plus compacts */
   .vehicle-calendar .rbc-event {
-    background: linear-gradient(to right, rgb(173, 216, 230), rgb(135, 206, 250)); /* Gradient bleu élégant */
+    background: linear-gradient(to right, rgb(173, 216, 230), rgb(135, 206, 250));
     border: none;
-    border-radius: 6px;
-    box-shadow: 0 2px 4px rgba(135, 206, 250, 0.3); /* Ombre subtile */
-    padding: 6px 10px; /* Ajustement de l'espace */
-    color: #ffffff; /* Texte blanc pour contraste */
-    font-weight: 600; /* Texte marqué */
-    transition: all 0.3s ease; /* Transition fluide */
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(135, 206, 250, 0.3);
+    padding: 2px 6px;
+    margin: 1px 0;
+    color: #ffffff;
+    font-weight: 500;
+    font-size: 0.75rem;
+    transition: all 0.2s ease;
+    min-height: 20px;
+    line-height: 1.2;
   }
 
   .vehicle-calendar .rbc-event:hover {
-    transform: translateY(-2px); /* Effet de levée au survol */
-    box-shadow: 0 4px 6px rgba(135, 206, 250, 0.4); /* Ombre amplifiée */
-    background: linear-gradient(to right, rgb(135, 206, 250), rgb(96, 185, 255)); /* Gradient accentué */
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(135, 206, 250, 0.4);
+    background: linear-gradient(to right, rgb(135, 206, 250), rgb(96, 185, 255));
   }
 
   .vehicle-calendar .rbc-off-range-bg {
@@ -111,9 +117,10 @@ const CalendarGrid = ({
   }
 
   .vehicle-calendar .rbc-date-cell {
-    padding: 10px; /* Espacement plus généreux */
+    padding: 4px;
     font-weight: 500;
     color: #1565c0; /* Texte principal en bleu header */
+    font-size: 0.8rem;
   }
 
   .vehicle-calendar .rbc-off-range {
@@ -126,18 +133,29 @@ const CalendarGrid = ({
   }
 
   .vehicle-calendar .rbc-row-segment {
-    padding: 4px 6px; /* Ajustement de l'espacement */
+    padding: 1px 2px;
   }
 
   .vehicle-calendar .rbc-show-more {
     color: #1565c0; /* Texte cohérent avec le header */
     font-weight: 600; /* Texte marqué */
     background: transparent;
+    font-size: 0.7rem;
+    padding: 1px 4px;
   }
 
   .vehicle-calendar .rbc-show-more:hover {
     color: #0d47a1; /* Accent bleu foncé au survol */
     text-decoration: underline;
+  }
+
+  /* Ajustements pour les cellules */
+  .vehicle-calendar .rbc-month-row {
+    min-height: 80px;
+  }
+
+  .vehicle-calendar .rbc-row-content {
+    z-index: 4;
   }
 
   /* Masquer les boutons de navigation du calendrier */

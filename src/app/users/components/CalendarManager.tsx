@@ -14,8 +14,12 @@ import CalendarGrid from './CalendarGrid'
 import AppointmentListClient from './AppointmentListClient'
 import AppointmentModal from './AppointmentModal'
 import DeleteConfirmationModal from './DeleteConfirmationModal'
+import { useAuth } from '../../login/hooks/useAuth'
+import { authService } from '../../login/services/auth.service'
 
 const CalendarManager = ({ initialEvents = [] }: CalendarViewProps) => {
+  const { user: token } = useAuth()
+  const [userId, setUserId] = useState<number | null>(null)
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>(initialEvents)
   const [modalIsOpen, setModalIsOpen] = useState(false)
   const [isEditMode, setIsEditMode] = useState(false)
@@ -44,21 +48,59 @@ const CalendarManager = ({ initialEvents = [] }: CalendarViewProps) => {
 
   const [appointmentDetails, setAppointmentDetails] = useState<AppointmentDetails>(initialAppointmentDetails)
 
+  // Function to decode JWT token and get user ID
+  const decodeToken = (token: string) => {
+    try {
+      if (!token) return null
+      console.log('Decoding token:', token)
+      const base64Url = token.split('.')[1]
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+      }).join(''))
+      const userData = JSON.parse(jsonPayload)
+      console.log('Decoded user data:', userData)
+      return userData.sub // JWT standard uses 'sub' for user ID
+    } catch (err) {
+      console.error('Error decoding token:', err)
+      return null
+    }
+  }
+
+  // Effect to set user ID when token changes
+  useEffect(() => {
+    const storedToken = authService.getCurrentToken()
+    console.log('Stored token:', storedToken)
+    if (storedToken) {
+      const id = decodeToken(storedToken)
+      console.log('Decoded user ID:', id)
+      setUserId(id)
+    }
+  }, [])
+
   // Fetch appointments from API
   const fetchAppointments = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch(`${API_URL}/appointments/all-appointments`)
+      console.log('Fetching appointments for user ID:', userId)
+
+      if (!userId) {
+        console.log('No user ID available, cannot fetch appointments')
+        return
+      }
+
+      const response = await fetch(`${API_URL}/appointments/user/${userId}`)
+      console.log('API Response status:', response.status)
 
       if (!response.ok) {
         throw new Error('Erreur lors de la récupération des rendez-vous')
       }
 
       const data = await response.json()
+      console.log('Raw appointments data from API:', data)
 
       // Convert appointments to calendar events
       const formattedEvents = data.map((event: any) => {
-        console.log('Service name:', event.service?.name); // Log pour déboguer
         const isWashing = event.service?.name?.toLowerCase().includes('lavage') || 
                          event.service?.name?.toLowerCase().includes('washing');
         return {
@@ -73,8 +115,7 @@ const CalendarManager = ({ initialEvents = [] }: CalendarViewProps) => {
         };
       });
 
-      console.log('Formatted events:', formattedEvents); // Log pour déboguer
-
+      console.log('Formatted events:', formattedEvents)
       setCalendarEvents(formattedEvents)
     } catch (err) {
       console.error('Error fetching appointments:', err)
@@ -84,10 +125,16 @@ const CalendarManager = ({ initialEvents = [] }: CalendarViewProps) => {
     }
   }
 
-  // Fetch appointments on component mount and when date changes
+  // Fetch appointments when user ID or date changes
   useEffect(() => {
-    fetchAppointments()
-  }, [currentDate])
+    console.log('useEffect triggered - userId:', userId)
+    if (userId) {
+      console.log('User ID available, fetching appointments')
+      fetchAppointments()
+    } else {
+      console.log('No user ID available yet')
+    }
+  }, [currentDate, userId])
 
   const handleSelectSlot = ({ start }: { start: Date }) => {
     setIsEditMode(false)
@@ -321,11 +368,12 @@ const CalendarManager = ({ initialEvents = [] }: CalendarViewProps) => {
         /* Style pour les événements de lavage */
         .vehicle-calendar .rbc-event.washing-event {
           background-color: #60a5fa !important; /* Bleu */
-          color: white !important;
+          color: #1565c0 !important; /* Texte en bleu */
           border: none !important;
           border-radius: 4px;
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
           transition: all 0.2s ease;
+          font-weight: 500;
         }
 
         .vehicle-calendar .rbc-event.washing-event:hover {
@@ -337,11 +385,12 @@ const CalendarManager = ({ initialEvents = [] }: CalendarViewProps) => {
         /* Style pour les événements d'entretien */
         .vehicle-calendar .rbc-event.maintenance-event {
           background-color: #f97316 !important; /* Orange */
-          color: white !important;
+          color: #1565c0 !important; /* Texte en bleu */
           border: none !important;
           border-radius: 4px;
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
           transition: all 0.2s ease;
+          font-weight: 500;
         }
 
         .vehicle-calendar .rbc-event.maintenance-event:hover {
@@ -350,11 +399,12 @@ const CalendarManager = ({ initialEvents = [] }: CalendarViewProps) => {
           box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
         }
 
-        /* Style par défaut pour les événements (au cas où) */
+        /* Style par défaut pour les événements */
         .vehicle-calendar .rbc-event {
           background-color: #64748b !important;
-          color: white !important;
+          color: #1565c0 !important; /* Texte en bleu */
           border: none !important;
+          font-weight: 500;
         }
 
         .vehicle-calendar .rbc-toolbar button {

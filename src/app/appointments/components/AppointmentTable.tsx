@@ -26,11 +26,6 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({ appointments: initi
 
   const displayAppointments = appointments.length > 0 ? appointments : initialAppointments
 
-  // Ajout du console.log pour déboguer
-  useEffect(() => {
-    console.log('Appointments data:', displayAppointments)
-  }, [displayAppointments])
-
   const filteredAppointments = displayAppointments.filter(appointment => {
     const matchesSearch = appointment.clientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          appointment.vehicleName?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -39,7 +34,9 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({ appointments: initi
   })
 
   const getStatusStyle = (status: string) => {
-    switch (status) {
+    const normalizedStatus = status?.trim()?.toUpperCase()
+
+    switch (normalizedStatus) {
       case 'CONFIRMED':
         return {
           badge: 'bg-gradient-to-r from-green-500 to-green-600 text-white',
@@ -52,17 +49,29 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({ appointments: initi
           icon: <FaCalendarAlt className="w-4 h-4" />,
           label: 'Réservé'
         }
+      case 'IN_PROGRESS':
+        return {
+          badge: 'bg-gradient-to-r from-orange-400 to-orange-600 text-white',
+          icon: <FaTools className="w-4 h-4" />,
+          label: 'En cours'
+        }
       case 'CANCELED':
         return {
           badge: 'bg-gradient-to-r from-red-500 to-red-600 text-white',
           icon: <FaTrashAlt className="w-4 h-4" />,
           label: 'Annulé'
         }
-      default:
+      case 'PENDING':
         return {
           badge: 'bg-gradient-to-r from-yellow-500 to-yellow-600 text-white',
           icon: <FaClock className="w-4 h-4" />,
           label: 'En attente'
+        }
+      default:
+        return {
+          badge: 'bg-gradient-to-r from-gray-500 to-gray-600 text-white',
+          icon: <FaClock className="w-4 h-4" />,
+          label: status || 'Inconnu'
         }
     }
   }
@@ -70,6 +79,7 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({ appointments: initi
   const filterOptions = [
     { value: 'ALL', label: 'Tous les rendez-vous', icon: <FaListUl className="w-4 h-4" /> },
     { value: 'PENDING', label: 'En attente', icon: <FaClock className="w-4 h-4" /> },
+    { value: 'IN_PROGRESS', label: 'En cours', icon: <FaTools className="w-4 h-4" /> },
     { value: 'RESERVED', label: 'Réservés', icon: <FaCalendarAlt className="w-4 h-4" /> },
     { value: 'CONFIRMED', label: 'Terminés', icon: <FaCheckCircle className="w-4 h-4" /> },
     { value: 'CANCELED', label: 'Annulés', icon: <FaTrashAlt className="w-4 h-4" /> }
@@ -193,9 +203,6 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({ appointments: initi
                 {filteredAppointments.map(appointment => {
                   const statusStyle = getStatusStyle(appointment.status)
                   
-                  // Ajout du console.log pour chaque rendez-vous
-                  console.log('Single appointment:', appointment)
-                  
                   return (
                     <motion.tr
                       key={appointment.id}
@@ -236,7 +243,7 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({ appointments: initi
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900 dark:text-gray-200">
-                          {moment(appointment.date).format('DD/MM/YYYY HH:mm')}
+                          {moment(appointment.date).format('DD/MM/YYYY à HH:mm')}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">

@@ -356,8 +356,8 @@ export function VehicleProgressTracker() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8 bg-gray-50">
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-8 border border-gray-200">
+    <div className="w-full px-0 pt-0 pb-8 bg-gray-50">
+      <div className="w-full bg-white rounded-xl shadow-lg overflow-hidden mb-8 border border-gray-200">
         <div className="p-6 md:p-8 bg-gradient-to-r from-gray-50 to-gray-100">
           <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
             <Car className="w-6 h-6 mr-2 text-gray-600" />
@@ -752,49 +752,8 @@ export function VehicleProgressTracker() {
                         </div>
                       </motion.div>
 
-                      {/* Technicien assigné */}
-                      <motion.div
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: 0.8 }}
-                        className={`bg-white rounded-xl border border-${colors.border} shadow-sm overflow-hidden`}
-                      >
-                        <div className={`p-4 border-b bg-gradient-to-r ${colors.gradientLight}`}>
-                          <h3 className="text-lg font-medium flex items-center">
-                            <User className={`w-5 h-5 mr-2 text-${colors.primary}`} />
-                            Technicien assigné
-                          </h3>
-                        </div>
-                        <div className="p-5 flex items-center">
-                          <div
-                            className={`w-16 h-16 bg-${colors.primaryLight} rounded-full flex items-center justify-center mr-4`}
-                          >
-                            <User className={`w-8 h-8 text-${colors.primary}`} />
-                          </div>
-                          <div>
-                            <h4 className="font-medium text-lg">Jean Dupont</h4>
-                            <p className="text-gray-600">Technicien spécialiste</p>
-                            <div className="flex items-center mt-1">
-                              {[1, 2, 3, 4, 5].map((star) => (
-                                <Star
-                                  key={star}
-                                  className={`w-4 h-4 ${star <= 4 ? "text-amber-400 fill-amber-400" : "text-gray-300"}`}
-                                />
-                              ))}
-                              <span className="text-sm text-gray-600 ml-1">4.0/5</span>
-                            </div>
-                          </div>
-                          <div className="ml-auto">
-                            <a
-                              href="#"
-                              className={`inline-flex items-center px-3 py-1.5 bg-white border border-${colors.border} rounded-md text-sm font-medium text-${colors.primary} hover:bg-${colors.buttonBg} hover:text-white transition-colors shadow-sm`}
-                            >
-                              Contacter
-                              <ChevronRight className="w-4 h-4 ml-1" />
-                            </a>
-                          </div>
-                        </div>
-                      </motion.div>
+                   
+                 
                     </div>
                   </div>
                 </>

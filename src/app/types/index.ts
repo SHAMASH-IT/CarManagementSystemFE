@@ -102,6 +102,12 @@ export interface ApiAppointment {
     brand: string
     model: string
     registration: string
+    user?: {
+      id: number
+      name: string
+      email: string
+      phone?: string
+    }
   }
 }
 
