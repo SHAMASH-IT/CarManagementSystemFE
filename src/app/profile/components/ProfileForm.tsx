@@ -1,14 +1,17 @@
+'use client'
+
 import { useState, useEffect } from 'react';
 import { useProfile } from '../hooks/useProfile';
 import { FaSpinner, FaSave, FaUser, FaEnvelope, FaPhone, FaLock, FaIdCard, FaCheck, FaInfoCircle, FaExclamationCircle, FaCar, FaWrench, FaTools, FaCog, FaShieldAlt, FaCamera, FaSearch } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
+import { authService } from '../../login/services/auth.service';
 
 export default function ProfileForm() {
-  const [userId, setUserId] = useState<string>('1');
-  const [isSearching, setIsSearching] = useState(false);
+  const [userId, setUserId] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(true);
   const [notification, setNotification] = useState<{ type: 'success' | 'info' | 'warning', message: string } | null>(null);
   const [hasShownWelcome, setHasShownWelcome] = useState(false);
-  const { profile, loading, error, isUpdating, updateProfile } = useProfile(parseInt(userId));
+  const { profile, loading, error, isUpdating, updateProfile } = useProfile(userId ? parseInt(userId) : 0);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -33,9 +36,51 @@ export default function ProfileForm() {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
-    }, 5000); // Change d'image toutes les 5 secondes
+    }, 5000);
 
     return () => clearInterval(interval);
+  }, []);
+
+  // Récupérer l'ID de l'utilisateur authentifié
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+
+        const userData = JSON.parse(jsonPayload);
+        console.log('Token décodé:', userData); // Debug log
+
+        if (userData && userData.sub) {
+          console.log('ID trouvé:', userData.sub); // Debug log
+          setUserId(userData.sub.toString());
+        } else {
+          console.error('Token invalide: sub manquant dans', userData);
+          setNotification({
+            type: 'warning',
+            message: 'Session invalide. Veuillez vous reconnecter.'
+          });
+        }
+      } catch (error) {
+        console.error('Erreur lors du décodage du token:', error);
+        setNotification({
+          type: 'warning',
+          message: 'Erreur lors de la récupération de vos informations. Veuillez vous reconnecter.'
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      setIsLoading(false);
+      setNotification({
+        type: 'warning',
+        message: 'Vous devez être connecté pour accéder à cette page.'
+      });
+    }
   }, []);
 
   // Message de bienvenue unique
@@ -61,16 +106,6 @@ export default function ProfileForm() {
       }));
     }
   }, [profile]);
-
-  const handleUserIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUserId(e.target.value);
-    setIsSearching(false);
-  };
-
-  const handleSearchUser = () => {
-    if (userId.trim() === '') return;
-    setIsSearching(true);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -121,7 +156,7 @@ export default function ProfileForm() {
         const isPlural = changes.length > 1;
         setNotification({
           type: 'success',
-          message: `${isPlural ? 'Tes' : 'Ton'} ${changes.join(', ')} ${isPlural ? 'ont' : 'a'} été modifié${isPlural ? 's' : ''} avec succès`
+          message: `${isPlural ? 'Vos' : 'Votre'} ${changes.join(', ')} ${isPlural ? 'ont' : 'a'} été modifié${isPlural ? 's' : ''} avec succès`
         });
       }
       setTimeout(() => setNotification(null), 5000);
@@ -140,30 +175,34 @@ export default function ProfileForm() {
     }
   };
 
-  if (loading || isSearching) {
+  if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          className="relative w-24 h-24 mb-6"
-        >
-          <div className="absolute inset-0 rounded-full border-t-4 border-blue-500 animate-spin"></div>
-          <div className="absolute inset-3 rounded-full border-2 border-dashed border-gray-200"></div>
-          <div className="absolute inset-6 rounded-full bg-blue-100 flex items-center justify-center">
-            <FaCar className="text-blue-600 text-2xl" />
-          </div>
-        </motion.div>
-        <motion.p
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="text-gray-600 font-medium text-lg"
-        >
-          Recherche de l'utilisateur...
-        </motion.p>
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Chargement de votre profil...</p>
+        </div>
       </div>
+    );
+  }
+
+  if (!userId) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="max-w-2xl mx-auto p-6"
+      >
+        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 shadow-lg backdrop-blur-sm">
+          <div className="flex items-center mb-4">
+            <div className="bg-yellow-100 p-3 rounded-full mr-4">
+              <FaExclamationCircle className="text-yellow-600" />
+            </div>
+            <h3 className="text-lg font-medium text-yellow-800">Non connecté</h3>
+          </div>
+          <p className="text-yellow-600 mb-4">Vous devez être connecté pour accéder à cette page.</p>
+        </div>
+      </motion.div>
     );
   }
 
@@ -179,24 +218,10 @@ export default function ProfileForm() {
             <div className="bg-red-100 p-3 rounded-full mr-4">
               <FaUser className="text-red-600" />
             </div>
-            <h3 className="text-lg font-medium text-red-800">Utilisateur non trouvé</h3>
+            <h3 className="text-lg font-medium text-red-800">Erreur</h3>
           </div>
-          <p className="text-red-600 mb-4">L'utilisateur avec l'ID {userId} n'existe pas.</p>
-          <div className="flex gap-2">
-            <div className="relative flex-grow">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FaIdCard className="text-gray-400" />
-              </div>
-              <input
-                type="number"
-                value={userId}
-                onChange={handleUserIdChange}
-                className="pl-10 w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Entrez un autre ID d'utilisateur"
-                min="1"
-              />
-            </div>
-          </div>
+          <p className="text-red-600 mb-4">Une erreur est survenue lors du chargement de votre profil.</p>
+          <p className="text-sm text-red-500">Veuillez vérifier votre connexion et réessayer.</p>
         </div>
       </motion.div>
     );
@@ -273,68 +298,27 @@ export default function ProfileForm() {
                 </div>
               </div>
 
-              {/* Champ de recherche utilisateur */}
-              <div className="mb-6">
-                <div className="flex items-center gap-3 bg-gray-50 p-4 rounded-lg border border-gray-100">
-                  <div className="w-48">
-                    <label htmlFor="userId" className="block text-xs font-medium text-gray-600 mb-1">
-                      ID Utilisateur
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
-                        <FaIdCard className="text-gray-400" />
-                      </div>
-                      <input
-                        type="number"
-                        id="userId"
-                        value={userId}
-                        onChange={handleUserIdChange}
-                        className="pl-8 w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                        placeholder="ID"
-                        min="1"
-                      />
-                    </div>
-                  </div>
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={handleSearchUser}
-                    className="mt-5 px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors flex items-center gap-2 h-[34px]"
-                  >
-                    <FaSearch className="w-3 h-3" />
-                    Rechercher
-                  </motion.button>
-                </div>
-              </div>
-
+              {/* Notifications */}
               {notification && (
                 <motion.div
-                  initial={{ opacity: 0, y: -20 }}
+                  initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className={`mb-6 p-4 rounded-lg flex items-center ${
-                    notification.type === 'success' ? 'bg-green-50 border border-green-200' :
-                    notification.type === 'warning' ? 'bg-yellow-50 border border-yellow-200' :
-                    'bg-blue-50 border border-blue-200'
+                  exit={{ opacity: 0, y: -10 }}
+                  className={`mb-6 p-4 rounded-lg ${
+                    notification.type === 'success' ? 'bg-green-50 text-green-800' :
+                    notification.type === 'warning' ? 'bg-yellow-50 text-yellow-800' :
+                    'bg-blue-50 text-blue-800'
                   }`}
                 >
-                  <div className={`p-2 rounded-full mr-3 ${
-                    notification.type === 'success' ? 'bg-green-100' :
-                    notification.type === 'warning' ? 'bg-yellow-100' :
-                    'bg-blue-100'
-                  }`}>
-                    {notification.type === 'success' ? <FaCheck className="text-green-600" /> :
-                     notification.type === 'warning' ? <FaExclamationCircle className="text-yellow-600" /> :
-                     <FaInfoCircle className="text-blue-600" />}
+                  <div className="flex items-center">
+                    {notification.type === 'success' ? <FaCheck className="mr-2" /> :
+                     notification.type === 'warning' ? <FaExclamationCircle className="mr-2" /> :
+                     <FaInfoCircle className="mr-2" />}
+                    <p>{notification.message}</p>
                   </div>
-                  <p className={`${
-                    notification.type === 'success' ? 'text-green-800' :
-                    notification.type === 'warning' ? 'text-yellow-800' :
-                    'text-blue-800'
-                  }`}>{notification.message}</p>
                 </motion.div>
               )}
 
-              {/* Formulaire principal */}
               <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Informations personnelles */}
                 <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
@@ -368,7 +352,7 @@ export default function ProfileForm() {
                     {/* Email */}
                     <div>
                       <label htmlFor="email" className="block text-xs font-medium text-gray-700 mb-1">
-                        Adresse email
+                        Email
                       </label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
@@ -380,7 +364,7 @@ export default function ProfileForm() {
                           value={formData.email}
                           onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                           className="pl-8 w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                          placeholder="Votre email"
+                          placeholder="votre@email.com"
                         />
                       </div>
                     </div>
@@ -388,7 +372,7 @@ export default function ProfileForm() {
                     {/* Téléphone */}
                     <div>
                       <label htmlFor="phone" className="block text-xs font-medium text-gray-700 mb-1">
-                        Numéro de téléphone
+                        Téléphone
                       </label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
@@ -404,9 +388,6 @@ export default function ProfileForm() {
                         />
                       </div>
                     </div>
-
-                    {/* Espace réservé pour un futur champ si nécessaire */}
-                    <div className="hidden md:block"></div>
                   </div>
                 </div>
 
@@ -415,23 +396,19 @@ export default function ProfileForm() {
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
                       <FaLock className="text-blue-500 w-4 h-4" />
-                      Sécurité
+                      Mot de passe
                     </h3>
-                    {!showPasswordFields && (
-                      <motion.button
-                        type="button"
-                        onClick={() => setShowPasswordFields(true)}
-                        className="text-blue-600 hover:text-blue-700 text-xs font-medium flex items-center gap-2"
-                      >
-                        <FaShieldAlt className="w-4 h-4" />
-                        Changer le mot de passe
-                      </motion.button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => setShowPasswordFields(!showPasswordFields)}
+                      className="text-sm text-blue-600 hover:text-blue-700"
+                    >
+                      {showPasswordFields ? 'Annuler' : 'Modifier le mot de passe'}
+                    </button>
                   </div>
 
                   {showPasswordFields && (
                     <div className="grid grid-cols-2 gap-4">
-                      {/* Nouveau mot de passe */}
                       <div>
                         <label htmlFor="newPassword" className="block text-xs font-medium text-gray-700 mb-1">
                           Nouveau mot de passe
@@ -451,7 +428,6 @@ export default function ProfileForm() {
                         </div>
                       </div>
 
-                      {/* Confirmer mot de passe */}
                       <div>
                         <label htmlFor="confirmPassword" className="block text-xs font-medium text-gray-700 mb-1">
                           Confirmer le mot de passe
@@ -475,23 +451,23 @@ export default function ProfileForm() {
                 </div>
 
                 {/* Bouton de soumission */}
-                <div className="flex justify-end pt-4">
+                <div className="flex justify-end">
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     type="submit"
                     disabled={isUpdating}
-                    className="flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm rounded hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isUpdating ? (
                       <>
-                        <FaSpinner className="animate-spin w-4 h-4 mr-2" />
-                        <span>Enregistrement...</span>
+                        <FaSpinner className="animate-spin" />
+                        Mise à jour...
                       </>
                     ) : (
                       <>
-                        <FaSave className="w-4 h-4 mr-2" />
-                        <span>Enregistrer</span>
+                        <FaSave />
+                        Enregistrer les modifications
                       </>
                     )}
                   </motion.button>

@@ -4,6 +4,7 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { useAuth } from "../hooks/useAuth"
 import { 
   Car, 
   Key, 
@@ -29,6 +30,7 @@ import {
 
 export default function Login() {
   const router = useRouter()
+  const { login, register, loading, error } = useAuth()
   const [activeTab, setActiveTab] = useState('login') // 'login' ou 'register'
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -165,20 +167,27 @@ export default function Login() {
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (validateLoginForm()) {
-      setIsLoading(true)
-      setTimeout(() => {
-        setIsLoading(false)
-        router.push("")
-      }, 1500)
+      try {
+        await login({
+          email: formData.email,
+          password: formData.password
+        });
+      } catch (err) {
+        console.error('Erreur de connexion:', err);
+      }
     }
   }
 
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (validateRegisterForm()) {
-      setIsLoading(true)
-      setTimeout(() => {
-        setIsLoading(false)
+      try {
+        await register({
+          name: registerData.fullName,
+          email: registerData.email,
+          password: registerData.password,
+          phone: registerData.phone
+        });
         setSuccessMessage("Bienvenue dans la famille AutoService Pro !")
         setShowSuccessMessage(true)
         setShowSuccessAnimation(true)
@@ -189,7 +198,9 @@ export default function Login() {
             setActiveTab('login')
           }, 500)
         }, 3000)
-      }, 1500)
+      } catch (err) {
+        console.error('Erreur d\'inscription:', err);
+      }
     }
   }
 

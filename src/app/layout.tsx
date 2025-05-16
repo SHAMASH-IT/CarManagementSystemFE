@@ -3,7 +3,7 @@ import 'react-perfect-scrollbar/dist/css/styles.css'
 
 // Type Imports
 import type { ChildrenType } from '@core/types'
-
+import ProtectRoute from '@/protectRoute/protect'
 // Style Imports
 import '@/app/globals.css'
 
@@ -24,7 +24,10 @@ const RootLayout = ({ children }: ChildrenType) => {
     <html id='__next' dir={direction} lang="fr">
       <body className='flex is-full min-bs-full flex-auto flex-col'>
        
-          {children}
+         
+          <ProtectRoute>
+            {children}
+          </ProtectRoute>
       
       </body>
     </html>

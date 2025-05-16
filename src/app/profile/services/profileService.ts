@@ -14,7 +14,17 @@ export interface UpdateProfileDto {
 }
 
 export const getUserProfile = async (userId: number): Promise<UserProfile> => {
-  const response = await fetch(`http://localhost:3005/users/${userId}`);
+  const token = localStorage.getItem('token');
+  if (!token) {
+    throw new Error('Non authentifié');
+  }
+
+  const response = await fetch(`http://localhost:3005/users/${userId}`, {
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  });
+  
   if (!response.ok) {
     throw new Error('Erreur lors de la récupération du profil');
   }
@@ -22,10 +32,16 @@ export const getUserProfile = async (userId: number): Promise<UserProfile> => {
 };
 
 export const updateUserProfile = async (userId: number, data: UpdateProfileDto): Promise<void> => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    throw new Error('Non authentifié');
+  }
+
   const response = await fetch(`http://localhost:3005/users/${userId}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
     },
     body: JSON.stringify(data),
   });
