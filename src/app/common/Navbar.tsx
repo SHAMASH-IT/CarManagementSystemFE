@@ -20,9 +20,11 @@ import {
   AlertCircle,
   CalendarDays,
   Tag,
+  CheckCircle,
 } from "lucide-react"
 import moment from "moment"
 import { getUserProfile } from '../profile/services/profileService'
+import { notificationService, Notification as NotificationType } from './services/notificationService'
 
 // Define the interface for search results
 interface SearchResult {
@@ -36,39 +38,6 @@ interface SearchResult {
     name: string
   }
 }
-
-// Define the interface for notifications
-interface Notification {
-  id: number
-  icon: React.ReactNode
-  message: string
-  avatar: string
-  time: string
-}
-
-const notifications: Notification[] = [
-  {
-    id: 1,
-    icon: <Calendar className="h-6 w-6 text-green-500" />,
-    message: "Nouvelle demande de rendez-vous de John Doe",
-    avatar: "https://i.pravatar.cc/40?img=1",
-    time: "Il y a 2 heures",
-  },
-  {
-    id: 2,
-    icon: <Calendar className="h-6 w-6 text-blue-500" />,
-    message: "Rappel : rendez-vous avec Jane Smith demain",
-    avatar: "https://i.pravatar.cc/40?img=2",
-    time: "Il y a 1 jour",
-  },
-  {
-    id: 3,
-    icon: <Mail className="h-6 w-6 text-yellow-500" />,
-    message: "Nouveau message de Paul Brown",
-    avatar: "https://i.pravatar.cc/40?img=3",
-    time: "Il y a 3 jours",
-  },
-]
 
 const Navbar = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
@@ -85,6 +54,10 @@ const Navbar = () => {
   const API_URL = process.env.NEXT_PUBLIC_APP_URL
   const [userName, setUserName] = useState<string | null>(null)
   const [userEmail, setUserEmail] = useState<string | null>(null)
+  const [notifications, setNotifications] = useState<any[]>([])
+  const [unreadCount, setUnreadCount] = useState(0)
+  const [isLoadingNotifications, setIsLoadingNotifications] = useState(false)
+  const [userRole, setUserRole] = useState<string | null>(null)
 
   const handleLogout = () => {
     // Supprimer le token du localStorage
@@ -171,6 +144,7 @@ const Navbar = () => {
             try {
               const profile = await getUserProfile(userData.sub)
               setUserName(profile.name)
+              setUserRole(profile.role)
             } catch (error) {
               console.error('Erreur lors de la récupération du profil:', error)
             }
@@ -183,6 +157,79 @@ const Navbar = () => {
 
     fetchUserData()
   }, [])
+
+  // Charger les notifications quand l'utilisateur est connecté
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    if (token) {
+      try {
+        const base64Url = token.split('.')[1]
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+        }).join(''))
+
+        const userData = JSON.parse(jsonPayload)
+        if (userData.sub) {
+          const userId = parseInt(userData.sub, 10)
+          if (!isNaN(userId)) {
+            loadNotifications(userId)
+          }
+        }
+      } catch (error) {
+        console.error('Erreur lors du décodage du token:', error)
+      }
+    }
+  }, [])
+
+  // Fonction pour charger les notifications
+  const loadNotifications = async (userId: number) => {
+    try {
+      console.log('Loading notifications for user:', userId);
+      setIsLoadingNotifications(true);
+      
+      // Charger les notifications
+      const notifs = await notificationService.getUnreadNotifications(userId);
+      console.log('Received notifications:', notifs);
+      
+      // Vérifier si les notifications sont un tableau
+      if (!Array.isArray(notifs)) {
+        console.error('Les notifications reçues ne sont pas un tableau:', notifs);
+        setNotifications([]);
+        setUnreadCount(0);
+        return;
+      }
+      
+      // Charger le compteur
+      const count = await notificationService.countUnreadNotifications(userId);
+      console.log('Received count:', count);
+      
+      // Mettre à jour l'état
+      setNotifications(notifs);
+      setUnreadCount(count);
+      
+      // Log pour vérifier l'état après mise à jour
+      console.log('Notifications state updated:', notifs);
+      console.log('Unread count updated:', count);
+    } catch (error) {
+      console.error('Error loading notifications:', error);
+      setNotifications([]);
+      setUnreadCount(0);
+    } finally {
+      setIsLoadingNotifications(false);
+    }
+  };
+
+  // Fonction pour marquer toutes les notifications comme lues
+  const handleMarkAllAsRead = async (userId: number) => {
+    try {
+      await notificationService.markAllAsRead(userId)
+      setUnreadCount(0)
+      setNotifications(prev => prev.map(notif => ({ ...notif, read: true })))
+    } catch (error) {
+      console.error('Erreur lors du marquage des notifications comme lues:', error)
+    }
+  }
 
   const handleSearch = async () => {
     try {
@@ -569,66 +616,212 @@ const Navbar = () => {
               <Search className="h-6 w-6" />
             </button>
 
-            <div className="relative">
-              <button
-                className="ml-2 p-2 rounded-lg text-gray-500 hover:bg-gray-100 relative"
-                onClick={() => {
-                  setIsNotificationMenuOpen(!isNotificationMenuOpen)
-                  setIsProfileMenuOpen(false)
-                }}
-              >
-                <Bell className="h-6 w-6" />
-                <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-500"></span>
-              </button>
-
-              {isNotificationMenuOpen && (
-                <div
-                  className="absolute right-0 mt-2 w-80 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10 opacity-0 translate-y-[10px] animate-menuIn overflow-hidden"
-                  style={{
-                    animation: "menuIn 0.2s ease-out forwards",
+            {/* Afficher les notifications uniquement pour les clients */}
+            {userRole === 'CLIENT' && (
+              <div className="relative">
+                <button
+                  onClick={() => {
+                    console.log('Notification button clicked');
+                    console.log('Current notifications:', notifications);
+                    console.log('Current unread count:', unreadCount);
+                    setIsNotificationMenuOpen(!isNotificationMenuOpen);
                   }}
+                  className="relative p-2 text-gray-600 hover:text-gray-900"
                 >
-                  <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gradient-to-r from-indigo-600 to-indigo-700 text-white">
-                    <span className="font-bold">Notifications</span>
-                    <button
-                      onClick={() => setIsNotificationMenuOpen(false)}
-                      className="text-white hover:text-gray-200 transition-colors"
-                    >
-                      <X className="h-5 w-5" />
-                    </button>
-                  </div>
-                  <ul className="max-h-80 overflow-y-auto">
-                    {notifications.map((notification) => (
-                      <li
-                        key={notification.id}
-                        className="px-4 py-3 hover:bg-gray-50 flex items-center space-x-3 transition-colors border-b last:border-b-0"
-                      >
-                        <img
-                          src={notification.avatar || "/placeholder.svg"}
-                          alt="Avatar"
-                          className="w-10 h-10 rounded-full border border-gray-200"
-                        />
-                        <div className="flex-1">
-                          <span className="font-medium text-sm">{notification.message}</span>
-                          <span className="text-xs text-gray-500 block mt-1">{notification.time}</span>
-                        </div>
-                        {notification.icon}
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="p-3 border-t border-gray-200 text-center bg-gray-50">
-                    <button className="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
-                      Voir toutes les notifications
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
+                  <Bell className="h-6 w-6" />
+                  {unreadCount > 0 && (
+                    <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-500 rounded-full">
+                      {unreadCount}
+                    </span>
+                  )}
+                </button>
 
-            <button className="ml-2 p-2 rounded-lg text-gray-500 hover:bg-gray-100 relative">
-              <MessageSquare className="h-6 w-6" />
-              <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-indigo-500"></span>
-            </button>
+                {isNotificationMenuOpen && (
+                  <div 
+                    className="absolute right-0 mt-2 w-96 bg-white rounded-xl shadow-xl py-2 z-50 border border-gray-100 transform transition-all duration-200 ease-in-out"
+                    style={{
+                      animation: "slideIn 0.2s ease-out forwards",
+                      transformOrigin: "top right"
+                    }}
+                  >
+                    <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-indigo-50/50 to-white">
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center space-x-2">
+                          <div className="relative">
+                            <Bell className="h-5 w-5 text-indigo-500" />
+                            {unreadCount > 0 && (
+                              <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                            )}
+                          </div>
+                          <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
+                          {unreadCount > 0 && (
+                            <span className="px-2 py-0.5 text-xs font-medium bg-indigo-100 text-indigo-800 rounded-full animate-bounce">
+                              {unreadCount} non lue{unreadCount > 1 ? 's' : ''}
+                            </span>
+                          )}
+                        </div>
+                        {unreadCount > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const token = localStorage.getItem('token');
+                              if (token) {
+                                const base64Url = token.split('.')[1];
+                                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                                  return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                                }).join(''));
+                                const userData = JSON.parse(jsonPayload);
+                                handleMarkAllAsRead(userData.sub);
+                              }
+                            }}
+                            className="flex items-center px-3 py-1.5 text-xs font-semibold rounded-full bg-indigo-100 text-indigo-700 border border-indigo-200 hover:bg-indigo-200 transition"
+                          >
+                            <CheckCircle className="h-4 w-4 mr-1 text-indigo-500" />
+                            Tout marquer comme lu
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="max-h-[480px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+                      {isLoadingNotifications ? (
+                        <div className="flex justify-center items-center py-8">
+                          <div className="relative">
+                            <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
+                            <div className="absolute inset-0 bg-white/50 backdrop-blur-sm rounded-full"></div>
+                          </div>
+                        </div>
+                      ) : notifications.length === 0 ? (
+                        <div className="px-4 py-8 text-center">
+                          <div className="relative w-16 h-16 mx-auto mb-3">
+                            <Bell className="h-12 w-12 text-gray-300 absolute inset-0" />
+                            <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 to-white rounded-full animate-pulse"></div>
+                          </div>
+                          <p className="text-gray-500 font-medium">Aucune notification</p>
+                          <p className="text-sm text-gray-400 mt-1">Vous serez notifié ici des mises à jour importantes</p>
+                        </div>
+                      ) : (
+                        notifications.map((notification, index) => (
+                          <div
+                            key={notification.id}
+                            className={`relative flex items-start space-x-3 p-4 rounded-xl transition mb-3 border border-gray-100
+                              ${!notification.read ? 'bg-gradient-to-r from-indigo-50 to-white shadow-lg ring-2 ring-indigo-100' : 'bg-white shadow-sm hover:shadow-md'}`}
+                            style={{ animation: `slideIn 0.2s ease-out ${index * 0.05}s forwards`, opacity: 0, transform: 'translateX(10px)' }}
+                          >
+                            {!notification.read && (
+                              <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-400" />
+                            )}
+                            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-50">
+                              {notification.type === 'Appointment Created' && <Calendar className="h-6 w-6 text-blue-400" />}
+                              {notification.type === 'Appointment Annuler' && <X className="h-6 w-6 text-red-300" />}
+                              {notification.type === 'Appointment accepter' && <CheckCircle className="h-6 w-6 text-green-400" />}
+                              {(notification.type === 'Intervention commance' || notification.type === 'Intervention commencer') && <Wrench className="h-6 w-6 text-yellow-400" />}
+                              {notification.type === 'Intervention progresser' && <Loader2 className="h-6 w-6 text-orange-400 animate-spin-slow" />}
+                              {notification.type === 'Intervention completer' && <CheckCircle className="h-6 w-6 text-green-400" />}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between">
+                                <span className="font-semibold text-gray-900">
+                                  {/* Message principal selon le type */}
+                                  {(notification.type === 'Appointment Created') && 'Nouveau rendez-vous créé'}
+                                  {(notification.type === 'Appointment Annuler') && 'Votre rendez-vous a été annulé'}
+                                  {(notification.type === 'Appointment accepter') && 'Votre rendez-vous a été accepté'}
+                                  {(notification.type === 'Intervention commance' || notification.type === 'Intervention commencer') && (
+                                    notification.intervention?.startDate
+                                      ? `Votre intervention est commencée le ${moment(notification.intervention.startDate).locale('fr').format('DD/MM/YYYY à HH:mm')}`
+                                      : notification.createdAt
+                                        ? `Votre intervention est commencée le ${moment(notification.createdAt).locale('fr').format('DD/MM/YYYY à HH:mm')}`
+                                        : "Votre intervention est commencée (date inconnue)"
+                                  )}
+                                  {notification.type === 'Intervention progresser' && 'Votre intervention est en cours de progression'}
+                                  {notification.type === 'Intervention completer' && (
+                                    notification.intervention?.endDate
+                                      ? `Votre intervention est terminée le ${moment(notification.intervention.endDate).locale('fr').format('DD/MM/YYYY à HH:mm')}`
+                                      : notification.createdAt
+                                        ? `Votre intervention est terminée le ${moment(notification.createdAt).locale('fr').format('DD/MM/YYYY à HH:mm')}`
+                                        : "Votre intervention est terminée (date inconnue)"
+                                  )}
+                                </span>
+                                {/* Badge de statut */}
+                                <span className={`ml-2 px-2 py-0.5 text-xs font-medium rounded-full border ${
+                                  notification.type === 'Appointment Created' ? 'bg-blue-50 text-blue-700 border-blue-100' :
+                                  notification.type === 'Appointment Annuler' ? 'bg-red-50 text-red-600 border-red-100' :
+                                  notification.type === 'Appointment accepter' ? 'bg-green-50 text-green-700 border-green-100' :
+                                  (notification.type === 'Intervention commance' || notification.type === 'Intervention commencer') ? 'bg-yellow-50 text-yellow-700 border-yellow-100' :
+                                  notification.type === 'Intervention progresser' ? 'bg-orange-50 text-orange-700 border-orange-100' :
+                                  notification.type === 'Intervention completer' ? 'bg-green-50 text-green-700 border-green-100' :
+                                  'bg-gray-50 text-gray-700 border-gray-100'
+                                }`}>
+                                  {notification.type === 'Appointment Created' && 'Créé'}
+                                  {notification.type === 'Appointment Annuler' && 'Annulé'}
+                                  {notification.type === 'Appointment accepter' && 'Accepté'}
+                                  {(notification.type === 'Intervention commance' || notification.type === 'Intervention commencer') && 'En cours'}
+                                  {notification.type === 'Intervention progresser' && 'En progression'}
+                                  {notification.type === 'Intervention completer' && 'Terminé'}
+                                </span>
+                              </div>
+                              <div className="flex items-center mt-1 space-x-2">
+                                {/* Date/heure */}
+                                {(notification.type === 'Appointment Created' || notification.type === 'Appointment Annuler' || notification.type === 'Appointment accepter') && (
+                                  <span className="text-xs text-gray-500">
+                                    {moment(notification.appointment?.date).locale('fr').format('DD/MM/YYYY à HH:mm')}
+                                  </span>
+                                )}
+                                {(notification.type === 'Intervention commance' || notification.type === 'Intervention commencer') && (
+                                  <span className="text-xs text-gray-500">
+                                    {notification.intervention?.startDate
+                                      ? moment(notification.intervention.startDate).locale('fr').format('DD/MM/YYYY à HH:mm')
+                                      : notification.createdAt
+                                        ? moment(notification.createdAt).locale('fr').format('DD/MM/YYYY à HH:mm')
+                                        : "(date inconnue)"}
+                                  </span>
+                                )}
+                                {notification.type === 'Intervention progresser' && (
+                                  <span className="text-xs text-gray-500">
+                                    {notification.createdAt
+                                      ? moment(notification.createdAt).locale('fr').format('DD/MM/YYYY à HH:mm')
+                                      : "(date inconnue)"}
+                                  </span>
+                                )}
+                                {notification.type === 'Intervention completer' && (
+                                  <span className="text-xs text-gray-500">
+                                    {notification.intervention?.endDate
+                                      ? moment(notification.intervention.endDate).locale('fr').format('DD/MM/YYYY à HH:mm')
+                                      : notification.createdAt
+                                        ? moment(notification.createdAt).locale('fr').format('DD/MM/YYYY à HH:mm')
+                                        : "(date inconnue)"}
+                                  </span>
+                                )}
+                                {/* Badge Nouveau */}
+                                {!notification.read && (
+                                  <span className="flex items-center px-2 py-0.5 text-xs font-semibold rounded-full bg-indigo-100 text-indigo-700 border border-indigo-200 shadow-sm ml-2">
+                                    <Bell className="h-3 w-3 mr-1 text-indigo-400" /> Nouveau
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+
+                    {notifications.length > 0 && (
+                      <div className="px-4 py-2 border-t border-gray-100 bg-gradient-to-r from-gray-50/50 to-white">
+                        <button
+                          onClick={() => setIsNotificationMenuOpen(false)}
+                          className="w-full text-sm text-gray-600 hover:text-gray-900 font-medium transition-colors duration-200 hover:bg-gray-100 py-1.5 rounded-lg"
+                        >
+                          Fermer
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+          
 
             <div className="ml-3 relative">
               <button
@@ -649,26 +842,91 @@ const Navbar = () => {
 
               {isProfileMenuOpen && (
                 <div
-                  className="absolute right-0 mt-2 w-48 rounded-xl shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 z-10 opacity-0 translate-y-[10px] animate-menuIn overflow-hidden"
+                  className="absolute right-0 mt-2 w-80 rounded-2xl shadow-xl py-1 bg-white/95 backdrop-blur-sm ring-1 ring-black/5 z-10 opacity-0 translate-y-[10px] animate-menuIn overflow-hidden"
                   style={{
                     animation: "menuIn 0.2s ease-out forwards",
                   }}
                 >
-                  <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
-                    <p className="text-sm font-medium text-gray-900">{userName || 'Chargement...'}</p>
-                    <p className="text-xs text-gray-500 mt-1">{userEmail || 'Chargement...'}</p>
+                  {/* En-tête du profil avec animation et effet de verre */}
+                  <div className="px-4 py-4 border-b border-gray-100/50 bg-gradient-to-r from-indigo-50/80 to-white/80 backdrop-blur-sm">
+                    <div className="flex items-center space-x-3">
+                      <div className="flex-shrink-0">
+                        <div className="relative">
+                          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center border-2 border-white shadow-lg transform hover:scale-105 transition-all duration-300 hover:rotate-3">
+                            <UserCircle2 size={28} className="text-white" />
+                          </div>
+                          <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-green-400 border-2 border-white shadow-sm animate-pulse"></div>
+                        </div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-900 truncate">{userName || 'Chargement...'}</p>
+                        <p className="text-xs text-gray-500 truncate">{userEmail || 'Chargement...'}</p>
+                        <div className="mt-1.5 flex items-center space-x-2">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                            {userRole === 'ADMIN' ? 'Administrateur' : userRole === 'PROVIDER' ? 'Prestataire' : 'Client'}
+                          </span>
+                          <span className="text-xs text-gray-400">•</span>
+                          <span className="text-xs text-gray-500">En ligne</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                 
-                  <a 
-                    href="#" 
-                    onClick={(e) => {
-                      e.preventDefault()
-                      handleLogout()
-                    }} 
-                    className="block px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 hover:text-red-700 transition-all duration-200 flex items-center border-t border-gray-100 hover:border-red-200"
-                  >
-                    <LogOut className="inline mr-2 h-4 w-4" /> Déconnexion
-                  </a>
+
+                  {/* Options du menu avec animations et effets modernes */}
+                  <div className="py-1.5">
+                    <a 
+                      href="/profile" 
+                      className="group flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50/80 hover:text-gray-900 transition-all duration-200"
+                    >
+                      <div className="mr-3 flex-shrink-0">
+                        <div className="p-1.5 rounded-xl bg-indigo-50 group-hover:bg-indigo-100 transition-all duration-300 group-hover:scale-110">
+                          <Settings className="h-5 w-5 text-indigo-500 group-hover:text-indigo-600 transition-colors duration-200" />
+                        </div>
+                      </div>
+                      <div>
+                        <p className="font-medium">Modifier le profil</p>
+                        <p className="text-xs text-gray-500">Gérer vos informations personnelles</p>
+                      </div>
+                      <div className="ml-auto">
+                        <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-indigo-500 group-hover:translate-x-1 transition-all duration-200" />
+                      </div>
+                    </a>
+
+                    <a 
+                      href="#" 
+                      onClick={(e) => {
+                        e.preventDefault()
+                        handleLogout()
+                      }} 
+                      className="group flex items-center px-4 py-3 text-sm text-red-600 hover:bg-red-50/80 hover:text-red-700 transition-all duration-200 border-t border-gray-100/50"
+                    >
+                      <div className="mr-3 flex-shrink-0">
+                        <div className="p-1.5 rounded-xl bg-red-50 group-hover:bg-red-100 transition-all duration-300 group-hover:scale-110">
+                          <LogOut className="h-5 w-5 text-red-500 group-hover:text-red-600 transition-colors duration-200" />
+                        </div>
+                      </div>
+                      <div>
+                        <p className="font-medium">Déconnexion</p>
+                        <p className="text-xs text-red-500">Se déconnecter de votre compte</p>
+                      </div>
+                      <div className="ml-auto">
+                        <ChevronRight className="h-4 w-4 text-red-400 group-hover:text-red-500 group-hover:translate-x-1 transition-all duration-200" />
+                      </div>
+                    </a>
+                  </div>
+
+                  {/* Pied de page avec version et effet de verre */}
+                  <div className="px-4 py-2.5 border-t border-gray-100/50 bg-gray-50/80 backdrop-blur-sm">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-gray-500">
+                        Version 1.0.0
+                      </p>
+                      <div className="flex items-center space-x-2">
+                        <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+                        <span className="text-xs text-gray-500">Système en ligne</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -717,6 +975,47 @@ const Navbar = () => {
               opacity: 1;
               transform: translateY(0);
             }
+          }
+
+          @keyframes slideIn {
+            from {
+              opacity: 0;
+              transform: translateY(-10px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+
+          @keyframes pulse {
+            0%, 100% {
+              opacity: 1;
+            }
+            50% {
+              opacity: 0.5;
+            }
+          }
+
+          .scrollbar-thin::-webkit-scrollbar {
+            width: 6px;
+          }
+
+          .scrollbar-thin::-webkit-scrollbar-track {
+            background: transparent;
+          }
+
+          .scrollbar-thin::-webkit-scrollbar-thumb {
+            background-color: #D1D5DB;
+            border-radius: 3px;
+          }
+
+          .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+            background-color: #9CA3AF;
+          }
+
+          .animate-spin-slow {
+            animation: spin 2s linear infinite;
           }
         `}</style>
       </div>

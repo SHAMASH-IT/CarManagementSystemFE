@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { usePathname } from 'next/navigation'
 import {
   Home,
@@ -39,9 +39,11 @@ const Sidebar = () => {
   const [activeItem, setActiveItem] = useState('')
   const [userRole, setUserRole] = useState<string | null>(null)
   const [userName, setUserName] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     const fetchUserData = async () => {
+      setIsLoading(true)
       const token = localStorage.getItem('token')
       if (token) {
         try {
@@ -52,14 +54,12 @@ const Sidebar = () => {
           }).join(''))
 
           const userData = JSON.parse(jsonPayload)
-          console.log('Token décodé:', userData)
           setUserRole(userData.role)
 
           // Récupérer le profil utilisateur pour obtenir le nom
           if (userData.sub) {
             try {
               const profile = await getUserProfile(userData.sub)
-              console.log('Profil récupéré:', profile)
               setUserName(profile.name)
             } catch (error) {
               console.error('Erreur lors de la récupération du profil:', error)
@@ -69,6 +69,7 @@ const Sidebar = () => {
           console.error('Erreur lors du décodage du token:', error)
         }
       }
+      setIsLoading(false)
     }
 
     fetchUserData()
@@ -126,12 +127,7 @@ const Sidebar = () => {
       icon: <FileText size={22} className="text-cyan-500 group-hover:scale-110 transition-transform duration-200" />, 
       title: 'Historique des rendez-vous', 
       url: '/history' 
-    },
-    { 
-      icon: <UserRound size={22} className="text-violet-500 group-hover:scale-110 transition-transform duration-200" />, 
-      title: 'Modifier le profil', 
-      url: '/profile' 
-    },
+    }
   ]
 
   // Menu items pour les prestataires
@@ -165,12 +161,7 @@ const Sidebar = () => {
       icon: <Wrench size={22} className="text-red-500 group-hover:scale-110 transition-transform duration-200" />, 
       title: 'Intervention', 
       url: '/progress' 
-    },
-    { 
-      icon: <Settings size={22} className="text-violet-500 group-hover:scale-110 transition-transform duration-200" />, 
-      title: 'Modifier le profil', 
-      url: '/profile' 
-    },
+    }
   ]
 
   // Menu items pour les administrateurs
@@ -191,6 +182,11 @@ const Sidebar = () => {
       url: '/admin/users' 
     },
     { 
+      icon: <Wrench size={22} className="text-blue-500 group-hover:scale-110 transition-transform duration-200" />, 
+      title: 'Services', 
+      url: '/services' 
+    },
+    { 
       icon: <ParkingCircle size={22} className="text-orange-500 group-hover:scale-110 transition-transform duration-200" />, 
       title: 'Stationnement', 
       url: '/parking' 
@@ -209,20 +205,39 @@ const Sidebar = () => {
       icon: <Wrench size={22} className="text-red-500 group-hover:scale-110 transition-transform duration-200" />, 
       title: 'Intervention', 
       url: '/progress' 
-    },
-    { 
-      icon: <Settings size={22} className="text-violet-500 group-hover:scale-110 transition-transform duration-200" />, 
-      title: 'Modifier le profil', 
-      url: '/profile' 
-    },
+    }
   ]
 
   // Sélectionner les menu items en fonction du rôle
-  const menuItems = userRole === 'ADMIN' 
-    ? adminMenuItems 
-    : userRole === 'PROVIDER' 
-      ? providerMenuItems 
-      : clientMenuItems
+  const menuItems = useMemo(() => {
+    if (isLoading) return []
+    
+    return userRole === 'ADMIN' 
+      ? adminMenuItems 
+      : userRole === 'PROVIDER' 
+        ? providerMenuItems 
+        : clientMenuItems
+  }, [userRole, isLoading])
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-gray-200">
+        <div className="h-full bg-white shadow-xl flex flex-col border-r border-gray-200 relative backdrop-blur-sm bg-opacity-90 w-72">
+          <div className="p-6 border-b border-gray-200 flex items-center justify-center">
+            <div className="animate-pulse flex space-x-4">
+              <div className="rounded-full bg-gray-200 h-12 w-12"></div>
+              <div className="flex-1 space-y-4 py-1">
+                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                <div className="space-y-2">
+                  <div className="h-4 bg-gray-200 rounded"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-gray-200">
