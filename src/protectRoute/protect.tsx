@@ -8,8 +8,12 @@ const ProtectRoute = ({children}:{children:React.ReactNode})=>{
     const router = useRouter();
     const pathname = usePathname();
 
-    // Allow access to landing page without authentication
-    if (pathname === '/') {
+    // Allow access to landing page and public pages without authentication
+    if (
+      pathname === '/' ||
+      pathname === '/login/forgot-password' ||
+      pathname === '/reset-password'
+    ) {
         return children;
     }
 

@@ -380,7 +380,7 @@ export default function Login() {
                         />
                         <span className="ml-2 text-sm text-gray-600">Se souvenir de moi</span>
                       </label>
-                      <a href="#" className="text-sm font-medium text-blue-600 hover:text-blue-500">
+                      <a href="/login/forgot-password" className="text-sm font-medium text-blue-600 hover:text-blue-500">
                         Mot de passe oublié ?
                       </a>
                     </div>
