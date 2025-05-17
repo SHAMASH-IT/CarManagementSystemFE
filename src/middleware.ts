@@ -15,7 +15,9 @@ const protectedRoutes = [
 const publicRoutes = [
   '/login',
   '/register',
-  '/'
+  '/',
+  '/login/forgot-password',
+  '/reset-password'
 ]
 
 export function middleware(request: NextRequest) {
@@ -32,7 +34,7 @@ export function middleware(request: NextRequest) {
       return NextResponse.redirect(url)
     }
 
-    // Si l'utilisateur est authentifié et essaie d'accéder aux routes de login/register
+    // Si l'utilisateur est authentifié et essaie d'accéder aux routes publiques
     if (publicRoutes.includes(pathname) && token) {
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
