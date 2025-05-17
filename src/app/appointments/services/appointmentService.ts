@@ -151,3 +151,88 @@ export const acceptAppointment = async (id: number): Promise<Appointment> => {
   console.log(`Accepting appointment ${id}`)
   return updateAppointment(id, { status: 'CONFIRMED' })
 }
+
+// Fonction pour récupérer les rendez-vous en fonction du rôle de l'utilisateur
+export const getAppointmentsByUserRole = async (userId: number): Promise<Appointment[]> => {
+  try {
+    const userStr = localStorage.getItem('user')
+    let userRole = 'USER'
+    let userData: any = null
+    
+    if (userStr) {
+      try {
+        userData = JSON.parse(userStr)
+        userRole = userData.role
+        console.log('Current user data:', userData)
+        console.log('Current user role:', userRole)
+        console.log('Current user ID:', userId)
+      } catch (e) {
+        console.error('Error parsing user data:', e)
+      }
+    }
+
+    // Récupérer tous les rendez-vous
+    const res = await fetch(`${API_URL}/appointments/all-appointments`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    })
+
+    if (!res.ok) {
+      const errorText = await res.text()
+      let errorInfo
+
+      try {
+        errorInfo = JSON.parse(errorText)
+      } catch (e) {
+        errorInfo = { message: errorText }
+      }
+
+      console.error('API error response:', errorInfo)
+      throw new Error(`Failed to fetch appointments: ${errorInfo.message || 'Unknown error'}`)
+    }
+
+    const apiAppointments: ApiAppointment[] = await res.json()
+    console.log('All appointments from API:', apiAppointments)
+
+    // Filtrer les rendez-vous en fonction du rôle
+    let filteredAppointments = apiAppointments
+
+    if (userRole === 'PROVIDER') {
+      // Pour les providers, ne montrer que les rendez-vous de leurs services
+      console.log('Filtering appointments for provider...')
+      console.log('Provider ID:', userId)
+      
+      filteredAppointments = apiAppointments.filter(apt => {
+        const serviceProviderId = apt.service?.providerId
+        console.log('Appointment:', {
+          id: apt.id,
+          serviceId: apt.serviceId,
+          serviceProviderId: serviceProviderId,
+          matches: serviceProviderId === userId
+        })
+        return serviceProviderId === userId
+      })
+      
+      console.log('Filtered appointments for provider:', filteredAppointments)
+    } else if (userRole === 'ADMIN') {
+      // Pour les admins, montrer tous les rendez-vous
+      console.log('Showing all appointments for admin')
+    } else {
+      // Pour les autres utilisateurs, ne montrer que leurs rendez-vous
+      filteredAppointments = apiAppointments.filter(apt => 
+        apt.vehicle && apt.vehicle.userId === userId
+      )
+      console.log('Filtered appointments for user:', filteredAppointments)
+    }
+    
+    const transformedAppointments = filteredAppointments.map(transformAppointmentData)
+    console.log('Final transformed appointments:', transformedAppointments)
+    
+    return transformedAppointments
+  } catch (error) {
+    console.error('Error fetching appointments by user role:', error)
+    throw error
+  }
+}

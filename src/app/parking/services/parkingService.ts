@@ -151,4 +151,41 @@ export const deleteParking = async (id: number) => {
     console.error('Error deleting parking:', error);
     throw error;
   }
+<<<<<<< HEAD
 };
+=======
+};
+
+// Récupère les parkings en fonction du rôle de l'utilisateur
+export const getParkingsByUserRole = async (userId: number) => {
+  try {
+    console.log('🔍 Fetching parkings for user:', userId)
+    const token = localStorage.getItem('token')
+    
+    if (!token) {
+      throw new Error('No authentication token found')
+    }
+
+    const response = await fetch(`${API_URL}/parking/user/${userId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      console.error('❌ API Error:', errorData)
+      throw new Error(errorData.message || 'Failed to fetch parkings')
+    }
+
+    const data = await response.json()
+    console.log('📦 Parkings fetched:', data)
+    return data
+  } catch (error) {
+    console.error('❌ Error fetching parkings:', error)
+    throw error
+  }
+}
+>>>>>>> 204756fddf69ae3202c925b06585f4d342dcdb40

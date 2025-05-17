@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 import { 
   fetchAppointments, 
@@ -6,26 +6,47 @@ import {
   deleteAppointment,
   getPendingAppointments,
   getReservedAppointments,
-  updateAppointmentStatusToReserved
+  updateAppointmentStatusToReserved,
+  getAppointmentsByUserRole
 } from '../services/appointmentService'
 import type { Appointment } from '../../types'
 
-export const useAppointments = () => {
+export const useAppointments = (userId?: number) => {
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [pendingAppointments, setPendingAppointments] = useState<Appointment[]>([])
   const [reservedAppointments, setReservedAppointments] = useState<Appointment[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const loadAppointments = async () => {
+  const loadAppointments = useCallback(async () => {
     try {
       setLoading(true)
-      const data = await fetchAppointments()
+      let data: Appointment[]
+      
+      console.log('Loading appointments with userId:', userId)
+      
+      if (userId) {
+        // Si un userId est fourni, utiliser la fonction basée sur le rôle
+        console.log('Fetching appointments for user:', userId)
+        data = await getAppointmentsByUserRole(userId)
+        console.log('Appointments fetched for user:', data)
+      } else {
+        // Sinon, charger tous les rendez-vous (pour l'admin)
+        console.log('Fetching all appointments (admin view)')
+        data = await fetchAppointments()
+        console.log('All appointments fetched:', data)
+      }
+      
       setAppointments(data)
       
       // Filtrer les rendez-vous par statut
-      setPendingAppointments(data.filter(apt => apt.status === 'PENDING'))
-      setReservedAppointments(data.filter(apt => apt.status === 'RESERVED'))
+      const pending = data.filter(apt => apt.status === 'PENDING')
+      const reserved = data.filter(apt => apt.status === 'RESERVED')
+      
+      console.log('Filtered appointments - Pending:', pending.length, 'Reserved:', reserved.length)
+      
+      setPendingAppointments(pending)
+      setReservedAppointments(reserved)
       
       setError(null)
     } catch (err: any) {
@@ -34,12 +55,13 @@ export const useAppointments = () => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [userId])
 
-  // Charger tous les rendez-vous au montage du composant
+  // Charger les rendez-vous au montage du composant et quand userId change
   useEffect(() => {
+    console.log('useEffect triggered with userId:', userId)
     loadAppointments()
-  }, [])
+  }, [loadAppointments])
 
   const updateToReserved = async (id: string | number) => {
     try {
@@ -51,9 +73,6 @@ export const useAppointments = () => {
       setAppointments(prev => prev.map(apt => (apt.id === updatedAppointment.id ? updatedAppointment : apt)))
       setPendingAppointments(prev => prev.filter(apt => apt.id !== id.toString()))
       setReservedAppointments(prev => [...prev, updatedAppointment])
-
-      // Recharger les rendez-vous pour s'assurer que les données sont à jour
-      await loadAppointments()
 
       return updatedAppointment
     } catch (err: any) {

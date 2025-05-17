@@ -320,17 +320,28 @@ export default function GarageVehicleManager() {
           onClose={() => setBanner(null)}
         />
       )}
-      <div className="max-w-5xl mx-auto p-4">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold">Gérer mes véhicules</h2>
+      <div className="w-full min-h-screen bg-[#f8f9fa] flex flex-col">
+        <div className="flex flex-row items-center justify-between px-8 pt-10 pb-6">
+          <div className="flex items-center gap-3">
+            <span className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 shadow-md">
+              {/* Garage icon */}
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="white" className="w-6 h-6">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 10.5V6.75A2.25 2.25 0 015.25 4.5h13.5A2.25 2.25 0 0121 6.75v3.75M3 10.5l9-6 9 6M3 10.5v7.75A2.25 2.25 0 005.25 20.5h13.5A2.25 2.25 0 0021 18.25V10.5M3 10.5h18" />
+              </svg>
+            </span>
+            <h2 className="text-2xl font-extrabold bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent drop-shadow-md">Gérer mes véhicules</h2>
+          </div>
           <button
             onClick={openAddModal}
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-full shadow-lg hover:bg-blue-700 transition animate-bounce"
+            className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2 rounded-full shadow-lg hover:bg-blue-700 transition text-base font-semibold"
           >
             <PlusCircle className="w-5 h-5" /> Ajouter un véhicule
           </button>
         </div>
-        {error && <div className="mb-2 text-red-600">{error}</div>}
+        <div className="w-full px-8 mb-2">
+          <div className="h-1 rounded bg-gradient-to-r from-blue-200 via-blue-400 to-blue-200 opacity-60" />
+        </div>
+        {error && <div className="mb-2 text-red-600 px-8">{error}</div>}
         {loading ? (
           <div className="flex justify-center items-center py-12">
             <Loader2 className="animate-spin w-10 h-10 text-blue-400" />
@@ -342,24 +353,24 @@ export default function GarageVehicleManager() {
             Cliquez sur <span className="font-semibold">Ajouter un véhicule</span> pour commencer.
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+          <div className="flex flex-row gap-8 overflow-x-auto pb-4 ml-[1cm] mr-[1cm] mt-[0.5cm] scrollbar-thin scrollbar-thumb-blue-200 scrollbar-track-blue-50">
             {vehicles.map(v => (
-              <VehicleCard
-                key={v.id}
-                vehicle={v}
-                onEdit={() => openEditDrawer(v)}
-                onDelete={() => setDeleteId(v.id)}
-                isEditing={editId === v.id}
-                onChange={handleChange}
-                onSave={handleSubmitForm}
-                onCancel={() => { setShowModal(false); setEditId(null); setForm(initialForm); }}
-                editForm={form}
-              />
+              <div key={v.id} className="flex-shrink-0 w-80">
+                <VehicleCard
+                  vehicle={v}
+                  onEdit={() => openEditDrawer(v)}
+                  onDelete={() => setDeleteId(v.id)}
+                  isEditing={editId === v.id}
+                  onChange={handleChange}
+                  onSave={handleSubmitForm}
+                  onCancel={() => { setShowModal(false); setEditId(null); setForm(initialForm); }}
+                  editForm={form}
+                />
+              </div>
             ))}
           </div>
         )}
 
-        {/* Modal d'ajout/modification */}
         {showModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
             <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
@@ -423,7 +434,6 @@ export default function GarageVehicleManager() {
           </div>
         )}
 
-        {/* Modal de validation avant ajout/modification */}
         {showValidation && (
           <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-40">
             <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md transform transition-all">
@@ -481,7 +491,6 @@ export default function GarageVehicleManager() {
           </div>
         )}
 
-        {/* Confirmation de suppression */}
         {deleteId && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
             <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md transform transition-all">
@@ -492,7 +501,6 @@ export default function GarageVehicleManager() {
                 <h3 className="text-xl font-bold">Confirmation de suppression</h3>
               </div>
               
-              {/* Détails du véhicule à supprimer */}
               {vehicles.find(v => v.id === deleteId) && (
                 <div className="bg-gray-50 rounded-lg p-4 mb-4">
                   <p className="text-gray-600 mb-2">Vous êtes sur le point de supprimer :</p>

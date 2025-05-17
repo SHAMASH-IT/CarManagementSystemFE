@@ -5,33 +5,21 @@ import 'moment/locale/fr'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FaCheckCircle, FaTrashAlt, FaTools, FaCheck, FaClock, FaSearch, FaFilter, FaCalendarAlt, FaListUl, FaUser, FaCar } from 'react-icons/fa'
 import type { AppointmentTableProps } from '../../types/index'
-import { useAppointments } from '../hooks/useAppointments'
 
 // Configurer moment.js pour utiliser le français
 moment.locale('fr')
 
-const AppointmentTable: React.FC<AppointmentTableProps> = ({ appointments: initialAppointments }) => {
+const AppointmentTable: React.FC<AppointmentTableProps> = ({ 
+  appointments: initialAppointments,
+  onDelete,
+  onAccept,
+  onUpdateToReserved
+}) => {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState('ALL')
   const [isFilterOpen, setIsFilterOpen] = useState(false)
-  
-  const { 
-    appointments, 
-    pendingAppointments, 
-    reservedAppointments,
-    updateToReserved, 
-    acceptAppointmentById, 
-    deleteAppointmentById 
-  } = useAppointments()
 
-  const displayAppointments = appointments.length > 0 ? appointments : initialAppointments
-
-  // Ajout du console.log pour déboguer
-  useEffect(() => {
-    console.log('Appointments data:', displayAppointments)
-  }, [displayAppointments])
-
-  const filteredAppointments = displayAppointments.filter(appointment => {
+  const filteredAppointments = initialAppointments.filter(appointment => {
     const matchesSearch = appointment.clientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          appointment.vehicleName?.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = filterStatus === 'ALL' || appointment.status === filterStatus
@@ -39,7 +27,9 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({ appointments: initi
   })
 
   const getStatusStyle = (status: string) => {
-    switch (status) {
+    const normalizedStatus = status?.trim()?.toUpperCase()
+
+    switch (normalizedStatus) {
       case 'CONFIRMED':
         return {
           badge: 'bg-gradient-to-r from-green-500 to-green-600 text-white',
@@ -52,17 +42,29 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({ appointments: initi
           icon: <FaCalendarAlt className="w-4 h-4" />,
           label: 'Réservé'
         }
+      case 'IN_PROGRESS':
+        return {
+          badge: 'bg-gradient-to-r from-orange-400 to-orange-600 text-white',
+          icon: <FaTools className="w-4 h-4" />,
+          label: 'En cours'
+        }
       case 'CANCELED':
         return {
           badge: 'bg-gradient-to-r from-red-500 to-red-600 text-white',
           icon: <FaTrashAlt className="w-4 h-4" />,
           label: 'Annulé'
         }
-      default:
+      case 'PENDING':
         return {
           badge: 'bg-gradient-to-r from-yellow-500 to-yellow-600 text-white',
           icon: <FaClock className="w-4 h-4" />,
           label: 'En attente'
+        }
+      default:
+        return {
+          badge: 'bg-gradient-to-r from-gray-500 to-gray-600 text-white',
+          icon: <FaClock className="w-4 h-4" />,
+          label: status || 'Inconnu'
         }
     }
   }
@@ -70,6 +72,7 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({ appointments: initi
   const filterOptions = [
     { value: 'ALL', label: 'Tous les rendez-vous', icon: <FaListUl className="w-4 h-4" /> },
     { value: 'PENDING', label: 'En attente', icon: <FaClock className="w-4 h-4" /> },
+    { value: 'IN_PROGRESS', label: 'En cours', icon: <FaTools className="w-4 h-4" /> },
     { value: 'RESERVED', label: 'Réservés', icon: <FaCalendarAlt className="w-4 h-4" /> },
     { value: 'CONFIRMED', label: 'Terminés', icon: <FaCheckCircle className="w-4 h-4" /> },
     { value: 'CANCELED', label: 'Annulés', icon: <FaTrashAlt className="w-4 h-4" /> }
@@ -193,9 +196,6 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({ appointments: initi
                 {filteredAppointments.map(appointment => {
                   const statusStyle = getStatusStyle(appointment.status)
                   
-                  // Ajout du console.log pour chaque rendez-vous
-                  console.log('Single appointment:', appointment)
-                  
                   return (
                     <motion.tr
                       key={appointment.id}
@@ -236,7 +236,7 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({ appointments: initi
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900 dark:text-gray-200">
-                          {moment(appointment.date).format('DD/MM/YYYY HH:mm')}
+                          {moment(appointment.date).format('DD/MM/YYYY à HH:mm')}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -257,7 +257,7 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({ appointments: initi
                                 ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 shadow-md hover:shadow-lg cursor-pointer'
                                 : 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
                             }`}
-                            onClick={() => appointment.status === 'PENDING' && updateToReserved(appointment.id)}
+                            onClick={() => appointment.status === 'PENDING' && onUpdateToReserved(appointment.id)}
                             title={appointment.status === 'PENDING' ? "Réserver" : "Non disponible"}
                             disabled={appointment.status !== 'PENDING'}
                           >
@@ -272,7 +272,7 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({ appointments: initi
                                 ? 'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 shadow-md hover:shadow-lg cursor-pointer'
                                 : 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
                             }`}
-                            onClick={() => appointment.status !== 'CANCELED' && appointment.status !== 'CONFIRMED' && deleteAppointmentById(appointment.id)}
+                            onClick={() => appointment.status !== 'CANCELED' && appointment.status !== 'CONFIRMED' && onDelete(appointment.id)}
                             title={
                               appointment.status === 'CONFIRMED'
                                 ? "Impossible d'annuler un rendez-vous terminé"

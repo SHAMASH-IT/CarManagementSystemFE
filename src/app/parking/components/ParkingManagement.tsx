@@ -5,6 +5,7 @@ import { useState, useEffect } from "react"
 import { FaEdit, FaTrash, FaSpinner, FaParking, FaChevronLeft, FaChevronRight, FaPlus } from "react-icons/fa"
 import AddParkingForm from "./AddParkingForm"
 import EditParkingForm from "./EditParkingForm"
+import { getParkingsByUserRole } from "../services/parkingService"
 
 interface Location {
   id: number
@@ -29,26 +30,46 @@ const ParkingManagement: React.FC = () => {
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null)
   const [selectedParkingForDelete, setSelectedParkingForDelete] = useState<number | null>(null)
   const [showAddForm, setShowAddForm] = useState(false)
+  const [userRole, setUserRole] = useState<string | null>(null)
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(5)
   const [totalPages, setTotalPages] = useState(1)
 
+  const getCurrentUserData = () => {
+    const userData = localStorage.getItem('user')
+    if (!userData) return null
+
+    try {
+      const user = JSON.parse(userData)
+      console.log('👤 Current user data:', user)
+      return user
+    } catch (error) {
+      console.error('❌ Error parsing user data:', error)
+      return null
+    }
+  }
+
   const fetchParkings = async () => {
     try {
       setLoading(true)
-      const response = await fetch("http://localhost:3005/parking/all-parkings")
+      const userData = getCurrentUserData()
+      console.log('🔍 Fetching parkings for user:', userData)
 
-      if (!response.ok) {
-        throw new Error("Erreur lors de la récupération des parkings")
+      if (!userData?.id) {
+        throw new Error("Utilisateur non connecté")
       }
 
-      const data = await response.json()
+      setUserRole(userData.role)
+      const data = await getParkingsByUserRole(userData.id)
+      console.log('📦 Parkings data received:', data)
+      
       setParkings(data)
       setTotalPages(Math.ceil(data.length / itemsPerPage))
       setError(null)
     } catch (err) {
+      console.error('❌ Error in fetchParkings:', err)
       setError(err instanceof Error ? err.message : "Une erreur est survenue")
     } finally {
       setLoading(false)
@@ -72,10 +93,7 @@ const ParkingManagement: React.FC = () => {
         throw new Error("Erreur lors de la suppression du parking")
       }
 
-      // Mettre à jour l'état local immédiatement
       setParkings((prevParkings) => prevParkings.filter((parking) => parking.id !== id))
-
-      // Maintenir la page actuelle si possible
       const newTotalPages = Math.ceil((parkings.length - 1) / itemsPerPage)
       if (currentPage > newTotalPages && newTotalPages > 0) {
         setCurrentPage(newTotalPages)
@@ -92,22 +110,18 @@ const ParkingManagement: React.FC = () => {
 
   const handleParkingAdded = async () => {
     console.log("✅ Parking ajouté, rechargement en cours...")
-    setShowAddForm(false) // Fermer le formulaire après l'ajout
+    setShowAddForm(false)
     await fetchParkings()
   }
 
   const handleParkingUpdated = async () => {
     console.log("🔄 Parking mis à jour, rechargement en cours...")
-    // Au lieu de recharger tous les parkings, on pourrait juste mettre à jour celui qui a été modifié
-    // pour préserver l'ordre et la position
     const currentParkingIndex = currentItems.findIndex((p) => p.id === editingParking?.id)
     if (currentParkingIndex !== -1) {
-      // Récupérer uniquement le parking mis à jour
       try {
         const response = await fetch(`http://localhost:3005/parking/parking/${editingParking?.id}`)
         if (response.ok) {
           const updatedParking = await response.json()
-          // Mettre à jour uniquement ce parking dans le tableau
           setParkings((prevParkings) => {
             const newParkings = [...prevParkings]
             const index = newParkings.findIndex((p) => p.id === updatedParking.id)
@@ -117,7 +131,6 @@ const ParkingManagement: React.FC = () => {
             return newParkings
           })
         } else {
-          // Si la récupération individuelle échoue, recharger tous les parkings
           await fetchParkings()
         }
       } catch (err) {
@@ -157,7 +170,6 @@ const ParkingManagement: React.FC = () => {
     return null
   }
 
-  // Formulaire d'ajout modal
   const renderAddFormModal = () => {
     if (!showAddForm) return null
 
@@ -184,7 +196,6 @@ const ParkingManagement: React.FC = () => {
     )
   }
 
-  // Pagination logic
   const indexOfLastItem = currentPage * itemsPerPage
   const indexOfFirstItem = indexOfLastItem - itemsPerPage
   const currentItems = parkings.slice(indexOfFirstItem, indexOfLastItem)
@@ -208,12 +219,14 @@ const ParkingManagement: React.FC = () => {
           <h1 className="text-3xl font-bold text-blue-800 flex items-center">
             <FaParking className="mr-2" /> Gestion des Parkings
           </h1>
-          <button
-            onClick={() => setShowAddForm(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-          >
-              Ajouter un parking
-          </button>
+          {userRole === 'ADMIN' && (
+            <button
+              onClick={() => setShowAddForm(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            >
+              <FaPlus /> Ajouter un parking
+            </button>
+          )}
         </div>
 
         {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">{error}</div>}
@@ -310,7 +323,6 @@ const ParkingManagement: React.FC = () => {
                 </table>
               </div>
 
-              {/* Pagination */}
               <div className="flex justify-between items-center mt-4">
                 <div className="text-sm text-gray-600">
                   Affichage de {indexOfFirstItem + 1} à {Math.min(indexOfLastItem, parkings.length)} sur{" "}
@@ -348,7 +360,6 @@ const ParkingManagement: React.FC = () => {
           )}
         </div>
 
-        {/* Carte des statistiques */}
         <div className="bg-white shadow-lg rounded-xl p-6 mt-6">
           <h2 className="text-2xl font-bold text-blue-800 mb-4"></h2>
           <div className="grid grid-cols-2 gap-8">
