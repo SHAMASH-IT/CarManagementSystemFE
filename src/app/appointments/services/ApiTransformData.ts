@@ -35,7 +35,7 @@ export const mapStatusToFrontend = (status: string): string => {
 export const transformAppointmentData = (apiAppointment: ApiAppointment): Appointment => {
   console.log('Raw API appointment data:', apiAppointment)
   console.log('Vehicle data:', apiAppointment.vehicle)
-  console.log('User data:', apiAppointment.vehicle?.user)
+  console.log('Service data:', apiAppointment.service)
 
   // Extract vehicle and client information if available
   const vehicleName = apiAppointment.vehicle
@@ -43,8 +43,8 @@ export const transformAppointmentData = (apiAppointment: ApiAppointment): Appoin
     : 'Véhicule inconnu'
 
   // Use vehicle information to create a client identifier
-  const clientName = apiAppointment.vehicle
-    ? `Client - ${apiAppointment.vehicle.registration}`
+  const clientName = apiAppointment.vehicle?.user
+    ? `${apiAppointment.vehicle.user.name}`
     : 'Client non spécifié'
 
   // Extract service information
@@ -69,6 +69,13 @@ export const transformAppointmentData = (apiAppointment: ApiAppointment): Appoin
     clientName,
     service: serviceName,
     date: moment.utc(appointmentDate).format(), // Convertir en UTC pour éviter les problèmes de fuseau horaire
-    status: mapStatusToFrontend(apiAppointment.status)
+    status: mapStatusToFrontend(apiAppointment.status),
+    vehicle: apiAppointment.vehicle ? {
+      userId: apiAppointment.vehicle.userId,
+      brand: apiAppointment.vehicle.brand,
+      model: apiAppointment.vehicle.model,
+      registration: apiAppointment.vehicle.registration
+    } : undefined,
+    serviceData: apiAppointment.service
   }
 }

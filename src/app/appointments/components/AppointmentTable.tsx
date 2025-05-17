@@ -5,28 +5,21 @@ import 'moment/locale/fr'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FaCheckCircle, FaTrashAlt, FaTools, FaCheck, FaClock, FaSearch, FaFilter, FaCalendarAlt, FaListUl, FaUser, FaCar } from 'react-icons/fa'
 import type { AppointmentTableProps } from '../../types/index'
-import { useAppointments } from '../hooks/useAppointments'
 
 // Configurer moment.js pour utiliser le français
 moment.locale('fr')
 
-const AppointmentTable: React.FC<AppointmentTableProps> = ({ appointments: initialAppointments }) => {
+const AppointmentTable: React.FC<AppointmentTableProps> = ({ 
+  appointments: initialAppointments,
+  onDelete,
+  onAccept,
+  onUpdateToReserved
+}) => {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState('ALL')
   const [isFilterOpen, setIsFilterOpen] = useState(false)
-  
-  const { 
-    appointments, 
-    pendingAppointments, 
-    reservedAppointments,
-    updateToReserved, 
-    acceptAppointmentById, 
-    deleteAppointmentById 
-  } = useAppointments()
 
-  const displayAppointments = appointments.length > 0 ? appointments : initialAppointments
-
-  const filteredAppointments = displayAppointments.filter(appointment => {
+  const filteredAppointments = initialAppointments.filter(appointment => {
     const matchesSearch = appointment.clientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          appointment.vehicleName?.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = filterStatus === 'ALL' || appointment.status === filterStatus
@@ -264,7 +257,7 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({ appointments: initi
                                 ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 shadow-md hover:shadow-lg cursor-pointer'
                                 : 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
                             }`}
-                            onClick={() => appointment.status === 'PENDING' && updateToReserved(appointment.id)}
+                            onClick={() => appointment.status === 'PENDING' && onUpdateToReserved(appointment.id)}
                             title={appointment.status === 'PENDING' ? "Réserver" : "Non disponible"}
                             disabled={appointment.status !== 'PENDING'}
                           >
@@ -279,7 +272,7 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({ appointments: initi
                                 ? 'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 shadow-md hover:shadow-lg cursor-pointer'
                                 : 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
                             }`}
-                            onClick={() => appointment.status !== 'CANCELED' && appointment.status !== 'CONFIRMED' && deleteAppointmentById(appointment.id)}
+                            onClick={() => appointment.status !== 'CANCELED' && appointment.status !== 'CONFIRMED' && onDelete(appointment.id)}
                             title={
                               appointment.status === 'CONFIRMED'
                                 ? "Impossible d'annuler un rendez-vous terminé"

@@ -45,6 +45,7 @@ export interface Appointment {
     model: string
     registration: string
   }
+  serviceData?: Service
 }
 
 export interface User {
@@ -70,6 +71,7 @@ export interface Service {
   id: number
   name: string
   description: string
+  providerId: number
 }
 
 // Calendar related interfaces
@@ -135,6 +137,7 @@ export interface AppointmentTableProps {
   appointments: Appointment[]
   onDelete: (id: string) => void
   onAccept: (id: string) => void
+  onUpdateToReserved: (id: string | number) => void
 }
 
 export interface UserTableProps {

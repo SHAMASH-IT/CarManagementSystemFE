@@ -13,22 +13,65 @@ import type { ChildrenType } from '../../@core/types'
 import type { Appointment } from '../types/index'
 import { fetchAppointments } from './services/appointmentService'
 
+// Fonction pour récupérer l'ID de l'utilisateur connecté
+const getCurrentUserId = (): number | undefined => {
+  // Récupérer le token JWT
+  const token = localStorage.getItem('token')
+  console.log('Token from localStorage:', token)
+
+  if (token) {
+    try {
+      // Décoder le token JWT
+      const base64Url = token.split('.')[1]
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+      }).join(''))
+
+      const userData = JSON.parse(jsonPayload)
+      console.log('Decoded JWT data:', userData)
+
+      // Stocker les données utilisateur dans localStorage
+      const userInfo = {
+        id: userData.sub || userData.id,
+        role: userData.role,
+        email: userData.email
+      }
+      localStorage.setItem('user', JSON.stringify(userInfo))
+      console.log('Stored user data:', userInfo)
+
+      if (userInfo.role === 'PROVIDER') {
+        console.log('Provider user detected, ID:', userInfo.id)
+        return userInfo.id
+      } else if (userInfo.role === 'ADMIN') {
+        console.log('Admin user detected, returning undefined to show all appointments')
+        return undefined
+      }
+      return userInfo.id
+    } catch (e) {
+      console.error('Error decoding JWT:', e)
+      return undefined
+    }
+  }
+  console.log('No token found in localStorage')
+  return undefined
+}
+
 const AppointmentsPage: React.FC<ChildrenType> = ({ children }) => {
-  const { appointments, loading, error } = useAppointments()
-  const [appointmentList, setAppointmentList] = useState<Appointment[]>(appointments)
-
-  useEffect(() => {
-    setAppointmentList(appointments)
-  }, [appointments])
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchAppointments()
-    }, 1000)
-
-    return () => clearTimeout(timer)
-  }, [])
-
+  const userId = getCurrentUserId()
+  console.log('AppointmentsPage - Current userId:', userId)
+  
+  const { 
+    appointments, 
+    loading, 
+    error,
+    updateToReserved,
+    acceptAppointmentById,
+    deleteAppointmentById
+  } = useAppointments(userId)
+  
+  console.log('AppointmentsPage - Received appointments:', appointments)
+  
   if (loading) return (
     <div className="flex flex-col items-center justify-center h-screen bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800">
       <motion.div 
@@ -76,16 +119,6 @@ const AppointmentsPage: React.FC<ChildrenType> = ({ children }) => {
     </div>
   )
 
-  const handleDeleteAppointment = (id: string) => {
-    setAppointmentList(prevAppointments => prevAppointments.filter(appointment => appointment.id !== id))
-  }
-
-  const handleAcceptAppointment = (id: string) => {
-    setAppointmentList(prevAppointments =>
-      prevAppointments.map(appointment => (appointment.id === id ? { ...appointment, status: 'Accepté' } : appointment))
-    )
-  }
-
   return (
     <div className='flex flex-col h-screen'>
       <div className='flex'>
@@ -93,12 +126,12 @@ const AppointmentsPage: React.FC<ChildrenType> = ({ children }) => {
         <div className='flex-grow'>
           <Navbar />
           <div className='container mx-auto p-4'>
-          
             <div className='overflow-x-auto'>
               <AppointmentTable
-                appointments={appointmentList}
-                onDelete={handleDeleteAppointment}
-                onAccept={handleAcceptAppointment}
+                appointments={appointments}
+                onDelete={deleteAppointmentById}
+                onAccept={acceptAppointmentById}
+                onUpdateToReserved={updateToReserved}
               />
             </div>
             {children}
