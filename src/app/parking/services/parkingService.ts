@@ -151,9 +151,6 @@ export const deleteParking = async (id: number) => {
     console.error('Error deleting parking:', error);
     throw error;
   }
-<<<<<<< HEAD
-};
-=======
 };
 
 // Récupère les parkings en fonction du rôle de l'utilisateur
@@ -188,4 +185,3 @@ export const getParkingsByUserRole = async (userId: number) => {
     throw error
   }
 }
->>>>>>> 204756fddf69ae3202c925b06585f4d342dcdb40
