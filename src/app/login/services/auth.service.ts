@@ -48,6 +48,7 @@ export interface RegisterData {
   email: string;
   password: string;
   phone: string;
+  matf?: string; // Champ optionnel pour le matricule fiscal
 }
 
 export interface AuthResponse {

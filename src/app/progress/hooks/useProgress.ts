@@ -1,9 +1,34 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { progressService, Intervention, StartInterventionDto, UpdateInterventionDto, ReservedAppointment, Status } from '../services/progress.service';
+import { authService } from '../../login/services/auth.service';
 
 export const useProgress = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<any | null>(null);
+
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        const token = authService.getCurrentToken();
+        if (token) {
+          const base64Url = token.split('.')[1];
+          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+          const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+          }).join(''));
+
+          const userData = JSON.parse(jsonPayload);
+          console.log('User data from token:', userData);
+          setCurrentUser(userData);
+        }
+      } catch (error) {
+        console.error('Error decoding token:', error);
+      }
+    };
+
+    loadUserData();
+  }, []);
 
   const searchVehicle = async (registration: string): Promise<Intervention | null> => {
     try {
@@ -69,6 +94,8 @@ export const useProgress = () => {
           appointmentId: matchingAppointment.id,
           appointment: {
             id: matchingAppointment.id,
+            status: matchingAppointment.status,
+            date: matchingAppointment.date,
             vehicle: matchingAppointment.vehicle,
             service: matchingAppointment.service,
           },
@@ -97,6 +124,15 @@ export const useProgress = () => {
     try {
       setLoading(true);
       setError(null);
+      if (currentUser?.role === 'PROVIDER') {
+        console.log('=== FETCHING PROVIDER APPOINTMENTS ===');
+        console.log('Provider ID:', currentUser.sub);
+        
+        // Utiliser la nouvelle méthode pour récupérer les rendez-vous réservés du provider
+        const reservedAppointments = await progressService.getProviderReservedAppointments(currentUser.sub);
+        console.log('Provider reserved appointments:', reservedAppointments);
+        return reservedAppointments;
+      }
       return await progressService.getReservedAppointments();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Une erreur est survenue lors de la récupération des rendez-vous';
@@ -168,10 +204,20 @@ export const useProgress = () => {
     try {
       setLoading(true);
       setError(null);
+      if (currentUser?.role === 'PROVIDER') {
+        console.log('Fetching provider in-progress interventions for user:', currentUser);
+        const data = await progressService.getUserInterventions(currentUser.sub);
+        console.log('Raw provider in-progress data:', data);
+        // Filtrer les interventions en cours
+        const filteredData = data.filter(i => i.status === 'IN_PROGRESS');
+        console.log('Filtered provider in-progress interventions:', filteredData);
+        return filteredData;
+      }
       return await progressService.getInProgressInterventions();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Une erreur est survenue lors de la récupération des interventions en cours';
       setError(errorMessage);
+      console.error('Error in getInProgressInterventions:', err);
       throw err;
     } finally {
       setLoading(false);
@@ -192,9 +238,38 @@ export const useProgress = () => {
     }
   };
 
+  const getProviderInterventions = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      return await progressService.getProviderInterventions();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Une erreur est survenue lors de la récupération des interventions du prestataire';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getUserInterventions = async (userId: number) => {
+    try {
+      setLoading(true);
+      setError(null);
+      return await progressService.getUserInterventions(userId);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Une erreur est survenue lors de la récupération des interventions de l\'utilisateur';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     loading,
     error,
+    currentUser,
     searchVehicle,
     getReservedAppointments,
     startIntervention,
@@ -202,6 +277,8 @@ export const useProgress = () => {
     updateIntervention,
     completeIntervention,
     getInProgressInterventions,
-    getCompletedInterventions
+    getCompletedInterventions,
+    getProviderInterventions,
+    getUserInterventions
   };
 };

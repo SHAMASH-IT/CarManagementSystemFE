@@ -45,6 +45,7 @@ export default function Login() {
     company: "",
     password: "",
     confirmPassword: "",
+    matf: "",
   })
   const [errors, setErrors] = useState({
     login: {
@@ -186,7 +187,8 @@ export default function Login() {
           name: registerData.fullName,
           email: registerData.email,
           password: registerData.password,
-          phone: registerData.phone
+          phone: registerData.phone,
+          matf: registerData.matf || undefined
         });
         setSuccessMessage("Bienvenue dans la famille AutoService Pro !")
         setShowSuccessMessage(true)
@@ -497,7 +499,20 @@ export default function Login() {
                         )}
                       </div>
 
-                    
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Matricule Fiscale</label>
+                        <div className="relative">
+                          <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                          <input
+                            type="text"
+                            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Votre matricule fiscal (optionnel)"
+                            value={registerData.matf}
+                            onChange={(e) => setRegisterData({ ...registerData, matf: e.target.value })}
+                          />
+                        </div>
+                        <p className="mt-1 text-sm text-gray-500">Ce champ est optionnel</p>
+                      </div>
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Mot de passe</label>
