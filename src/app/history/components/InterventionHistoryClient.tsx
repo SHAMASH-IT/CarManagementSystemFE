@@ -144,7 +144,7 @@ export function InterventionHistory() {
           Historique des interventions
         </h1>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           <motion.div
             whileHover={{ y: -3, boxShadow: "0 8px 20px -12px rgba(79, 70, 229, 0.3)" }}
             className="bg-gradient-to-br from-indigo-50 to-white rounded-lg p-3 border border-indigo-100 shadow-sm transition-all"
@@ -157,24 +157,6 @@ export function InterventionHistory() {
             </div>
             <div className="text-xl font-bold text-gray-800">{completedInterventions.length}</div>
             <div className="text-xs text-gray-500">Interventions réalisées</div>
-          </motion.div>
-
-          <motion.div
-            whileHover={{ y: -3, boxShadow: "0 8px 20px -12px rgba(16, 185, 129, 0.3)" }}
-            className="bg-gradient-to-br from-emerald-50 to-white rounded-lg p-3 border border-emerald-100 shadow-sm transition-all"
-          >
-            <div className="flex justify-between items-start mb-2">
-              <div className="bg-emerald-100 p-1 rounded-md">
-                <Star className="w-3.5 h-3.5 text-emerald-600" />
-              </div>
-              <span className="text-[10px] font-medium text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">
-                Satisfaction
-              </span>
-            </div>
-            <div className="text-xl font-bold text-gray-800">
-              4.8<span className="text-sm font-medium text-gray-500">/5</span>
-            </div>
-            <div className="text-xs text-gray-500">Note moyenne</div>
           </motion.div>
 
           <motion.div

@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -18,7 +17,7 @@ import { stockService } from '../../stock/services/stockService'
 
 export default function InterventionManagement({ interventionId }: { interventionId: number }) {
   const router = useRouter()
-  const { loading, error, getIntervention, updateIntervention, completeIntervention } = useProgress()
+  const { loading: progressLoading, error, getIntervention, updateIntervention, completeIntervention } = useProgress()
   const [intervention, setIntervention] = useState<Intervention | null>(null)
   const [pendingIntervention, setPendingIntervention] = useState<Intervention | null>(null)
   const [isEditing, setIsEditing] = useState(false)
@@ -30,6 +29,7 @@ export default function InterventionManagement({ interventionId }: { interventio
   const [showAddPieceModal, setShowAddPieceModal] = useState(false)
   const [pendingInterventionPieces, setPendingInterventionPieces] = useState<any[]>([])
   const [pieces, setPieces] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     loadIntervention()
@@ -37,27 +37,33 @@ export default function InterventionManagement({ interventionId }: { interventio
 
   const loadIntervention = async () => {
     try {
-      const data = await getIntervention(interventionId)
-      const stocks = await stockService.getAllStocks()
+      setIsLoading(true);
+      const data = await getIntervention(interventionId);
+      const stocks = await stockService.getAllStocks();
       const interventionPieces = data.interventionPieces?.map((piece) => {
-        const stockPiece = stocks.find((s) => Number(s.id) === piece.pieceId)
+        const stockPiece = stocks.find((s) => Number(s.id) === piece.pieceId);
         return {
           ...piece,
           piece: stockPiece
             ? { id: Number(stockPiece.id), name: stockPiece.name, price: stockPiece.price }
             : piece.piece,
-        }
-      }) || []
-      const updatedIntervention = { ...data, interventionPieces }
-      setIntervention(updatedIntervention)
-      setPendingIntervention(updatedIntervention)
-      setPendingInterventionPieces(interventionPieces)
-      setPieces(stocks)
-      setValidationErrors([])
-      setSuccessMessage("")
+        };
+      }) || [];
+      const updatedIntervention = { ...data, interventionPieces };
+      setIntervention(updatedIntervention);
+      setPendingIntervention(updatedIntervention);
+      setPendingInterventionPieces(interventionPieces);
+      setPieces(stocks);
+      setValidationErrors([]);
+      setSuccessMessage("");
     } catch (err) {
-      console.error("Error loading intervention:", err)
-      setValidationErrors(["Erreur lors du chargement de l'intervention"])
+      console.error("Error loading intervention:", err);
+      // Ne pas afficher l'erreur immédiatement
+      if (intervention) {
+        setValidationErrors(["Erreur lors du chargement de l'intervention"]);
+      }
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -283,25 +289,50 @@ export default function InterventionManagement({ interventionId }: { interventio
     setPendingInterventionPieces(prev => prev.filter((p: any) => p.pieceId !== pieceId));
   };
 
-  if (loading) {
+  if (isLoading && !intervention) {
     return (
-      <div className="container mx-auto p-4">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-          <p className="mt-2 text-gray-600">Chargement de l'intervention...</p>
+      <div className="flex min-h-screen bg-gray-50">
+        <Sidebar />
+        <div className="flex-1 flex flex-col">
+          <Navbar />
+          <main className="flex-1 p-6">
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <div className="relative w-20 h-20 mx-auto">
+                  <div className="absolute top-0 left-0 w-full h-full border-4 border-blue-200 rounded-full"></div>
+                  <div className="absolute top-0 left-0 w-full h-full border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
+                </div>
+                <p className="mt-6 text-lg font-medium text-blue-700">Chargement de l'intervention...</p>
+              </div>
+            </div>
+          </main>
         </div>
       </div>
-    )
+    );
   }
 
-  if (error || !intervention) {
+  if (!intervention) {
     return (
-      <div className="container mx-auto p-4">
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-          <span className="block sm:inline">{error || "Intervention non trouvée"}</span>
+      <div className="flex min-h-screen bg-gray-50">
+        <Sidebar />
+        <div className="flex-1 flex flex-col">
+          <Navbar />
+          <main className="flex-1 p-6">
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <div className="text-red-600 text-xl font-semibold mb-4">Intervention non trouvée</div>
+                <button
+                  onClick={() => router.push('/progress')}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                >
+                  Retour à la liste des interventions
+                </button>
+              </div>
+            </div>
+          </main>
         </div>
       </div>
-    )
+    );
   }
 
   const displayedPieces = isEditing ? pendingInterventionPieces : intervention.interventionPieces || [];

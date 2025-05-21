@@ -161,6 +161,11 @@ const Sidebar = () => {
       icon: <Wrench size={22} className="text-red-500 group-hover:scale-110 transition-transform duration-200" />, 
       title: 'Intervention', 
       url: '/progress' 
+    },
+    { 
+      icon: <History size={22} className="text-blue-500 group-hover:scale-110 transition-transform duration-200" />, 
+      title: 'Historique des interventions', 
+      url: '/history/historyProviderAdmin' 
     }
   ]
 

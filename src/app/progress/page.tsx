@@ -3,40 +3,85 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useProgress } from "./hooks/useProgress"
+import { useAuth } from "../login/hooks/useAuth"
 import Sidebar from '../common/Sidebar'
 import Navbar from '../common/Navbar'
 import type { ReservedAppointment, Intervention } from "./services/progress.service"
 
 export default function InterventionList() {
   const router = useRouter()
-  const { loading, error, getReservedAppointments, startIntervention, getInProgressInterventions } = useProgress()
+  const { loading, error, currentUser, getReservedAppointments, startIntervention, getInProgressInterventions } = useProgress()
 
   const [appointments, setAppointments] = useState<ReservedAppointment[]>([])
+  const [providerAppointments, setProviderAppointments] = useState<Intervention[]>([])
   const [inProgress, setInProgress] = useState<Intervention[]>([])
   const [inProgressError, setInProgressError] = useState<string | null>(null)
   const [isStartingIntervention, setIsStartingIntervention] = useState<number | null>(null)
 
   useEffect(() => {
-    loadAppointments()
-    loadInProgressInterventions()
-  }, [])
+    console.log("Current user from useProgress:", currentUser)
+    if (currentUser) {
+      loadAppointments()
+      loadInProgressInterventions()
+    }
+  }, [currentUser])
 
   const loadAppointments = async () => {
     try {
+      console.log("=== LOADING APPOINTMENTS ===")
+      console.log("Current user:", currentUser)
+      
       const data = await getReservedAppointments()
-      setAppointments(Array.isArray(data) ? data : [])
-    } catch {
+      console.log("Appointments data:", data)
+      
+      if (currentUser?.role === 'PROVIDER') {
+        setAppointments(data)
+        setProviderAppointments([])
+      } else {
+        // Pour l'admin, filtrer les rendez-vous d'aujourd'hui
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        const tomorrow = new Date(today)
+        tomorrow.setDate(today.getDate() + 1)
+
+        const todayAppointments = data.filter(appointment => {
+          const appointmentDate = new Date(appointment.date)
+          return appointmentDate >= today && appointmentDate < tomorrow
+        }).map(appointment => ({
+          ...appointment,
+          date: new Date(appointment.date).toLocaleString('fr-FR', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+          })
+        }))
+
+        console.log("Today's appointments for admin:", todayAppointments)
+        setAppointments(todayAppointments)
+        setProviderAppointments([])
+      }
+    } catch (error) {
+      console.error("Error in loadAppointments:", error)
       setAppointments([])
+      setProviderAppointments([])
     }
   }
 
   const loadInProgressInterventions = async () => {
     try {
       setInProgressError(null)
+      console.log("=== LOADING IN-PROGRESS INTERVENTIONS ===")
+      console.log("Current user:", currentUser)
+      
       const data = await getInProgressInterventions()
-      setInProgress(Array.isArray(data) ? data : [])
-    } catch {
+      console.log("In-progress interventions data:", data)
+      setInProgress(data as Intervention[])
+    } catch (error) {
+      console.error("Error in loadInProgressInterventions:", error)
       setInProgressError("Erreur lors du chargement des interventions en cours")
+      setInProgress([])
     }
   }
 
@@ -219,7 +264,9 @@ export default function InterventionList() {
               {/* Rendez-vous réservés */}
               <section className="mb-16">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-gray-900">Rendez-vous réservés</h2>
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    {currentUser?.role === 'PROVIDER' ? 'Mes Rendez-vous' : 'Rendez-vous réservés'}
+                  </h2>
                   <span className="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
                     {appointments.length} rendez-vous
                   </span>
@@ -242,8 +289,8 @@ export default function InterventionList() {
                           d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                         />
                       </svg>
-                      <h3 className="mt-2 text-lg font-medium text-gray-900">Aucun rendez-vous réservé</h3>
-                      <p className="mt-1 text-sm text-gray-500">Il n'y a pas de rendez-vous réservés pour le moment.</p>
+                      <h3 className="mt-2 text-lg font-medium text-gray-900">Aucun rendez-vous</h3>
+                      <p className="mt-1 text-sm text-gray-500">Il n'y a pas de rendez-vous pour le moment.</p>
                     </div>
                   </div>
                 ) : (
@@ -307,7 +354,7 @@ export default function InterventionList() {
                                     d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                                   />
                                 </svg>
-                                <span className="text-sm text-gray-500">{formatDate(appointment.date)}</span>
+                                <span className="text-sm text-gray-500">{appointment.date}</span>
                               </div>
                               <button
                                 onClick={() => handleStartIntervention(appointment.id)}

@@ -1,5 +1,6 @@
 import React from 'react'
 import { Intervention } from '../services/progress.service'
+import { useFacture } from '../hooks/useFacture'
 import { 
   FaPhone, 
   FaEnvelope, 
@@ -17,26 +18,12 @@ import {
 interface FacturePdfProps {
   intervention: Intervention
   onClose: () => void
-  isCompany?: boolean
-  matriculeFiscale?: string
-  rne?: string
 }
 
-const FacturePdf: React.FC<FacturePdfProps> = ({ 
-  intervention, 
-  onClose, 
-  isCompany = false,
-  matriculeFiscale,
-  rne
-}) => {
-  const [clientRne, setClientRne] = React.useState(rne || '')
-  const [isEditing, setIsEditing] = React.useState(!rne)
+const FacturePdf: React.FC<FacturePdfProps> = ({ intervention, onClose }) => {
+  const { factureInfo, loading, error } = useFacture(intervention.id)
   const [remise, setRemise] = React.useState(0)
   const [isEditingRemise, setIsEditingRemise] = React.useState(false)
-
-  const handleSave = () => {
-    setIsEditing(false)
-  }
 
   const calculateTotal = () => {
     if (!intervention) return 0
@@ -112,6 +99,24 @@ const FacturePdf: React.FC<FacturePdfProps> = ({
     return result
   }
 
+  if (loading) {
+    return (
+      <div className="fixed inset-0 bg-white/80 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="fixed inset-0 bg-white/80 flex items-center justify-center">
+        <div className="bg-red-50 p-4 rounded-lg">
+          <p className="text-red-600">{error}</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="fixed inset-0 bg-gradient-to-br from-gray-50 to-gray-100 p-8 overflow-auto print:p-0 print:bg-white print:fixed print:inset-0 print:overflow-visible">
       <div className="max-w-4xl mx-auto bg-white p-8 shadow-xl rounded-xl print:shadow-none print:max-w-none print:mx-0 print:rounded-none print:p-4 print:absolute print:inset-0 print:overflow-visible">
@@ -176,92 +181,50 @@ const FacturePdf: React.FC<FacturePdfProps> = ({
               <FaTools className="mr-2 text-blue-600 text-lg" />
               Prestataire
             </h2>
-            <div className="space-y-2 text-sm">
-              <p className="text-gray-600 flex items-center">
-                <FaMapMarkerAlt className="mr-2 text-blue-600" />
-                Rue des Mécaniciens, 1000 Tunis
-              </p>
-              <p className="text-gray-600 flex items-center">
-                <FaPhone className="mr-2 text-blue-600" />
-                +216 71 234 567
-              </p>
-              <p className="text-gray-600 flex items-center">
-                <FaEnvelope className="mr-2 text-blue-600" />
-                contact@garageautopro.tn
-              </p>
-              <p className="text-gray-600 flex items-center">
-                <FaIdCard className="mr-2 text-blue-600" />
-                Matricule Fiscale: 123 456 789
-              </p>
-              <p className="text-gray-600 flex items-center">
-                <FaBuilding className="mr-2 text-blue-600" />
-                RNE: 123 456 789
-              </p>
-            </div>
+            {factureInfo?.provider && (
+              <div className="space-y-2 text-sm">
+                <p className="text-gray-600 flex items-center">
+                  <FaUser className="mr-2 text-blue-600" />
+                  {factureInfo.provider.name}
+                </p>
+                <p className="text-gray-600 flex items-center">
+                  <FaPhone className="mr-2 text-blue-600" />
+                  {factureInfo.provider.phone}
+                </p>
+                <p className="text-gray-600 flex items-center">
+                  <FaEnvelope className="mr-2 text-blue-600" />
+                  {factureInfo.provider.email}
+                </p>
+              </div>
+            )}
           </div>
           <div className="bg-gradient-to-br from-gray-50 to-white p-4 rounded-2xl shadow-sm print:bg-transparent print:border print:border-gray-200">
             <h2 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
               <FaCar className="mr-2 text-blue-600 text-lg" />
-              {isCompany ? 'Entreprise' : 'Client'}
+              Client
             </h2>
-            <div className="space-y-2 text-sm">
-              <p className="text-gray-600 flex items-center">
-                <FaUser className="mr-2 text-blue-600" />
-                Client
-              </p>
-              <p className="text-gray-600 flex items-center">
-                <FaMapMarkerAlt className="mr-2 text-blue-600" />
-                Adresse non spécifiée
-              </p>
-              <p className="text-gray-600 flex items-center">
-                <FaPhone className="mr-2 text-blue-600" />
-                Téléphone non spécifié
-              </p>
-              {clientRne && !isEditing && (
-                <div className="flex items-center">
-                  <p className="text-gray-600 flex items-center">
-                    <FaBuilding className="mr-2 text-blue-600" />
-                    RNE:
-                  </p>
-                  <span className="text-gray-800 ml-2">{clientRne}</span>
-                </div>
-              )}
-              {isEditing && (
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="text"
-                    value={clientRne}
-                    onChange={(e) => setClientRne(e.target.value)}
-                    placeholder="Ajouter le RNE si c'est une entreprise"
-                    className="px-2 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                  />
-                  <button
-                    onClick={handleSave}
-                    className="px-2 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
-                  >
-                    Valider
-                  </button>
-                  <button
-                    onClick={() => {
-                      setClientRne('');
-                      setIsEditing(false);
-                    }}
-                    className="p-1 text-gray-400 hover:text-red-500 transition-colors duration-300"
-                    title="Supprimer le RNE"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-              )}
-              {isCompany && (
+            {factureInfo?.client && (
+              <div className="space-y-2 text-sm">
                 <p className="text-gray-600 flex items-center">
-                  <FaBuilding className="mr-2 text-blue-600" />
-                  Matricule Fiscale: {matriculeFiscale || 'Non spécifié'}
+                  <FaUser className="mr-2 text-blue-600" />
+                  {factureInfo.client.name}
                 </p>
-              )}
-            </div>
+                <p className="text-gray-600 flex items-center">
+                  <FaPhone className="mr-2 text-blue-600" />
+                  {factureInfo.client.phone}
+                </p>
+                <p className="text-gray-600 flex items-center">
+                  <FaEnvelope className="mr-2 text-blue-600" />
+                  {factureInfo.client.email}
+                </p>
+                {factureInfo.client.matf && (
+                  <p className="text-gray-600 flex items-center">
+                    <FaIdCard className="mr-2 text-blue-600" />
+                    Matricule Fiscale: {factureInfo.client.matf}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
