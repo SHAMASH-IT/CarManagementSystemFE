@@ -36,7 +36,7 @@ const StockList = () => {
   }
 
   return (
-    <div className='mb-6'>
+    <div  className='mb-6'> 
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800">Gestion des Stocks</h2>
         <button
@@ -56,6 +56,9 @@ const StockList = () => {
                 Pièce
               </th>
               <th className="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                Marque
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                 Catégorie
               </th>
               <th className="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
@@ -65,7 +68,10 @@ const StockList = () => {
                 Seuil
               </th>
               <th className="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                Prix
+                Prix Initial
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                Prix de Vente
               </th>
               <th className="px-6 py-3 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">
                 Actions
@@ -79,6 +85,9 @@ const StockList = () => {
                   {stock.name}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {stock.marque}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {stock.category?.name || 'Non catégorisé'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -86,6 +95,9 @@ const StockList = () => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {stock.threshold}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {stock.initialPrice} DT
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {stock.price} DT
@@ -137,4 +149,4 @@ const StockList = () => {
   )
 }
 
-export default StockList
+export default StockList
