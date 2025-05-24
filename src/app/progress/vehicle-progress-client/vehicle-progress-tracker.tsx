@@ -118,98 +118,6 @@ export function VehicleProgressTracker() {
     setRegistration(reg)
   }
 
-  const renderPartsOverview = () => {
-    if (!searchResult) return null
-
-    const colors = getDynamicColors(searchResult.status)
-
-    if (!searchResult.interventionPieces || searchResult.interventionPieces.length === 0) {
-      return (
-        <div className={`bg-white rounded-xl border border-${colors.border} shadow-sm p-4`}>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium flex items-center">
-              <Package className={`w-5 h-5 mr-2 text-${colors.primary}`} />
-              Pièces utilisées
-            </h3>
-          </div>
-          <div className="flex flex-col items-center justify-center text-center py-6">
-            <Package className="w-12 h-12 text-gray-300 mb-4" />
-            <h3 className="text-base font-medium mb-2">Aucune pièce utilisée</h3>
-            <p className="text-sm text-gray-600 max-w-md">
-              Aucune pièce n'a encore été utilisée pour cette intervention ou les informations ne sont pas disponibles.
-            </p>
-          </div>
-        </div>
-      )
-    }
-
-    // Calculate total
-    const total = searchResult.interventionPieces.reduce((sum, piece) => {
-      return sum + (piece.totalPrice || 0)
-    }, 0)
-
-    return (
-      <div className={`bg-white rounded-xl border border-${colors.border} shadow-sm overflow-hidden`}>
-        <div className={`p-4 border-b bg-gradient-to-r ${colors.gradientLight}`}>
-          <h3 className="text-lg font-medium flex items-center">
-            <Package className={`w-5 h-5 mr-2 text-${colors.primary}`} />
-            Pièces utilisées
-          </h3>
-        </div>
-        <div className="p-4">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-3 px-4 font-medium text-sm">Pièce</th>
-                  <th className="text-center py-3 px-4 font-medium text-sm">Quantité</th>
-                  <th className="text-right py-3 px-4 font-medium text-sm">Prix unitaire</th>
-                  <th className="text-right py-3 px-4 font-medium text-sm">Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {searchResult.interventionPieces.slice(0, 3).map((piece, index) => (
-                  <tr key={index} className={`border-b hover:bg-${colors.primaryLight}/50 transition-colors`}>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center">
-                        <div className={`bg-${colors.primaryLight} p-1.5 rounded-full mr-2`}>
-                          <Package className={`w-3.5 h-3.5 text-${colors.primary}`} />
-                        </div>
-                        <span className="font-medium">{piece.piece?.name || "Pièce non spécifiée"}</span>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4 text-center">{piece.quantity}</td>
-                    <td className="py-3 px-4 text-right">
-                      {piece.piece?.price ? `${piece.piece.price.toFixed(2)} €` : "N/A"}
-                    </td>
-                    <td className={`py-3 px-4 text-right font-medium text-${colors.primary}`}>
-                      {piece.totalPrice ? `${piece.totalPrice.toFixed(2)} €` : "N/A"}
-                    </td>
-                  </tr>
-                ))}
-                {searchResult.interventionPieces.length > 3 && (
-                  <tr className="border-b text-center text-sm text-gray-500">
-                    <td colSpan={4} className="py-2">
-                      + {searchResult.interventionPieces.length - 3} autres pièces
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-              <tfoot>
-                <tr className={`bg-gradient-to-r ${colors.gradientLight}`}>
-                  <td colSpan={3} className="py-3 px-4 text-right font-medium">
-                    Total
-                  </td>
-                  <td className={`py-3 px-4 text-right font-bold text-${colors.primary}`}>{total.toFixed(2)} €</td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   const getStatusInfo = (status: Status) => {
     switch (status) {
       case Status.RESERVED:
@@ -633,7 +541,7 @@ export function VehicleProgressTracker() {
                               <div className="space-y-1">
                                 <p className="text-sm text-gray-500">Prix estimé</p>
                                 <p className={`font-medium text-${colors.primary} text-lg`}>
-                                  {searchResult.price ? `${searchResult.price.toFixed(2)} €` : "Non disponible"}
+                                  {searchResult.price ? `${searchResult.price.toFixed(2)} DT` : "Non disponible"}
                                 </p>
                               </div>
 
@@ -677,15 +585,6 @@ export function VehicleProgressTracker() {
                         </motion.div>
                       )}
 
-                      {/* Parts Overview */}
-                      <motion.div
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: 0.5 }}
-                      >
-                        {renderPartsOverview()}
-                      </motion.div>
-
                       {/* Contact Info */}
                       <motion.div
                         initial={{ y: 20, opacity: 0 }}
@@ -711,46 +610,13 @@ export function VehicleProgressTracker() {
                               <Phone className="w-4 h-4 mr-1.5" />
                               01 23 45 67 89
                             </a>
-                            <a
-                              href="#"
-                              className={`inline-flex items-center px-3 py-1.5 bg-white border border-${colors.border} rounded-md text-sm font-medium text-${colors.primary} hover:bg-${colors.buttonBg} hover:text-white transition-colors shadow-sm`}
-                            >
-                              <MapPin className="w-4 h-4 mr-1.5" />
-                              Nous localiser
-                            </a>
+                          
                           </div>
                         </div>
                       </motion.div>
 
                       {/* Feedback Section */}
-                      <motion.div
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: 0.7 }}
-                        className={`bg-white rounded-xl border border-${colors.border} shadow-sm overflow-hidden`}
-                      >
-                        <div className={`p-4 border-b bg-gradient-to-r ${colors.gradientLight}`}>
-                          <h3 className="text-lg font-medium flex items-center">
-                            <Star className={`w-5 h-5 mr-2 text-${colors.primary}`} />
-                            Votre avis compte
-                          </h3>
-                        </div>
-                        <div className="p-5">
-                          <p className="text-gray-700 mb-4">
-                            Aidez-nous à améliorer notre service en partageant votre expérience une fois l'intervention
-                            terminée.
-                          </p>
-                          <button
-                            className={`px-4 py-2 bg-${colors.buttonBg} text-white font-medium rounded-lg hover:bg-${colors.buttonHover} transition-colors shadow-sm flex items-center`}
-                            disabled={searchResult.status !== Status.COMPLETED}
-                          >
-                            <Star className="w-4 h-4 mr-2" />
-                            {searchResult.status === Status.COMPLETED
-                              ? "Laisser un avis"
-                              : "Disponible après intervention"}
-                          </button>
-                        </div>
-                      </motion.div>
+                     
 
                    
                  

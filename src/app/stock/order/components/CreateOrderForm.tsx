@@ -3,27 +3,28 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { useOrders } from "../hooks/useOrders"
-import type { CreateOrderDto, Piece } from "../service/OrderService"
+import type { Piece, Supplier } from "../service/OrderService"
 import { orderService } from "../service/OrderService"
 import { Check, Loader2, PackageOpen, ShoppingCart, User, X, Plus } from "lucide-react"
 
-// Ajout du type pour les pièces
 interface CreateOrderFormProps {
   onSuccess?: () => void
 }
 
 const CreateOrderForm: React.FC<CreateOrderFormProps> = ({ onSuccess }) => {
   const { placeOrder, refreshOrders } = useOrders()
-  const [formData, setFormData] = useState<CreateOrderDto>({
-    pieceName: "",
-    userId: 0,
-    quantity: 0,
-  })
   const [pieces, setPieces] = useState<Piece[]>([])
+  const [suppliers, setSuppliers] = useState<Supplier[]>([])
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isFormOpen, setIsFormOpen] = useState(false)
+
+  // Structure correcte pour les commandes d'achat
+  const [selectedPieces, setSelectedPieces] = useState<{ pieceId: number, quantity: number }[]>([
+    { pieceId: 0, quantity: 1 }
+  ])
+  const [selectedSupplier, setSelectedSupplier] = useState<number>(0)
 
   // Effet pour gérer le timer du message de succès
   useEffect(() => {
@@ -42,20 +43,24 @@ const CreateOrderForm: React.FC<CreateOrderFormProps> = ({ onSuccess }) => {
     }
   }, [success, onSuccess])
 
-  // Charger la liste des pièces au montage du composant
+  // Charger la liste des pièces et des fournisseurs au montage du composant
   useEffect(() => {
-    const fetchPieces = async () => {
+    const fetchData = async () => {
       try {
-        const data = await orderService.getAllPieces()
-        setPieces(data)
+        const [piecesData, suppliersData] = await Promise.all([
+          orderService.getAllPieces(),
+          orderService.getAllSuppliers()
+        ]);
+        setPieces(piecesData);
+        setSuppliers(suppliersData);
       } catch (err) {
-        console.error('Erreur lors du chargement des pièces:', err)
-        setError('Erreur lors du chargement des pièces')
+        console.error('Erreur lors du chargement des données:', err);
+        setError('Erreur lors du chargement des données');
       }
     }
     
     if (isFormOpen) {
-      fetchPieces()
+      fetchData();
     }
   }, [isFormOpen])
 
@@ -65,9 +70,34 @@ const CreateOrderForm: React.FC<CreateOrderFormProps> = ({ onSuccess }) => {
     setSuccess(null)
     setIsSubmitting(true)
 
+    // Valider que toutes les pièces ont un ID valide
+    const validPieces = selectedPieces.filter(p => p.pieceId > 0 && p.quantity > 0)
+    
+    if (validPieces.length === 0) {
+      setError("Veuillez sélectionner au moins une pièce avec une quantité valide")
+      setIsSubmitting(false)
+      return
+    }
+
+    if (selectedSupplier <= 0) {
+      setError("Veuillez sélectionner un fournisseur")
+      setIsSubmitting(false)
+      return
+    }
+
     try {
-      await placeOrder(formData)
-      setFormData({ pieceName: "", userId: 0, quantity: 0 })
+      // Format attendu par le backend
+      const orderData = {
+        pieces: validPieces,
+        userId: selectedSupplier
+      }
+
+      await placeOrder(orderData)
+      
+      // Réinitialiser le formulaire
+      setSelectedPieces([{ pieceId: 0, quantity: 1 }])
+      setSelectedSupplier(0)
+      
       setSuccess("Commande créée avec succès !")
       refreshOrders() // Rafraîchir la liste des commandes
     } catch (err: any) {
@@ -78,12 +108,22 @@ const CreateOrderForm: React.FC<CreateOrderFormProps> = ({ onSuccess }) => {
     }
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: Number(value),
-    }))
+  const addPieceRow = () => {
+    setSelectedPieces([...selectedPieces, { pieceId: 0, quantity: 1 }])
+  }
+
+  const removePieceRow = (index: number) => {
+    if (selectedPieces.length > 1) {
+      const newPieces = [...selectedPieces]
+      newPieces.splice(index, 1)
+      setSelectedPieces(newPieces)
+    }
+  }
+
+  const updatePieceRow = (index: number, field: 'pieceId' | 'quantity', value: number) => {
+    const newPieces = [...selectedPieces]
+    newPieces[index][field] = value
+    setSelectedPieces(newPieces)
   }
 
   if (!isFormOpen) {
@@ -103,10 +143,10 @@ const CreateOrderForm: React.FC<CreateOrderFormProps> = ({ onSuccess }) => {
       <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 text-white">
         <h2 className="text-xl font-bold flex items-center gap-2">
           <ShoppingCart className="h-5 w-5" />
-          Nouvelle Commande
+          Nouvelle Commande d'Achat
         </h2>
         <p className="text-sm text-blue-100 mt-1">
-          Créez une nouvelle commande en remplissant le formulaire ci-dessous
+          Créez une nouvelle commande d'achat en remplissant le formulaire ci-dessous
         </p>
       </div>
 
@@ -132,67 +172,88 @@ const CreateOrderForm: React.FC<CreateOrderFormProps> = ({ onSuccess }) => {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="space-y-2">
-              <label className="flex items-center text-sm font-medium text-gray-700 gap-1.5">
-                <div className="bg-blue-100 p-1 rounded-md">
-                  <PackageOpen className="h-4 w-4 text-blue-600" />
-                </div>
-                Pièce
-              </label>
-              <select
-                name="pieceName"
-                value={formData.pieceName}
-                onChange={(e) => setFormData(prev => ({ ...prev, pieceName: e.target.value }))}
-                className="w-full px-3 py-2 border border-blue-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                required
+          <div className="space-y-2">
+            <label className="flex items-center text-sm font-medium text-gray-700 gap-1.5">
+              <div className="bg-blue-100 p-1 rounded-md">
+                <User className="h-4 w-4 text-blue-600" />
+              </div>
+              Fournisseur
+            </label>
+            <select
+              value={selectedSupplier || ""}
+              onChange={(e) => setSelectedSupplier(Number(e.target.value))}
+              className="w-full px-3 py-2 border border-blue-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              required
+            >
+              <option value="">Sélectionnez un fournisseur</option>
+              {suppliers.map((supplier) => (
+                <option key={supplier.id} value={supplier.id}>
+                  {supplier.name} ({supplier.email})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-md font-medium text-gray-700">Pièces à commander</h3>
+              <button 
+                type="button" 
+                onClick={addPieceRow}
+                className="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1"
               >
-                <option value="">Sélectionnez une pièce</option>
-                {pieces.map((piece) => (
-                  <option key={piece.id} value={piece.name}>
-                    {piece.name} (Stock: {piece.stock})
-                  </option>
-                ))}
-              </select>
+                <Plus className="h-4 w-4" />
+                Ajouter une pièce
+              </button>
             </div>
 
-            <div className="space-y-2">
-              <label className="flex items-center text-sm font-medium text-gray-700 gap-1.5">
-                <div className="bg-blue-100 p-1 rounded-md">
-                  <User className="h-4 w-4 text-blue-600" />
+            {selectedPieces.map((pieceItem, index) => (
+              <div key={index} className="grid grid-cols-12 gap-4 border border-gray-200 rounded-md p-4">
+                <div className="col-span-6">
+                  <label className="text-xs font-medium text-gray-500 mb-1 block">
+                    Pièce
+                  </label>
+                  <select
+                    value={pieceItem.pieceId || ""}
+                    onChange={(e) => updatePieceRow(index, 'pieceId', Number(e.target.value))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  >
+                    <option value="">Sélectionnez une pièce</option>
+                    {pieces.map((piece) => (
+                      <option key={piece.id} value={piece.id}>
+                        {piece.name} ({piece.marque}) - Prix: {piece.price}€
+                      </option>
+                    ))}
+                  </select>
                 </div>
-                ID Utilisateur
-              </label>
-              <input
-                type="number"
-                name="userId"
-                value={formData.userId || ""}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-blue-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                required
-                min="1"
-                placeholder="Entrez l'ID de l'utilisateur"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="flex items-center text-sm font-medium text-gray-700 gap-1.5">
-                <div className="bg-blue-100 p-1 rounded-md">
-                  <ShoppingCart className="h-4 w-4 text-blue-600" />
+                
+                <div className="col-span-4">
+                  <label className="text-xs font-medium text-gray-500 mb-1 block">
+                    Quantité
+                  </label>
+                  <input
+                    type="number"
+                    value={pieceItem.quantity || ""}
+                    onChange={(e) => updatePieceRow(index, 'quantity', parseInt(e.target.value))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                    min="1"
+                  />
                 </div>
-                Quantité
-              </label>
-              <input
-                type="number"
-                name="quantity"
-                value={formData.quantity || ""}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-blue-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                required
-                min="1"
-                placeholder="Entrez la quantité"
-              />
-            </div>
+                
+                <div className="col-span-2 flex items-end">
+                  <button
+                    type="button"
+                    className="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-md"
+                    onClick={() => removePieceRow(index)}
+                    disabled={selectedPieces.length <= 1}
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
 
           <div className="flex justify-end gap-3">
@@ -231,4 +292,4 @@ const CreateOrderForm: React.FC<CreateOrderFormProps> = ({ onSuccess }) => {
   )
 }
 
-export default CreateOrderForm
+export default CreateOrderForm

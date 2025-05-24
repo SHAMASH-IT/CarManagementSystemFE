@@ -13,7 +13,7 @@ import { toast } from 'react-hot-toast'
 import { Toaster } from 'react-hot-toast'
 import FacturePdf from './FacturePdf'
 import AddPieceModal from './AddPieceModal'
-import { stockService } from '../../stock/services/stockService'
+import stockService from '../../stock/services/stockService'
 
 export default function InterventionManagement({ interventionId }: { interventionId: number }) {
   const router = useRouter()

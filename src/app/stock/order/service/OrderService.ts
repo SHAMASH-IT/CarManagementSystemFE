@@ -5,14 +5,41 @@ const API_URL = 'http://localhost:3005/stock';
 export interface Piece {
   id: number;
   name: string;
+  marque: string;
   stock: number;
+  price: number;
   categoryId: number;
 }
 
-export interface CreateOrderDto {
-  pieceName: string;
-  userId: number;
+export interface OrderPiece {
+  id: number;
+  orderId: number;
+  pieceId: number;
   quantity: number;
+  piece?: Piece;
+}
+
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  role: string;
+}
+
+export interface Order {
+  id: number;
+  date: Date;
+  status: string;
+  ordertype: string;
+  userId?: number;
+  user?: User;
+  orderPieces?: OrderPiece[];
+}
+
+export interface CreateOrderDto {
+  pieces: { pieceId: number, quantity: number }[];
+  userId?: number;
 }
 
 export interface UpdateOrderDto {
@@ -21,20 +48,18 @@ export interface UpdateOrderDto {
   date?: Date;
 }
 
-export interface Order {
+export interface Supplier {
   id: number;
-  date: Date;
-  status: string;
-  quantity: number;
-  userId: number;
-  pieceId: number;
+  name: string;
+  email: string;
+  phone: string;
 }
 
 export const orderService = {
   async placeOrder(dto: CreateOrderDto): Promise<Order> {
     try {
       console.log('Envoi de la commande:', dto);
-      const response = await axios.post(`${API_URL}/order-by-name`, dto);
+      const response = await axios.post(`${API_URL}/buying`, dto);
       console.log('Réponse de la commande:', response.data);
       return response.data;
     } catch (error) {
@@ -62,7 +87,7 @@ export const orderService = {
 
   async cancelOrder(id: number): Promise<Order> {
     try {
-      const response = await axios.patch(`${API_URL}/orders/${id}/cancel`);
+      const response = await axios.patch(`${API_URL}/buying/cancel/${id}`);
       return response.data;
     } catch (error) {
       console.error('Erreur lors de l\'annulation de la commande:', error);
@@ -72,7 +97,7 @@ export const orderService = {
 
   async completeOrder(id: number): Promise<Order> {
     try {
-      const response = await axios.patch(`${API_URL}/orders/${id}/complete`);
+      const response = await axios.patch(`${API_URL}/buying/complete/${id}`);
       return response.data;
     } catch (error) {
       console.error('Erreur lors de la complétion de la commande:', error);
@@ -82,7 +107,7 @@ export const orderService = {
 
   async getOrders(): Promise<Order[]> {
     try {
-      const response = await axios.get(`${API_URL}/orders`);
+      const response = await axios.get(`${API_URL}/buying`);
       return Array.isArray(response.data) ? response.data : [];
     } catch (error) {
       console.error('Erreur lors de la récupération des commandes:', error);
@@ -108,5 +133,15 @@ export const orderService = {
       console.error('Erreur lors de la récupération des pièces:', error);
       throw error;
     }
-  }
-}; 
+  },
+
+  async getAllSuppliers(): Promise<Supplier[]> {
+    try {
+      const response = await axios.get(`${API_URL}/suppliers`);
+      return response.data;
+    } catch (error) {
+      console.error('Erreur lors de la récupération des fournisseurs:', error);
+      return [];
+    }
+  }
+};

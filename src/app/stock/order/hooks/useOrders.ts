@@ -18,11 +18,20 @@ export const useOrders = () => {
       if (isInitialLoad) {
         setLoading(true);
       }
+      
       console.log('Récupération des commandes...');
       const data = await orderService.getOrders();
       console.log('Commandes récupérées:', data);
-      setOrders(data);
+      
+      // Formatage des données si nécessaire
+      const formattedOrders = data.map(order => ({
+        ...order,
+        date: new Date(order.date) // S'assurer que la date est bien un objet Date
+      }));
+      
+      setOrders(formattedOrders);
       setError(null);
+      
       if (isInitialLoad) {
         setIsInitialLoad(false);
       }
@@ -106,5 +115,5 @@ export const useOrders = () => {
     cancelOrder,
     completeOrder,
     refreshOrders: fetchOrders
-  };
-}; 
+  };
+};

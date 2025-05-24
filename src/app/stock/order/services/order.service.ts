@@ -80,6 +80,6 @@ export const orderService = {
     } catch (error) {
       console.error('Erreur lors de la récupération de la commande:', error);
       throw error;
-    }
-  }
-}; 
+    }
+  }
+};

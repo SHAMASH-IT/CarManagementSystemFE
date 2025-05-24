@@ -557,9 +557,7 @@ export default function InterventionList() {
 
                           <div className="mt-6 border-t border-gray-200 pt-4">
                             <div className="flex justify-between items-center">
-                              <div className="text-sm font-medium text-gray-900">
-                                Prix: <span className="font-semibold">{intervention.price} TND</span>
-                              </div>
+                              
                               <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                                 En cours
                               </div>

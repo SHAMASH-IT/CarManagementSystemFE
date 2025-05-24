@@ -21,8 +21,18 @@ const AddStockModal = ({ isOpen, onClose, onAddSuccess }: AddStockModalProps) =>
   const [stock, setStock] = useState('')
   const [threshold, setThreshold] = useState('')
   const [price, setPrice] = useState('')
+  const [initialPrice, setInitialPrice] = useState('')
+  const [marque, setMarque] = useState('')
   const [categoryId, setCategoryId] = useState('')
-  const [errors, setErrors] = useState({ name: '', stock: '', threshold: '', price: '', categoryId: '' })
+  const [errors, setErrors] = useState({ 
+    name: '', 
+    stock: '', 
+    threshold: '', 
+    price: '', 
+    initialPrice: '',
+    marque: '',
+    categoryId: '' 
+  })
   const [isLoading, setIsLoading] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
   const { addStock, categories, fetchCategories } = useStock()
@@ -37,7 +47,15 @@ const AddStockModal = ({ isOpen, onClose, onAddSuccess }: AddStockModalProps) =>
   }, [isOpen, categories.length])
 
   const validateFields = () => {
-    const newErrors = { name: '', stock: '', threshold: '', price: '', categoryId: '' }
+    const newErrors = { 
+      name: '', 
+      stock: '', 
+      threshold: '', 
+      price: '', 
+      initialPrice: '',
+      marque: '',
+      categoryId: '' 
+    }
     let isValid = true
 
     if (!name.trim()) {
@@ -57,6 +75,16 @@ const AddStockModal = ({ isOpen, onClose, onAddSuccess }: AddStockModalProps) =>
 
     if (!price || parseFloat(price) <= 0) {
       newErrors.price = 'Le prix doit être supérieur à 0'
+      isValid = false
+    }
+
+    if (!initialPrice || parseFloat(initialPrice) <= 0) {
+      newErrors.initialPrice = 'Le prix initial doit être supérieur à 0'
+      isValid = false
+    }
+
+    if (!marque.trim()) {
+      newErrors.marque = 'La marque est requise'
       isValid = false
     }
 
@@ -80,18 +108,30 @@ const AddStockModal = ({ isOpen, onClose, onAddSuccess }: AddStockModalProps) =>
     setIsLoading(true)
 
     try {
+      console.log('AddStockModal - Données du formulaire:', {
+        name,
+        stock,
+        threshold,
+        price,
+        initialPrice,
+        marque,
+        categoryId
+      })
+
       await addStock({
         name,
         stock: parseInt(stock),
         threshold: parseInt(threshold),
         price: parseFloat(price),
+        initialPrice: parseFloat(initialPrice),
+        marque,
         categoryId: parseInt(categoryId)
       })
 
+      console.log('AddStockModal - Pièce ajoutée avec succès')
       setShowSuccess(true)
       toast.success('Pièce ajoutée avec succès 🎉')
       
-      // Attendre 1.5 secondes avant de fermer le modal
       setTimeout(() => {
         onAddSuccess()
         onClose()
@@ -99,7 +139,7 @@ const AddStockModal = ({ isOpen, onClose, onAddSuccess }: AddStockModalProps) =>
         setShowSuccess(false)
       }, 1500)
     } catch (error) {
-      console.error('Erreur lors de l\'ajout de la pièce:', error)
+      console.error('AddStockModal - Erreur lors de l\'ajout:', error)
       toast.error('Une erreur est survenue ❌')
     } finally {
       setIsLoading(false)
@@ -111,8 +151,18 @@ const AddStockModal = ({ isOpen, onClose, onAddSuccess }: AddStockModalProps) =>
     setStock('')
     setThreshold('')
     setPrice('')
+    setInitialPrice('')
+    setMarque('')
     setCategoryId('')
-    setErrors({ name: '', stock: '', threshold: '', price: '', categoryId: '' })
+    setErrors({ 
+      name: '', 
+      stock: '', 
+      threshold: '', 
+      price: '', 
+      initialPrice: '',
+      marque: '',
+      categoryId: '' 
+    })
   }
 
   return (
@@ -131,15 +181,12 @@ const AddStockModal = ({ isOpen, onClose, onAddSuccess }: AddStockModalProps) =>
       ) : (
         <>
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-3xl font-bold text-gray-800 flex items-center space-x-2">
-              <Plus className="text-blue-500" size={28} />
-              <span>Ajouter une nouvelle pièce</span>
-            </h2>
+            <h2 className="text-2xl font-bold text-gray-800">Ajouter une nouvelle pièce</h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition transform hover:scale-110"
+              className="text-gray-500 hover:text-gray-700 transition-colors"
             >
-              <X size={28} />
+              <X size={24} />
             </button>
           </div>
 
@@ -155,6 +202,21 @@ const AddStockModal = ({ isOpen, onClose, onAddSuccess }: AddStockModalProps) =>
                 placeholder="Entrez le nom"
                 required
               />
+              {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
+            </div>
+
+            {/* Marque */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-600">Marque</label>
+              <input
+                type="text"
+                value={marque}
+                onChange={(e) => setMarque(e.target.value)}
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 shadow focus:ring focus:ring-blue-200 focus:border-blue-500 transition-all"
+                placeholder="Entrez la marque"
+                required
+              />
+              {errors.marque && <p className="text-red-500 text-sm">{errors.marque}</p>}
             </div>
 
             {/* Stock */}
@@ -168,6 +230,7 @@ const AddStockModal = ({ isOpen, onClose, onAddSuccess }: AddStockModalProps) =>
                 placeholder="Quantité disponible"
                 required
               />
+              {errors.stock && <p className="text-red-500 text-sm">{errors.stock}</p>}
             </div>
 
             {/* Seuil */}
@@ -181,20 +244,37 @@ const AddStockModal = ({ isOpen, onClose, onAddSuccess }: AddStockModalProps) =>
                 placeholder="Seuil minimal d'alerte"
                 required
               />
+              {errors.threshold && <p className="text-red-500 text-sm">{errors.threshold}</p>}
+            </div>
+
+            {/* Prix Initial */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-600">Prix Initial (DT)</label>
+              <input
+                type="number"
+                step="0.01"
+                value={initialPrice}
+                onChange={(e) => setInitialPrice(e.target.value)}
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 shadow focus:ring focus:ring-blue-200 focus:border-blue-500 transition-all"
+                placeholder="Prix initial (DT)"
+                required
+              />
+              {errors.initialPrice && <p className="text-red-500 text-sm">{errors.initialPrice}</p>}
             </div>
 
             {/* Prix */}
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-600">Prix (DT)</label>
+              <label className="block text-sm font-medium text-gray-600">Prix de Vente (DT)</label>
               <input
                 type="number"
                 step="0.01"
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 shadow focus:ring focus:ring-blue-200 focus:border-blue-500 transition-all"
-                placeholder="Prix unitaire (DT)"
+                placeholder="Prix de vente (DT)"
                 required
               />
+              {errors.price && <p className="text-red-500 text-sm">{errors.price}</p>}
             </div>
 
             {/* Catégorie */}
@@ -213,6 +293,7 @@ const AddStockModal = ({ isOpen, onClose, onAddSuccess }: AddStockModalProps) =>
                   </option>
                 ))}
               </select>
+              {errors.categoryId && <p className="text-red-500 text-sm">{errors.categoryId}</p>}
             </div>
 
             {/* Boutons */}
@@ -239,4 +320,4 @@ const AddStockModal = ({ isOpen, onClose, onAddSuccess }: AddStockModalProps) =>
   )
 }
 
-export default AddStockModal
+export default AddStockModal

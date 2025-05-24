@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { stockService } from '../services/stockService'
+import stockService from '../services/stockService'
 import { Stock } from '../../types'
 
 interface CreateStockData {
@@ -8,6 +8,8 @@ interface CreateStockData {
   stock: number
   threshold: number
   price: number
+  initialPrice: number
+  marque: string
   categoryId: number
 }
 
@@ -53,13 +55,15 @@ export const useStock = () => {
   const addStock = async (stockData: CreateStockData) => {
     setIsLoading(true)
     try {
+      console.log('Hook useStock - Données à envoyer:', stockData)
       const newStock = await stockService.addStock(stockData)
+      console.log('Hook useStock - Réponse reçue:', newStock)
       setStocks(prev => [...prev, newStock])
       setError(null)
       return true
     } catch (err) {
+      console.error('Hook useStock - Erreur:', err)
       setError('Erreur lors de l\'ajout')
-      console.error(err)
       return false
     } finally {
       setIsLoading(false)
@@ -117,5 +121,5 @@ export const useStock = () => {
     addStock,
     updateStock,
     deleteStock
-  }
+  }
 }
