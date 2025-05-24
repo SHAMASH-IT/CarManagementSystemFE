@@ -256,12 +256,7 @@ export default function ProfileForm() {
                 </motion.div>
               </AnimatePresence>
               
-              <div className="absolute bottom-0 left-0 right-0 p-8">
-                <h2 className="text-3xl font-bold text-white mb-2">
-                  {profile?.name || 'Utilisateur'}
-                </h2>
-                <p className="text-blue-100 text-lg">Membre depuis 2024</p>
-              </div>
+              
 
               {/* Indicateurs de diapositives */}
               <div className="absolute bottom-20 left-0 right-0 flex justify-center space-x-2">

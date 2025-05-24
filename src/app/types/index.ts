@@ -129,6 +129,7 @@ export interface AppointmentTableProps {
   appointments: Appointment[]
   onDelete: (id: string) => void
   onAccept: (id: string) => void
+  onUpdateToReserved: (id: string) => void
 }
 
 export interface UserTableProps {

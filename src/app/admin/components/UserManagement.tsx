@@ -99,7 +99,7 @@ const UserManagement = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [selectedTab, setSelectedTab] = useState(0);
   const [filterAnchorEl, setFilterAnchorEl] = useState<null | HTMLElement>(null);
@@ -295,6 +295,21 @@ const UserManagement = () => {
     }
   };
 
+  const getRoleLabel = (role: string) => {
+    switch (role) {
+      case 'ADMIN':
+        return 'Administrateur';
+      case 'PROVIDER':
+        return 'Prestataire';
+      case 'SUPPLIER':
+        return 'Fournisseur';
+      case 'CLIENT':
+        return 'Client';
+      default:
+        return role;
+    }
+  };
+
   return (
     <Box sx={{ 
       p: 3, 
@@ -303,7 +318,7 @@ const UserManagement = () => {
     }}>
       {/* En-tête avec statistiques et résumé */}
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" sx={{ 
+        <Typography variant="h5" sx={{ 
           mb: 1, 
           color: '#2D3748',
           fontWeight: 600,
@@ -311,50 +326,16 @@ const UserManagement = () => {
           alignItems: 'center',
           gap: 1
         }}>
-          <GroupIcon sx={{ fontSize: 32 }} />
+          <GroupIcon sx={{ fontSize: 28 }} />
           Gestion des Utilisateurs
         </Typography>
-        <Typography variant="body1" sx={{ color: '#718096', mb: 3 }}>
+        <Typography variant="body2" sx={{ color: '#718096', mb: 2, fontSize: '0.98rem' }}>
           Gérez les comptes utilisateurs, les rôles et les permissions
         </Typography>
 
         <Grid container spacing={3}>
-          <Grid item xs={12} sm={6} md={2.4}>
-            <Card 
-              sx={{ 
-                p: 2,
-                background: '#FFFFFF',
-                borderRadius: '12px',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.08)',
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                '&:hover': {
-                  transform: 'translateY(-2px)',
-                  transition: 'all 0.2s ease-in-out',
-                  boxShadow: '0 4px 8px rgba(0,0,0,0.12)',
-                }
-              }}
-            >
-              <Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                  <GroupIcon sx={{ fontSize: 24, color: '#5c6bc0', mr: 1 }} />
-                  <Typography variant="subtitle1" sx={{ color: '#2D3748', fontWeight: 600 }}>
-                    Total Utilisateurs
-                  </Typography>
-                </Box>
-                <Typography variant="h4" sx={{ color: '#2D3748', fontWeight: 700, mb: 0.5 }}>
-                  {userStats.total}
-                </Typography>
-              </Box>
-              <Typography variant="caption" sx={{ color: '#718096' }}>
-                Dernière mise à jour: {new Date().toLocaleDateString()}
-              </Typography>
-            </Card>
-          </Grid>
-
-          <Grid item xs={12} sm={6} md={2.4}>
+          {/* Administrateurs */}
+          <Grid item xs={12} sm={6} md={3} lg={3} sx={{ display: 'flex' }}>
             <Card 
               sx={{ 
                 p: 2,
@@ -362,10 +343,13 @@ const UserManagement = () => {
                 color: '#c62828',
                 borderRadius: '12px',
                 boxShadow: '0 2px 4px rgba(0,0,0,0.08)',
-                transition: 'all 0.3s ease',
-                position: 'relative',
-                overflow: 'hidden',
                 height: '100%',
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                minHeight: 140,
                 '&:hover': {
                   transform: 'translateY(-2px)',
                   boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
@@ -382,45 +366,13 @@ const UserManagement = () => {
                 {userStats.admins}
               </Typography>
               <Typography variant="caption" sx={{ color: '#ef5350' }}>
-                {((userStats.admins / userStats.total) * 100).toFixed(1)}% des utilisateurs
+                {userStats.total > 0 ? ((userStats.admins / userStats.total) * 100).toFixed(1) : 0}% des utilisateurs
               </Typography>
             </Card>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={2.4}>
-            <Card 
-              sx={{ 
-                p: 2,
-                background: '#FFFFFF',
-                color: '#2e7d32',
-                borderRadius: '12px',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.08)',
-                transition: 'all 0.3s ease',
-                position: 'relative',
-                overflow: 'hidden',
-                height: '100%',
-                '&:hover': {
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
-                }
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <AccountCircleIcon sx={{ fontSize: 24, color: '#66bb6a' }} />
-                <Typography variant="subtitle1" sx={{ ml: 1, fontWeight: 600, color: '#2e7d32' }}>
-                  Prestataires
-                </Typography>
-              </Box>
-              <Typography variant="h4" sx={{ mb: 0.5, fontWeight: 700, color: '#388e3c' }}>
-                {userStats.providers}
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#66bb6a' }}>
-                {((userStats.providers / userStats.total) * 100).toFixed(1)}% des utilisateurs
-              </Typography>
-            </Card>
-          </Grid>
-
-          <Grid item xs={12} sm={6} md={2.4}>
+          {/* Prestataires */}
+          <Grid item xs={12} sm={6} md={3} lg={3} sx={{ display: 'flex' }}>
             <Card 
               sx={{ 
                 p: 2,
@@ -428,10 +380,13 @@ const UserManagement = () => {
                 color: '#f57f17',
                 borderRadius: '12px',
                 boxShadow: '0 2px 4px rgba(0,0,0,0.08)',
-                transition: 'all 0.3s ease',
-                position: 'relative',
-                overflow: 'hidden',
                 height: '100%',
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                minHeight: 140,
                 '&:hover': {
                   transform: 'translateY(-2px)',
                   boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
@@ -439,21 +394,59 @@ const UserManagement = () => {
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <GroupIcon sx={{ fontSize: 24, color: '#ffd54f' }} />
+                <AccountCircleIcon sx={{ fontSize: 24, color: '#ffd54f' }} />
                 <Typography variant="subtitle1" sx={{ ml: 1, fontWeight: 600, color: '#f57f17' }}>
-                  Clients
+                  Prestataires
                 </Typography>
               </Box>
               <Typography variant="h4" sx={{ mb: 0.5, fontWeight: 700, color: '#ffa000' }}>
-                {userStats.clients}
+                {userStats.providers}
               </Typography>
               <Typography variant="caption" sx={{ color: '#ffd54f' }}>
-                {((userStats.clients / userStats.total) * 100).toFixed(1)}% des utilisateurs
+                {userStats.total > 0 ? ((userStats.providers / userStats.total) * 100).toFixed(1) : 0}% des utilisateurs
               </Typography>
             </Card>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={2.4}>
+          {/* Clients */}
+          <Grid item xs={12} sm={6} md={3} lg={3} sx={{ display: 'flex' }}>
+            <Card 
+              sx={{ 
+                p: 2,
+                background: '#FFFFFF',
+                color: '#2e7d32',
+                borderRadius: '12px',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.08)',
+                height: '100%',
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                minHeight: 140,
+                '&:hover': {
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+                }
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <GroupIcon sx={{ fontSize: 24, color: '#66bb6a' }} />
+                <Typography variant="subtitle1" sx={{ ml: 1, fontWeight: 600, color: '#2e7d32' }}>
+                  Clients
+                </Typography>
+              </Box>
+              <Typography variant="h4" sx={{ mb: 0.5, fontWeight: 700, color: '#388e3c' }}>
+                {userStats.clients}
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#66bb6a' }}>
+                {userStats.total > 0 ? ((userStats.clients / userStats.total) * 100).toFixed(1) : 0}% des utilisateurs
+              </Typography>
+            </Card>
+          </Grid>
+
+          {/* Fournisseurs */}
+          <Grid item xs={12} sm={6} md={3} lg={3} sx={{ display: 'flex' }}>
             <Card 
               sx={{ 
                 p: 2,
@@ -461,10 +454,13 @@ const UserManagement = () => {
                 color: '#1976d2',
                 borderRadius: '12px',
                 boxShadow: '0 2px 4px rgba(0,0,0,0.08)',
-                transition: 'all 0.3s ease',
-                position: 'relative',
-                overflow: 'hidden',
                 height: '100%',
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                minHeight: 140,
                 '&:hover': {
                   transform: 'translateY(-2px)',
                   boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
@@ -481,7 +477,7 @@ const UserManagement = () => {
                 {userStats.suppliers}
               </Typography>
               <Typography variant="caption" sx={{ color: '#2196f3' }}>
-                {((userStats.suppliers / userStats.total) * 100).toFixed(1)}% des utilisateurs
+                {userStats.total > 0 ? ((userStats.suppliers / userStats.total) * 100).toFixed(1) : 0}% des utilisateurs
               </Typography>
             </Card>
           </Grid>
@@ -745,7 +741,7 @@ const UserManagement = () => {
                     <TableCell>
                       <Chip
                         icon={getRoleIcon(user.role)}
-                        label={user.role}
+                        label={getRoleLabel(user.role)}
                         color={getRoleColor(user.role)}
                         size="small"
                         sx={{ 
@@ -819,7 +815,7 @@ const UserManagement = () => {
                   setPage(0);
                 }}
                 labelRowsPerPage="Lignes par page"
-                rowsPerPageOptions={[10, 25, 50, 100]}
+                rowsPerPageOptions={[5]}
                 sx={{
                   '.MuiTablePagination-select': {
                     borderRadius: '8px',
@@ -873,7 +869,7 @@ const UserManagement = () => {
                       <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                         <Chip
                           icon={getRoleIcon(user.role)}
-                          label={user.role}
+                          label={getRoleLabel(user.role)}
                           color={getRoleColor(user.role)}
                           size="small"
                         />
@@ -916,7 +912,7 @@ const UserManagement = () => {
                 setPage(0);
               }}
               labelRowsPerPage="Lignes par page"
-              rowsPerPageOptions={[10, 25, 50, 100]}
+              rowsPerPageOptions={[5]}
             />
           </Grid>
         </Grid>

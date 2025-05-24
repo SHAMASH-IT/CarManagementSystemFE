@@ -26,6 +26,125 @@ const OrderList = () => {
     pieceId: ''
   })
 
+  // Filtrer les commandes en fonction des critères de recherche et du filtre de statut
+  const filteredOrders = orders.filter(order => {
+    // Filtrer d'abord par statut si un filtre est appliqué
+    if (statusFilter && order.status !== statusFilter) {
+      return false;
+    }
+    
+    // En mode de recherche simple
+    if (!isAdvancedSearch && searchTerm) {
+      const searchTermLower = searchTerm.toLowerCase();
+      
+      // Recherche dans le numéro de commande
+      if (order.id.toString().includes(searchTermLower)) return true;
+      
+      // Recherche dans le nom ou email du fournisseur
+      if ((order.user?.name?.toLowerCase() || '').includes(searchTermLower) || 
+          (order.user?.email?.toLowerCase() || '').includes(searchTermLower)) return true;
+      
+      // Recherche dans le statut
+      if ((order.status?.toLowerCase() || '').includes(searchTermLower) ||
+          (order.status === 'COMPLETED' && 'complétée'.includes(searchTermLower)) ||
+          (order.status === 'CANCELLED' && 'annulée'.includes(searchTermLower)) ||
+          (order.status === 'RESERVED' && 'en attente'.includes(searchTermLower))) return true;
+      
+      // Recherche dans la date (format français)
+      const orderDate = format(new Date(order.date), 'dd MMM yyyy', { locale: fr });
+      if (orderDate.toLowerCase().includes(searchTermLower)) return true;
+      
+      return false;
+    } 
+    // En mode de recherche avancée
+    else if (isAdvancedSearch) {
+      // Vérifier le numéro de commande
+      if (filters.orderNumber && !order.id.toString().includes(filters.orderNumber)) {
+        return false;
+      }
+      
+      // Vérifier le nom du fournisseur
+      if (filters.supplierName && !(order.user?.name?.toLowerCase() || '').includes(filters.supplierName.toLowerCase())) {
+        return false;
+      }
+      
+      // Vérifier le statut (si spécifié dans la recherche avancée)
+      if (filters.status && order.status !== filters.status) {
+        return false;
+      }
+      
+      // Vérifier la date de début
+      if (filters.dateFrom) {
+        const dateFrom = new Date(filters.dateFrom);
+        const orderDate = new Date(order.date);
+        if (orderDate < dateFrom) {
+          return false;
+        }
+      }
+      
+      // Vérifier la date de fin
+      if (filters.dateTo) {
+        const dateTo = new Date(filters.dateTo);
+        // Ajouter un jour pour inclure toute la journée
+        dateTo.setDate(dateTo.getDate() + 1);
+        const orderDate = new Date(order.date);
+        if (orderDate > dateTo) {
+          return false;
+        }
+      }
+      
+      // Vérifier l'ID de pièce
+      if (filters.pieceId && order.orderPieces) {
+        const hasPiece = order.orderPieces.some((op: any) => 
+          op.pieceId.toString() === filters.pieceId
+        );
+        if (!hasPiece) {
+          return false;
+        }
+      }
+      
+      return true;
+    }
+    
+    // Si aucun filtre de recherche n'est appliqué, montrer toutes les commandes
+    return true;
+  });
+
+  // Pagination
+  const [currentPage, setCurrentPage] = React.useState(1)
+  const itemsPerPage = 4
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const currentOrders = filteredOrders.slice(startIndex, endIndex)
+
+  // Générer les numéros de page avec ellipses
+  const getPageNumbers = () => {
+    const delta = 2
+    const range: number[] = []
+    const rangeWithDots: (number | string)[] = []
+    let l: number | undefined
+    for (let i = 1; i <= totalPages; i++) {
+      if (i === 1 || i === totalPages || (i >= currentPage - delta && i <= currentPage + delta)) {
+        range.push(i)
+      }
+    }
+    range.forEach(i => {
+      if (l) {
+        if (i - l === 2) {
+          rangeWithDots.push(l + 1)
+        } else if (i - l !== 1) {
+          rangeWithDots.push('...')
+        }
+      }
+      rangeWithDots.push(i)
+      l = i
+    })
+    return rangeWithDots
+  }
+
   // Récupération des pièces pour afficher leur nom
   React.useEffect(() => {
     const fetchPieces = async () => {
@@ -134,90 +253,6 @@ const OrderList = () => {
     setModalOpen({ isOpen: true, order })
   }
 
-  // Filtrer les commandes en fonction des critères de recherche et du filtre de statut
-  const filteredOrders = orders.filter(order => {
-    // Filtrer d'abord par statut si un filtre est appliqué
-    if (statusFilter && order.status !== statusFilter) {
-      return false;
-    }
-    
-    // En mode de recherche simple
-    if (!isAdvancedSearch && searchTerm) {
-      const searchTermLower = searchTerm.toLowerCase();
-      
-      // Recherche dans le numéro de commande
-      if (order.id.toString().includes(searchTermLower)) return true;
-      
-      // Recherche dans le nom ou email du fournisseur
-      if ((order.user?.name?.toLowerCase() || '').includes(searchTermLower) || 
-          (order.user?.email?.toLowerCase() || '').includes(searchTermLower)) return true;
-      
-      // Recherche dans le statut
-      if ((order.status?.toLowerCase() || '').includes(searchTermLower) ||
-          (order.status === 'COMPLETED' && 'complétée'.includes(searchTermLower)) ||
-          (order.status === 'CANCELLED' && 'annulée'.includes(searchTermLower)) ||
-          (order.status === 'RESERVED' && 'en attente'.includes(searchTermLower))) return true;
-      
-      // Recherche dans la date (format français)
-      const orderDate = format(new Date(order.date), 'dd MMM yyyy', { locale: fr });
-      if (orderDate.toLowerCase().includes(searchTermLower)) return true;
-      
-      return false;
-    } 
-    // En mode de recherche avancée
-    else if (isAdvancedSearch) {
-      // Vérifier le numéro de commande
-      if (filters.orderNumber && !order.id.toString().includes(filters.orderNumber)) {
-        return false;
-      }
-      
-      // Vérifier le nom du fournisseur
-      if (filters.supplierName && !(order.user?.name?.toLowerCase() || '').includes(filters.supplierName.toLowerCase())) {
-        return false;
-      }
-      
-      // Vérifier le statut (si spécifié dans la recherche avancée)
-      if (filters.status && order.status !== filters.status) {
-        return false;
-      }
-      
-      // Vérifier la date de début
-      if (filters.dateFrom) {
-        const dateFrom = new Date(filters.dateFrom);
-        const orderDate = new Date(order.date);
-        if (orderDate < dateFrom) {
-          return false;
-        }
-      }
-      
-      // Vérifier la date de fin
-      if (filters.dateTo) {
-        const dateTo = new Date(filters.dateTo);
-        // Ajouter un jour pour inclure toute la journée
-        dateTo.setDate(dateTo.getDate() + 1);
-        const orderDate = new Date(order.date);
-        if (orderDate > dateTo) {
-          return false;
-        }
-      }
-      
-      // Vérifier l'ID de pièce
-      if (filters.pieceId && order.orderPieces) {
-        const hasPiece = order.orderPieces.some((op: any) => 
-          op.pieceId.toString() === filters.pieceId
-        );
-        if (!hasPiece) {
-          return false;
-        }
-      }
-      
-      return true;
-    }
-    
-    // Si aucun filtre de recherche n'est appliqué, montrer toutes les commandes
-    return true;
-  });
-
   if (loading) {
     return (
       <div className="bg-white rounded-lg shadow p-6 flex flex-col items-center justify-center h-64">
@@ -256,7 +291,7 @@ const OrderList = () => {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden">
+    <div className="bg-white rounded-lg shadow overflow-hidden flex-1 flex flex-col min-h-0">
       <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
         <h2 className="text-xl font-semibold text-white flex items-center">
           <ShoppingCart className="h-5 w-5 mr-2" />
@@ -441,7 +476,7 @@ const OrderList = () => {
         )}
       </div>
       
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto flex-1 min-h-0">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -466,8 +501,8 @@ const OrderList = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {filteredOrders.length > 0 ? (
-              filteredOrders.map((order) => (
+            {currentOrders.length > 0 ? (
+              currentOrders.map((order) => (
                 <tr key={order.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">#{order.id}</div>
@@ -550,6 +585,62 @@ const OrderList = () => {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Pagination Controls */}
+      <div className="mt-2 flex flex-col sm:flex-row items-center justify-between px-2 sm:px-4 py-3 bg-white border-t border-gray-200">
+        <div className="w-full sm:w-auto mb-2 sm:mb-0">
+          <p className="text-xs sm:text-sm text-gray-700 text-center sm:text-left">
+            Affichage de <span className="font-medium">{filteredOrders.length === 0 ? 0 : startIndex + 1}</span> à{' '}
+            <span className="font-medium">{Math.min(endIndex, filteredOrders.length)}</span> sur{' '}
+            <span className="font-medium">{filteredOrders.length}</span> résultats
+          </p>
+        </div>
+        <div className="w-full sm:w-auto">
+          <nav className="flex justify-center sm:justify-end" aria-label="Pagination">
+            <div className="flex items-center space-x-1 sm:space-x-2">
+              <button
+                onClick={() => setCurrentPage(currentPage - 1)}
+                disabled={currentPage === 1}
+                className={`relative inline-flex items-center rounded-md px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium ${
+                  currentPage === 1
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-white text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                Précédent
+              </button>
+              <div className="hidden sm:flex items-center space-x-1">
+                {getPageNumbers().map((pageNum, index) => (
+                  pageNum === '...'
+                    ? <span key={`ellipsis-${index}`} className="relative inline-flex items-center px-3 py-2 text-xs sm:text-sm font-medium text-gray-700">...</span>
+                    : <button
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum as number)}
+                        className={`relative inline-flex items-center px-3 py-2 text-xs sm:text-sm font-medium ${
+                          currentPage === pageNum
+                            ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white'
+                            : 'text-gray-700 hover:bg-gray-50'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                ))}
+              </div>
+              <button
+                onClick={() => setCurrentPage(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className={`relative inline-flex items-center rounded-md px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium ${
+                  currentPage === totalPages
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-white text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                Suivant
+              </button>
+            </div>
+          </nav>
+        </div>
       </div>
 
       {/* Modal for order details */}
@@ -647,4 +738,4 @@ const OrderList = () => {
   )
 }
 
-export default OrderList
+export default OrderList

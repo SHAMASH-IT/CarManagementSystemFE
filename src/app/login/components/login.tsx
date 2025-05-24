@@ -25,7 +25,8 @@ import {
   CheckCircle,
   AlertCircle,
   CarFront,
-  CarFrontIcon
+  CarFrontIcon,
+  UserPlus
 } from "lucide-react"
 
 export default function Login() {
@@ -88,7 +89,7 @@ export default function Login() {
         setShowStats(true)
         const interval = setInterval(() => {
           setStats(prev => ({
-            appointments: Math.min(prev.appointments + 1, 24),
+            appointments: Math.min(prev.appointments + 1, 160),
             vehicles: Math.min(prev.vehicles + 2, 156),
             punctuality: Math.min(prev.punctuality + 1, 98)
           }))
@@ -295,10 +296,18 @@ export default function Login() {
                 <>
                   <div className="mb-8">
                     <h2 className="text-3xl font-bold text-gray-800 mb-2 flex items-center">
-                      Démarrez votre journée
-                      <Sparkles className="w-5 h-5 text-yellow-400 ml-2 animate-pulse" />
+                      <span className="bg-gradient-to-r from-blue-600 via-blue-500 to-blue-700 bg-clip-text text-transparent">
+                        Accédez à votre espace
+                      </span>
+                      <div className="relative ml-2 group">
+                        <Key className="w-6 h-6 text-blue-600 transition-transform group-hover:scale-110" />
+                        <div className="absolute -inset-1 bg-blue-100 rounded-full opacity-0 group-hover:opacity-50 transition-opacity duration-300"></div>
+                      </div>
                     </h2>
-                    <p className="text-gray-600">Connectez-vous à votre espace de gestion automobile</p>
+                    <p className="text-gray-600 flex items-center gap-2">
+                      <span className="inline-block w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></span>
+                      Connectez-vous à votre espace de gestion automobile
+                    </p>
                   </div>
 
                   {error && (
@@ -324,14 +333,20 @@ export default function Login() {
 
                   <form onSubmit={handleLoginSubmit} className="space-y-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+                        Email
+                        <span className="text-xs text-gray-500 flex items-center gap-0.5">
+                          <AlertCircle className="w-3 h-3 text-red-500" />
+                          obligatoire
+                        </span>
+                      </label>
                       <div className="relative">
                         <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                         <input
                           type="email"
                           className={`block w-full pl-10 pr-3 py-2 border ${
                             errors.login.email ? "border-red-500" : "border-gray-300"
-                          } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200`}
+                          } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200`}
                           placeholder="votre@email.com"
                           value={formData.email}
                           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -346,14 +361,20 @@ export default function Login() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Mot de passe</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+                        Mot de passe
+                        <span className="text-xs text-gray-500 flex items-center gap-0.5">
+                          <AlertCircle className="w-3 h-3 text-red-500" />
+                          obligatoire
+                        </span>
+                      </label>
                       <div className="relative">
                         <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                         <input
                           type={showPassword ? "text" : "password"}
                           className={`block w-full pl-10 pr-10 py-2 border ${
                             errors.login.password ? "border-red-500" : "border-gray-300"
-                          } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200`}
+                          } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200`}
                           placeholder="Votre mot de passe"
                           value={formData.password}
                           onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -376,11 +397,7 @@ export default function Login() {
 
                     <div className="flex items-center justify-between">
                       <label className="flex items-center">
-                        <input
-                          type="checkbox"
-                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                        />
-                        <span className="ml-2 text-sm text-gray-600">Se souvenir de moi</span>
+                       
                       </label>
                       <a href="/login/forgot-password" className="text-sm font-medium text-blue-600 hover:text-blue-500">
                         Mot de passe oublié ?
@@ -408,8 +425,19 @@ export default function Login() {
               ) : (
                 <>
                   <div className="mb-8">
-                    <h2 className="text-3xl font-bold text-gray-800 mb-2">Créez votre compte</h2>
-                    <p className="text-gray-600">Rejoignez notre plateforme de gestion automobile</p>
+                    <h2 className="text-3xl font-bold text-gray-800 mb-2 flex items-center">
+                      <span className="bg-gradient-to-r from-blue-600 via-blue-500 to-blue-700 bg-clip-text text-transparent">
+                        Créez votre compte
+                      </span>
+                      <div className="relative ml-2 group">
+                        <UserPlus className="w-6 h-6 text-blue-600 transition-transform group-hover:scale-110" />
+                        <div className="absolute -inset-1 bg-blue-100 rounded-full opacity-0 group-hover:opacity-50 transition-opacity duration-300"></div>
+                      </div>
+                    </h2>
+                    <p className="text-gray-600 flex items-center gap-2">
+                      <span className="inline-block w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></span>
+                      Rejoignez notre plateforme de gestion automobile
+                    </p>
                   </div>
 
                   {showSuccessMessage ? (
@@ -443,14 +471,20 @@ export default function Login() {
                   ) : (
                     <form onSubmit={handleRegisterSubmit} className="space-y-6">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Nom complet</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+                          Nom complet
+                          <span className="text-xs text-gray-500 flex items-center gap-0.5">
+                            <AlertCircle className="w-3 h-3 text-red-500" />
+                            obligatoire
+                          </span>
+                        </label>
                         <div className="relative">
                           <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                           <input
                             type="text"
                             className={`block w-full pl-10 pr-3 py-2 border ${
                               errors.register.fullName ? "border-red-500" : "border-gray-300"
-                            } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+                            } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200`}
                             placeholder="Votre nom complet"
                             value={registerData.fullName}
                             onChange={(e) => setRegisterData({ ...registerData, fullName: e.target.value })}
@@ -462,14 +496,20 @@ export default function Login() {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Email professionnel</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+                          Email professionnel
+                          <span className="text-xs text-gray-500 flex items-center gap-0.5">
+                            <AlertCircle className="w-3 h-3 text-red-500" />
+                            obligatoire
+                          </span>
+                        </label>
                         <div className="relative">
                           <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                           <input
                             type="email"
                             className={`block w-full pl-10 pr-3 py-2 border ${
                               errors.register.email ? "border-red-500" : "border-gray-300"
-                            } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+                            } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200`}
                             placeholder="votre@email.com"
                             value={registerData.email}
                             onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
@@ -481,14 +521,20 @@ export default function Login() {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Téléphone</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+                          Téléphone
+                          <span className="text-xs text-gray-500 flex items-center gap-0.5">
+                            <AlertCircle className="w-3 h-3 text-red-500" />
+                            obligatoire
+                          </span>
+                        </label>
                         <div className="relative">
                           <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                           <input
                             type="tel"
                             className={`block w-full pl-10 pr-3 py-2 border ${
                               errors.register.phone ? "border-red-500" : "border-gray-300"
-                            } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+                            } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200`}
                             placeholder="Votre numéro de téléphone"
                             value={registerData.phone}
                             onChange={(e) => setRegisterData({ ...registerData, phone: e.target.value })}
@@ -500,12 +546,14 @@ export default function Login() {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Matricule Fiscale</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+                          Matricule Fiscale
+                        </label>
                         <div className="relative">
                           <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                           <input
                             type="text"
-                            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200"
                             placeholder="Votre matricule fiscal (optionnel)"
                             value={registerData.matf}
                             onChange={(e) => setRegisterData({ ...registerData, matf: e.target.value })}
@@ -515,14 +563,20 @@ export default function Login() {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Mot de passe</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+                          Mot de passe
+                          <span className="text-xs text-gray-500 flex items-center gap-0.5">
+                            <AlertCircle className="w-3 h-3 text-red-500" />
+                            obligatoire
+                          </span>
+                        </label>
                         <div className="relative">
                           <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                           <input
                             type={showPassword ? "text" : "password"}
                             className={`block w-full pl-10 pr-10 py-2 border ${
                               errors.register.password ? "border-red-500" : "border-gray-300"
-                            } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+                            } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200`}
                             placeholder="Créez votre mot de passe"
                             value={registerData.password}
                             onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
@@ -541,14 +595,20 @@ export default function Login() {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Confirmer le mot de passe</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+                          Confirmer le mot de passe
+                          <span className="text-xs text-gray-500 flex items-center gap-0.5">
+                            <AlertCircle className="w-3 h-3 text-red-500" />
+                            obligatoire
+                          </span>
+                        </label>
                         <div className="relative">
                           <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                           <input
                             type={showConfirmPassword ? "text" : "password"}
                             className={`block w-full pl-10 pr-10 py-2 border ${
                               errors.register.confirmPassword ? "border-red-500" : "border-gray-300"
-                            } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+                            } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200`}
                             placeholder="Confirmez votre mot de passe"
                             value={registerData.confirmPassword}
                             onChange={(e) => setRegisterData({ ...registerData, confirmPassword: e.target.value })}
