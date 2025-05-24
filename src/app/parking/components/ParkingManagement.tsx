@@ -218,6 +218,8 @@ const ParkingManagement: React.FC = () => {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-blue-800 flex items-center">
             <FaParking className="mr-2" /> Gestion des Parkings
+
+            
           </h1>
           {userRole === 'ADMIN' && (
             <button
@@ -231,8 +233,53 @@ const ParkingManagement: React.FC = () => {
 
         {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">{error}</div>}
 
+
         <div className="bg-white shadow-lg rounded-xl p-6">
-          <h2 className="text-2xl font-bold text-blue-800 mb-4">Liste des parkings</h2>
+        <h2 className="text-2xl font-bold text-blue-800 mb-4">Vue d’ensemble des parkings</h2>
+        <div className="bg-white shadow-lg rounded-xl p-6 mt-6">
+          <h2 className="text-2xl font-bold text-blue-800 mb-4"></h2>
+          
+          <div className="grid grid-cols-2 gap-8">
+            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
+              <div className="flex items-center space-x-3">
+                <div className="bg-white p-3 rounded-lg shadow-sm">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-green-800">Places Disponibles</p>
+                  <p className="text-2xl font-bold text-green-700">
+                    {parkings.reduce((total, parking) => 
+                      total + parking.locations.filter(loc => loc.status === 'EMPTY').length, 0
+                    )}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-4 border border-red-200">
+              <div className="flex items-center space-x-3">
+                <div className="bg-white p-3 rounded-lg shadow-sm">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-red-800">Places Occupées</p>
+                  <p className="text-2xl font-bold text-red-700">
+                    {parkings.reduce((total, parking) => 
+                      total + parking.locations.filter(loc => loc.status === 'OCCUPIED').length, 0
+                    )}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div><br></br>
+          
+          <h2 className="text-2xl font-bold text-blue-800 mb-4">Liste des parkings</h2><br></br>
+          
 
           {loading ? (
             <div className="flex justify-center items-center py-8">
@@ -360,46 +407,7 @@ const ParkingManagement: React.FC = () => {
           )}
         </div>
 
-        <div className="bg-white shadow-lg rounded-xl p-6 mt-6">
-          <h2 className="text-2xl font-bold text-blue-800 mb-4"></h2>
-          <div className="grid grid-cols-2 gap-8">
-            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
-              <div className="flex items-center space-x-3">
-                <div className="bg-white p-3 rounded-lg shadow-sm">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-green-800">Places Disponibles</p>
-                  <p className="text-2xl font-bold text-green-700">
-                    {parkings.reduce((total, parking) => 
-                      total + parking.locations.filter(loc => loc.status === 'EMPTY').length, 0
-                    )}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-4 border border-red-200">
-              <div className="flex items-center space-x-3">
-                <div className="bg-white p-3 rounded-lg shadow-sm">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-red-800">Places Occupées</p>
-                  <p className="text-2xl font-bold text-red-700">
-                    {parkings.reduce((total, parking) => 
-                      total + parking.locations.filter(loc => loc.status === 'OCCUPIED').length, 0
-                    )}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+       
       </div>
 
       {editingParking && (

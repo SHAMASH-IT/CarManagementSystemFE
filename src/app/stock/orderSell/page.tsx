@@ -7,6 +7,8 @@ import { OrderSellList } from './components/OrderSellList';
 import { useQuery, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import stockService from '../services/stockService';
 import { Stock } from '../../types';
+import Sidebar from '@/app/common/Sidebar';
+import Navbar from '@/app/common/Navbar';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -108,7 +110,15 @@ function OrderSellContent() {
 export default function OrderSellPage() {
   return (
     <QueryClientProvider client={queryClient}>
-      <OrderSellContent />
+      <div className="flex min-h-screen h-screen bg-gray-50">
+        <Sidebar />
+        <div className="flex-1 flex flex-col h-full">
+          <Navbar />
+          <div className="flex-1 flex flex-col h-full overflow-y-auto">
+            <OrderSellContent />
+          </div>
+        </div>
+      </div>
     </QueryClientProvider>
   );
 }

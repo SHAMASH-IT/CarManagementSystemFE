@@ -222,7 +222,7 @@ const CreateOrderForm: React.FC<CreateOrderFormProps> = ({ onSuccess }) => {
                     <option value="">Sélectionnez une pièce</option>
                     {pieces.map((piece) => (
                       <option key={piece.id} value={piece.id}>
-                        {piece.name} ({piece.marque}) - Prix: {piece.price}€
+                        {piece.name} ({piece.marque}) - Prix: {piece.price} DT
                       </option>
                     ))}
                   </select>

@@ -12,6 +12,40 @@ const StockList = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [selectedStock, setSelectedStock] = useState<string | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 5
+
+  const totalPages = Math.ceil((stocks?.length || 0) / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const currentStocks = stocks?.slice(startIndex, endIndex)
+
+  const getPageNumbers = () => {
+    const delta = 2
+    const range: number[] = []
+    const rangeWithDots: (number | string)[] = []
+    let l: number | undefined
+
+    for (let i = 1; i <= totalPages; i++) {
+      if (i === 1 || i === totalPages || (i >= currentPage - delta && i <= currentPage + delta)) {
+        range.push(i)
+      }
+    }
+
+    range.forEach(i => {
+      if (l !== undefined) {
+        if (i - l === 2) {
+          rangeWithDots.push(l + 1)
+        } else if (i - l !== 1) {
+          rangeWithDots.push('...')
+        }
+      }
+      rangeWithDots.push(i)
+      l = i
+    })
+
+    return rangeWithDots
+  }
 
   const handleEditClick = (stockId: string) => {
     setSelectedStock(stockId)
@@ -36,7 +70,7 @@ const StockList = () => {
   }
 
   return (
-    <div  className='mb-6'> 
+    <div className='mb-6'> 
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800">Gestion des Stocks</h2>
         <button
@@ -79,7 +113,7 @@ const StockList = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {stocks.map((stock) => (
+            {currentStocks?.map((stock) => (
               <tr key={stock.id} className={`${stock.stock <= stock.threshold ? 'bg-red-50' : 'bg-white'}`}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-700">
                   {stock.name}
@@ -124,6 +158,47 @@ const StockList = () => {
             ))}
           </tbody>
         </table>
+
+        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between">
+          <div className="text-sm text-gray-700 mb-4 sm:mb-0">
+            Affichage de <b>{stocks?.length === 0 ? 0 : startIndex + 1}</b> à <b>{Math.min(endIndex, stocks?.length || 0)}</b> sur <b>{stocks?.length}</b> résultats
+          </div>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setCurrentPage(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="px-3 py-1 rounded-md border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Précédent
+            </button>
+            <div className="hidden sm:flex items-center space-x-1">
+              {getPageNumbers().map((pageNum, idx) =>
+                pageNum === '...' ? (
+                  <span key={`ellipsis-${idx}`} className="px-2">...</span>
+                ) : (
+                  <button
+                    key={pageNum}
+                    onClick={() => setCurrentPage(pageNum as number)}
+                    className={`px-3 py-1 rounded-md text-sm font-medium ${
+                      currentPage === pageNum
+                        ? 'bg-blue-600 text-white'
+                        : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                )
+              )}
+            </div>
+            <button
+              onClick={() => setCurrentPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1 rounded-md border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Suivant
+            </button>
+          </div>
+        </div>
       </div>
 
       <AddStockModal
@@ -149,4 +224,4 @@ const StockList = () => {
   )
 }
 
-export default StockList
+export default StockList

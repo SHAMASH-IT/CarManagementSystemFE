@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useService } from '../hooks/useService';
 import { Service } from '../services/serviceService';
 import { ServiceForm } from './ServiceForm';
+import { Wrench } from 'lucide-react';
 
 export const ServiceList: React.FC = () => {
   const {
@@ -283,11 +284,14 @@ export const ServiceList: React.FC = () => {
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Services</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              Gérez vos services automobiles
-            </p>
+          <div className="flex items-center gap-3 mb-2">
+            <span className="inline-flex items-center justify-center rounded-full bg-gradient-to-tr from-blue-500 to-indigo-600 p-2 shadow">
+              <Wrench size={28} className="text-white" />
+            </span>
+            <div>
+              <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Gestion des Services</h1>
+              <p className="mt-1 text-base text-gray-500 font-medium">Gérez vos services automobiles</p>
+            </div>
           </div>
           <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
             <div className="relative flex-grow sm:flex-grow-0">
@@ -352,7 +356,7 @@ export const ServiceList: React.FC = () => {
           </p>
         </div>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           {filteredServices.map((service) => (
             <div
               key={service.id}

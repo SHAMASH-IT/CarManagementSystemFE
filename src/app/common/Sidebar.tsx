@@ -28,6 +28,10 @@ import {
   CarFront,
   CalendarClock,
   UserRound,
+  Shield,
+  Crown,
+  UserCheck,
+  BadgeCheck,
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { authService } from '../login/services/auth.service'
@@ -99,6 +103,8 @@ const Sidebar = () => {
       setActiveItem('Gestion Utilisateurs')
     } else if (pathname === '/profile') {
       setActiveItem('Modifier le profil')
+    } else if (pathname === '/services') {
+      setActiveItem('Services')
     }
   }, [pathname])
 
@@ -210,6 +216,11 @@ const Sidebar = () => {
       icon: <Wrench size={22} className="text-red-500 group-hover:scale-110 transition-transform duration-200" />, 
       title: 'Intervention', 
       url: '/progress' 
+    },
+    { 
+      icon: <History size={22} className="text-blue-500 group-hover:scale-110 transition-transform duration-200" />, 
+      title: 'Historique des interventions', 
+      url: '/history/historyProviderAdmin' 
     }
   ]
 
@@ -268,33 +279,33 @@ const Sidebar = () => {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className={`p-6 border-b border-gray-200 flex items-center ${!isOpen ? 'justify-center' : 'justify-between'} bg-gradient-to-r from-indigo-50 to-white`}
+          className={`p-4 border-b border-gray-200 flex items-center ${!isOpen ? 'justify-center' : 'justify-between'} bg-gradient-to-r from-indigo-50 to-white`}
         >
           {isOpen ? (
             <div className="flex items-center space-x-3">
               <div className="relative">
                 <motion.div 
                   whileHover={{ scale: 1.05 }}
-                  className="flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 border-2 border-white shadow-lg"
+                  className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 border-2 border-white shadow-lg"
                 >
-                  <UserCircle2 size={32} className="text-white" />
+                  <UserCircle2 size={20} className="text-white" />
                 </motion.div>
-                <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-400 border-2 border-white rounded-full shadow-sm"></span>
+                <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 border-2 border-white rounded-full shadow-sm"></span>
               </div>
               <div>
-                <h1 className="font-bold text-gray-800 text-base">
+                <h1 className="font-bold text-gray-800 text-sm">
                   {userRole === 'ADMIN' 
-                    ? 'Administration' 
+                    ? 'Administrateur Système' 
                     : userRole === 'PROVIDER' 
-                      ? userName ? `Bienvenue, ${userName}` : 'Tableau de bord'
-                      : 'Mon espace'}
+                      ? userName ? `Bienvenue, ${userName}` : 'Espace Prestataire'
+                      : 'Espace Personnel'}
                 </h1>
-                <p className="text-sm text-gray-500 font-medium">
+                <p className="text-xs text-gray-500 font-medium">
                   {userRole === 'ADMIN' 
-                    ? 'Gestion du système' 
+                    ? 'Panneau de contrôle' 
                     : userRole === 'PROVIDER' 
-                      ? 'Centre de services'
-                      : 'Espace client'}
+                      ? 'Gestion des services auto'
+                      : 'Gestion de vos véhicules'}
                 </p>
               </div>
             </div>
@@ -303,10 +314,10 @@ const Sidebar = () => {
               whileHover={{ scale: 1.05 }}
               className="relative"
             >
-              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 border-2 border-white shadow-lg">
-                <UserCircle2 size={20} className="text-white" />
+              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 border-2 border-white shadow-lg">
+                <UserCircle2 size={16} className="text-white" />
               </div>
-              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-400 border-2 border-white rounded-full shadow-sm"></span>
+              <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-green-400 border-2 border-white rounded-full shadow-sm"></span>
             </motion.div>
           )}
         </motion.div>
