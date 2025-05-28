@@ -617,7 +617,7 @@ const Navbar = () => {
             </button>
 
             {/* Afficher les notifications uniquement pour les clients */}
-            {userRole === 'CLIENT' && (
+            {(userRole === 'CLIENT'|| userRole === 'PROVIDER') && (
               <div className="relative">
                 <button
                   onClick={() => {

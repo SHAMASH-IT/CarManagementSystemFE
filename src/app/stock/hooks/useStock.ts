@@ -16,6 +16,7 @@ interface CreateStockData {
 interface Category {
   id: number
   name: string
+  providerId: number // Ajout du providerId
 }
 
 export const useStock = () => {
@@ -23,11 +24,40 @@ export const useStock = () => {
   const [categories, setCategories] = useState<Category[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [providerId, setProviderId] = useState<number | null>(null)
+
+  // Fonction pour extraire le providerId du token JWT
+  const getProviderIdFromToken = () => {
+    const token = localStorage.getItem("token")
+    if (!token) return null
+
+    try {
+      const base64Url = token.split('.')[1]
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      )
+
+      const userData = JSON.parse(jsonPayload)
+      return userData?.sub ? parseInt(userData.sub) : null
+    } catch (error) {
+      console.error("Erreur lors du décodage du token:", error)
+      return null
+    }
+  }
 
   const fetchStocks = async () => {
     setIsLoading(true)
     try {
-      const data = await stockService.getAllStocks()
+      const currentProviderId = getProviderIdFromToken()
+      if (!currentProviderId) throw new Error("Provider non identifié")
+      
+      setProviderId(currentProviderId)
+      // Utilisez la nouvelle méthode pour récupérer les pièces par providerId
+      const data = await stockService.getPiecesByProviderId(currentProviderId)
       setStocks(data)
       setError(null)
     } catch (err) {
@@ -41,7 +71,11 @@ export const useStock = () => {
   const fetchCategories = async () => {
     setIsLoading(true)
     try {
-      const data = await stockService.getAllCategories()
+      const currentProviderId = getProviderIdFromToken()
+      if (!currentProviderId) throw new Error("Provider non identifié")
+      
+      // Utilisez la méthode pour récupérer les catégories par providerId
+      const data = await stockService.getCategoriesByProviderId(currentProviderId)
       setCategories(data)
       setError(null)
     } catch (err) {
@@ -116,6 +150,7 @@ export const useStock = () => {
     categories,
     isLoading,
     error,
+     providerId,
     fetchStocks,
     fetchCategories,
     addStock,

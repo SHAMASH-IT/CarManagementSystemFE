@@ -1,11 +1,7 @@
-
-// 1. D'abord, voici le categoryService modifié :
-
 import { Category, CategoryFormData } from "@/app/types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3005";
 
-// Ajout d'un événement pour signaler les changements
 const categoryEvents = {
   listeners: new Set<() => void>(),
   subscribe(listener: () => void) {
@@ -20,28 +16,37 @@ const categoryEvents = {
 };
 
 class CategoryService {
-  async getCategories(): Promise<Category[]> {
-    // Ajout d'un paramètre timestamp pour éviter le cache
-    const timestamp = new Date().getTime();
-    const response = await fetch(`${API_URL}/stock/categories?_t=${timestamp}`);
+ private getAuthHeader() {
+    const token = localStorage.getItem("token");
+    return {
+      "Content-Type": "application/json",
+      ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+    };
+  }
+async getCategoriesByProviderId(providerId: number): Promise<Category[]> {
+    const response = await fetch(`${API_URL}/stock/categories/provider/${providerId}`, {
+  
+    });
     if (!response.ok) {
       throw new Error("Failed to fetch categories");
     }
     return response.json();
   }
-
-  async createCategory(data: CategoryFormData): Promise<Category> {
+  async createCategory(data: { name: string; providerId: number }): Promise<Category> {
     const response = await fetch(`${API_URL}/stock/categories`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
+      headers: this.getAuthHeader(),
+      body: JSON.stringify({
+        name: data.name,
+        providerId: data.providerId // Envoyer explicitement le providerId
+      }),
     });
+
     if (!response.ok) {
-      throw new Error("Failed to create category");
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Failed to create category");
     }
-    // Notifier les abonnés qu'un changement a eu lieu
+
     categoryEvents.notify();
     return response.json();
   }
@@ -49,15 +54,12 @@ class CategoryService {
   async updateCategory(id: number, data: CategoryFormData): Promise<Category> {
     const response = await fetch(`${API_URL}/stock/categories/${id}`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: this.getAuthHeader(),
       body: JSON.stringify(data),
     });
     if (!response.ok) {
       throw new Error("Failed to update category");
     }
-    // Notifier les abonnés qu'un changement a eu lieu
     categoryEvents.notify();
     return response.json();
   }
@@ -65,15 +67,14 @@ class CategoryService {
   async deleteCategory(id: number): Promise<void> {
     const response = await fetch(`${API_URL}/stock/categories/${id}`, {
       method: "DELETE",
+      headers: this.getAuthHeader(),
     });
     if (!response.ok) {
       throw new Error("Failed to delete category");
     }
-    // Notifier les abonnés qu'un changement a eu lieu
     categoryEvents.notify();
   }
 
-  // Méthode pour s'abonner aux changements
   onCategoryChange(listener: () => void) {
     return categoryEvents.subscribe(listener);
   }

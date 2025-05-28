@@ -1,5 +1,6 @@
 declare module 'react-hook-form' {
   export interface UseFormReturn<T> {
+    setValue(arg0: string, providerId: number): unknown;
     register: (name: keyof T) => any;
     handleSubmit: (onSubmit: (data: T) => void) => (e?: React.BaseSyntheticEvent) => void;
     formState: {

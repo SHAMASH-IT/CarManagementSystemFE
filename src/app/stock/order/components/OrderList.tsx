@@ -1,6 +1,6 @@
 "use client"
 
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useOrders } from '../hooks/useOrders'
 import { AlertCircle, CheckCircle, Clock, Filter, MoreVertical, Search, ShoppingCart, XCircle } from 'lucide-react'
 import { orderService, Piece } from '../service/OrderService'
@@ -26,6 +26,26 @@ const OrderList = () => {
     pieceId: ''
   })
 
+
+  useEffect(() => {
+    const fetchPieces = async () => {
+      try {
+        // Utilisez la méthode filtrée par catégories du provider
+        const piecesList = await orderService.getPiecesByProvider();
+        const piecesMap = new Map();
+        
+        piecesList.forEach((piece: Piece) => {
+          piecesMap.set(piece.id, piece);
+        });
+        
+        setPieces(piecesMap);
+      } catch (error) {
+        console.error("Erreur:", error);
+      }
+    };
+    
+    fetchPieces();
+  }, []);
   // Filtrer les commandes en fonction des critères de recherche et du filtre de statut
   const filteredOrders = orders.filter(order => {
     // Filtrer d'abord par statut si un filtre est appliqué

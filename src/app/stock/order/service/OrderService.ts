@@ -9,6 +9,7 @@ export interface Piece {
   stock: number;
   price: number;
   categoryId: number;
+
 }
 
 export interface OrderPiece {
@@ -54,26 +55,87 @@ export interface Supplier {
   email: string;
   phone: string;
 }
+const getProviderIdFromToken = (): number | null => {
+  const token = localStorage.getItem("token");
+  if (!token) return null;
 
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+
+    const userData = JSON.parse(jsonPayload);
+    return userData?.sub ? parseInt(userData.sub) : null;
+  } catch (error) {
+    console.error("Erreur de décodage du token:", error);
+    return null;
+  }
+};
 export const orderService = {
-  async placeOrder(dto: CreateOrderDto): Promise<Order> {
-    try {
-      console.log('Envoi de la commande:', dto);
-      const response = await axios.post(`${API_URL}/buying`, dto);
-      console.log('Réponse de la commande:', response.data);
-      return response.data;
-    } catch (error) {
-      console.error('Erreur lors de la création de la commande:', error);
-      if (axios.isAxiosError(error)) {
-        console.error('Détails de l\'erreur:', {
-          status: error.response?.status,
-          data: error.response?.data,
-          message: error.message
-        });
-      }
-      throw error;
+ async getPiecesByProvider(): Promise<Piece[]> {
+  try {
+    const providerId = getProviderIdFromToken();;
+    console.log('Provider ID:', providerId); // Ajoutez ce log
+    
+    if (!providerId) throw new Error("Provider non identifié");
+    
+    const url = `${API_URL}/pieces/provider/${providerId}`;
+    console.log('Request URL:', url); // Ajoutez ce log
+    
+    const response = await axios.get(url);
+    return response.data;
+  } catch (error) {
+    console.error('Erreur détaillée:', error);
+    throw error;
+  }
+},
+
+  // Corrigez la méthode getOrdersByProvider
+async getOrdersByProvider(): Promise<Order[]> {
+  try {
+    const providerId = getProviderIdFromToken();
+    if (!providerId) throw new Error("Provider non identifié");
+    
+    // Utilisez le bon endpoint
+    const response = await axios.get(`${API_URL}/orders/buying/provider/${providerId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Erreur:', error);
+    throw error;
+  }
+},
+ async placeOrder(dto: CreateOrderDto): Promise<Order> {
+  try {
+    const payload = {
+      pieces: dto.pieces,
+      userId: dto.userId,
+    };
+
+    console.log('Envoi de la commande:', payload);
+    const response = await axios.post(`${API_URL}/buying`, payload);
+    console.log('Réponse de la commande:', response.data);
+    return response.data;
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      console.error('Erreur Axios détaillée:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+        config: error.config,
+      });
+    } else if (error instanceof Error) {
+      console.error('Erreur générique:', error.message);
+    } else {
+      console.error('Erreur inconnue:', error);
     }
-  },
+
+    throw error; // Re-lancer l'erreur pour gestion plus haut si besoin
+  }},
 
   async updateOrder(id: number, dto: UpdateOrderDto): Promise<Order> {
     try {

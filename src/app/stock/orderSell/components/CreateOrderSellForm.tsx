@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import {
   Button,
   CardContent,
@@ -34,6 +34,7 @@ import {
 import type { OrderPiece } from "../service/OrderSellService"
 import { useOrderSell } from "../hooks/useOrderSell"
 import toast from "react-hot-toast"
+import axios from "axios"
 
 interface Piece {
   id: number
@@ -41,22 +42,63 @@ interface Piece {
   price: number
   stock: number
 }
-
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005'
 interface Props {
   pieces: Piece[]
   onSuccess?: () => void
 }
+const getProviderIdFromToken = (): number | null => {
+  const token = localStorage.getItem("token")
+  if (!token) return null
 
-export const CreateOrderSellForm = ({ pieces = [], onSuccess }: Props) => {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    )
+
+    const userData = JSON.parse(jsonPayload)
+    return userData?.sub ? parseInt(userData.sub) : null
+  } catch (error) {
+    console.error("Erreur de décodage du token:", error)
+    return null
+  }
+}
+export const CreateOrderSellForm = ({ onSuccess }: Props) => {
   const { createOrder, isCreating } = useOrderSell()
   const [orderPieces, setOrderPieces] = useState<OrderPiece[]>([{ pieceId: 0, quantity: 1 }])
   const [discount, setDiscount] = useState<number>(0)
   const [discountType, setDiscountType] = useState<"percentage" | "fixed">("percentage")
-
+ const [pieces, setPieces] = useState<Piece[]>([])
+  const [isLoadingPieces, setIsLoadingPieces] = useState(true)
   const handleAddPiece = () => {
     setOrderPieces([...orderPieces, { pieceId: 0, quantity: 1 }])
   }
+ useEffect(() => {
+    const fetchPieces = async () => {
+      try {
+        const providerId = getProviderIdFromToken()
+        if (!providerId) {
+          toast.error("Fournisseur non identifié")
+          return
+        }
 
+        const response = await axios.get(`${API_URL}/stock/pieces/provider/${providerId}`)
+        setPieces(response.data)
+      } catch (error) {
+        console.error("Erreur lors de la récupération des pièces:", error)
+        toast.error("Erreur lors du chargement des pièces")
+      } finally {
+        setIsLoadingPieces(false)
+      }
+    }
+
+    fetchPieces()
+  }, [])
   const handleRemovePiece = (index: number) => {
     setOrderPieces(orderPieces.filter((_, i) => i !== index))
   }

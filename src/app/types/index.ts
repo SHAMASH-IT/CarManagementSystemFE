@@ -221,8 +221,10 @@ export interface Stock {
 export interface Category {
   id: number;
   name: string;
+   providerId: number;
 }
 
 export interface CategoryFormData {
   name: string;
+ providerId: number;
 }

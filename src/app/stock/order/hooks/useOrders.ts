@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import axios from 'axios';
 import { orderService, Order, CreateOrderDto, UpdateOrderDto } from '../service/OrderService';
 
-// Intervalle de rafraîchissement en millisecondes (par exemple, toutes les 5 secondes)
 const REFRESH_INTERVAL = 5000;
 
 export const useOrders = () => {
@@ -14,58 +14,51 @@ export const useOrders = () => {
 
   const fetchOrders = useCallback(async () => {
     try {
-      // Ne montrer le chargement que lors du chargement initial
-      if (isInitialLoad) {
-        setLoading(true);
-      }
-      
-      console.log('Récupération des commandes...');
-      const data = await orderService.getOrders();
-      console.log('Commandes récupérées:', data);
-      
-      // Formatage des données si nécessaire
+      if (isInitialLoad) setLoading(true);
+
+      const data = await orderService.getOrdersByProvider();
       const formattedOrders = data.map(order => ({
         ...order,
-        date: new Date(order.date) // S'assurer que la date est bien un objet Date
+        date: new Date(order.date),
       }));
-      
+
       setOrders(formattedOrders);
       setError(null);
-      
-      if (isInitialLoad) {
-        setIsInitialLoad(false);
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        console.error('Erreur Axios:', {
+          message: err.message,
+          response: err.response?.data,
+        });
+      } else if (err instanceof Error) {
+        console.error('Erreur générale:', err.message);
+      } else {
+        console.error('Erreur inconnue:', err);
       }
-    } catch (err) {
-      console.error('Erreur lors du chargement des commandes:', err);
       setError('Erreur lors du chargement des commandes');
     } finally {
       if (isInitialLoad) {
-        setLoading(false);
-      }
+  setLoading(false);
+  setIsInitialLoad(false);
+}
     }
   }, [isInitialLoad]);
 
   useEffect(() => {
-    // Chargement initial
     fetchOrders();
-
-    // Mettre en place l'intervalle de rafraîchissement
     const intervalId = setInterval(fetchOrders, REFRESH_INTERVAL);
-
-    // Nettoyer l'intervalle lors du démontage du composant
     return () => clearInterval(intervalId);
   }, [fetchOrders]);
 
   const placeOrder = async (dto: CreateOrderDto) => {
     try {
-      console.log('Création d\'une nouvelle commande:', dto);
+      console.log("Création d'une nouvelle commande:", dto);
       const newOrder = await orderService.placeOrder(dto);
       console.log('Nouvelle commande créée:', newOrder);
-      await fetchOrders(); // Rafraîchir la liste après la création
+      await fetchOrders();
       return newOrder;
-    } catch (err) {
-      console.error('Erreur lors de la création de la commande:', err);
-      setError('Erreur lors de la création de la commande');
+    } catch (err: unknown) {
+      handleError(err, 'Erreur lors de la création de la commande');
       throw err;
     }
   };
@@ -73,11 +66,10 @@ export const useOrders = () => {
   const updateOrder = async (id: number, dto: UpdateOrderDto) => {
     try {
       const updatedOrder = await orderService.updateOrder(id, dto);
-      await fetchOrders(); // Rafraîchir la liste après la mise à jour
+      await fetchOrders();
       return updatedOrder;
-    } catch (err) {
-      console.error('Erreur lors de la mise à jour de la commande:', err);
-      setError('Erreur lors de la mise à jour de la commande');
+    } catch (err: unknown) {
+      handleError(err, 'Erreur lors de la mise à jour de la commande');
       throw err;
     }
   };
@@ -85,11 +77,10 @@ export const useOrders = () => {
   const cancelOrder = async (id: number) => {
     try {
       const cancelledOrder = await orderService.cancelOrder(id);
-      await fetchOrders(); // Rafraîchir la liste après l'annulation
+      await fetchOrders();
       return cancelledOrder;
-    } catch (err) {
-      console.error('Erreur lors de l\'annulation de la commande:', err);
-      setError('Erreur lors de l\'annulation de la commande');
+    } catch (err: unknown) {
+      handleError(err, "Erreur lors de l'annulation de la commande");
       throw err;
     }
   };
@@ -97,13 +88,26 @@ export const useOrders = () => {
   const completeOrder = async (id: number) => {
     try {
       const completedOrder = await orderService.completeOrder(id);
-      await fetchOrders(); // Rafraîchir la liste après la complétion
+      await fetchOrders();
       return completedOrder;
-    } catch (err) {
-      console.error('Erreur lors de la complétion de la commande:', err);
-      setError('Erreur lors de la complétion de la commande');
+    } catch (err: unknown) {
+      handleError(err, 'Erreur lors de la complétion de la commande');
       throw err;
     }
+  };
+
+  const handleError = (err: unknown, defaultMessage: string) => {
+    if (axios.isAxiosError(err)) {
+      console.error(defaultMessage, {
+        message: err.message,
+        response: err.response?.data,
+      });
+    } else if (err instanceof Error) {
+      console.error(defaultMessage, err.message);
+    } else {
+      console.error(defaultMessage, err);
+    }
+    setError(defaultMessage);
   };
 
   return {
@@ -114,6 +118,6 @@ export const useOrders = () => {
     updateOrder,
     cancelOrder,
     completeOrder,
-    refreshOrders: fetchOrders
-  };
+    refreshOrders: fetchOrders,
+  };
 };

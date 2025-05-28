@@ -5,7 +5,6 @@ import { toast } from 'react-toastify'
 import { useStock } from '../hooks/useStock'
 import { Plus, X, CheckCircle } from 'lucide-react'
 
-// Configuration de React Modal
 if (typeof window !== 'undefined') {
   Modal.setAppElement('#__next')
 }
@@ -35,16 +34,19 @@ const AddStockModal = ({ isOpen, onClose, onAddSuccess }: AddStockModalProps) =>
   })
   const [isLoading, setIsLoading] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
-  const { addStock, categories, fetchCategories } = useStock()
+  const { addStock, categories, fetchCategories, providerId } = useStock()
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && providerId) {
       fetchCategories()
-      if (categories.length > 0) {
-        setCategoryId(categories[0].id.toString())
-      }
     }
-  }, [isOpen, categories.length])
+  }, [isOpen, providerId])
+
+  useEffect(() => {
+    if (categories.length > 0 && !categoryId) {
+      setCategoryId(categories[0].id.toString())
+    }
+  }, [categories])
 
   const validateFields = () => {
     const newErrors = { 
@@ -100,7 +102,7 @@ const AddStockModal = ({ isOpen, onClose, onAddSuccess }: AddStockModalProps) =>
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!validateFields()) {
+    if (!validateFields() || !providerId) {
       toast.error('Veuillez corriger les erreurs avant de soumettre ❌')
       return
     }
@@ -108,16 +110,6 @@ const AddStockModal = ({ isOpen, onClose, onAddSuccess }: AddStockModalProps) =>
     setIsLoading(true)
 
     try {
-      console.log('AddStockModal - Données du formulaire:', {
-        name,
-        stock,
-        threshold,
-        price,
-        initialPrice,
-        marque,
-        categoryId
-      })
-
       await addStock({
         name,
         stock: parseInt(stock),
@@ -128,7 +120,6 @@ const AddStockModal = ({ isOpen, onClose, onAddSuccess }: AddStockModalProps) =>
         categoryId: parseInt(categoryId)
       })
 
-      console.log('AddStockModal - Pièce ajoutée avec succès')
       setShowSuccess(true)
       toast.success('Pièce ajoutée avec succès 🎉')
       
@@ -139,7 +130,7 @@ const AddStockModal = ({ isOpen, onClose, onAddSuccess }: AddStockModalProps) =>
         setShowSuccess(false)
       }, 1500)
     } catch (error) {
-      console.error('AddStockModal - Erreur lors de l\'ajout:', error)
+      console.error('Erreur lors de l\'ajout:', error)
       toast.error('Une erreur est survenue ❌')
     } finally {
       setIsLoading(false)
@@ -286,12 +277,15 @@ const AddStockModal = ({ isOpen, onClose, onAddSuccess }: AddStockModalProps) =>
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 shadow focus:ring focus:ring-blue-200 focus:border-blue-500 transition-all"
                 required
               >
-                <option value="">Sélectionnez une catégorie</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
+                {categories.length > 0 ? (
+                  categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))
+                ) : (
+                  <option value="">Aucune catégorie disponible</option>
+                )}
               </select>
               {errors.categoryId && <p className="text-red-500 text-sm">{errors.categoryId}</p>}
             </div>
@@ -307,7 +301,7 @@ const AddStockModal = ({ isOpen, onClose, onAddSuccess }: AddStockModalProps) =>
               </button>
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoading || categories.length === 0}
                 className="px-6 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg shadow-md hover:from-blue-600 hover:to-indigo-600 transition-all disabled:opacity-50"
               >
                 {isLoading ? 'Ajout...' : 'Ajouter'}
@@ -320,4 +314,4 @@ const AddStockModal = ({ isOpen, onClose, onAddSuccess }: AddStockModalProps) =>
   )
 }
 
-export default AddStockModal
+export default AddStockModal
