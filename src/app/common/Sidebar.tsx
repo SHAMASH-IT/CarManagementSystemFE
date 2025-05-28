@@ -334,11 +334,11 @@ const Sidebar = () => {
                 <a
                   href={item.url}
                   className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg group transition-all duration-200 
-                    ${activeItem === item.title ? 'bg-gradient-to-r from-indigo-100 to-indigo-200 text-indigo-700 shadow-xl' : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'} 
+                    ${pathname === item.url || activeItem === item.title ? 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-700 shadow-xl' : 'text-gray-700 hover:bg-gray-200 hover:shadow-md'} 
                     ${!isOpen && 'justify-center'}`}
                   onClick={() => setActiveItem(item.title)}
                 >
-                  <div className={`${activeItem === item.title ? 'text-indigo-700' : 'text-gray-500'} ${!isOpen && 'mx-auto'} transition-colors duration-200`}>
+                  <div className={`${pathname === item.url || activeItem === item.title ? 'text-blue-700' : 'text-gray-500'} ${!isOpen && 'mx-auto'} transition-colors duration-200`}>
                     {item.icon}
                   </div>
                   {isOpen && <span className="ml-4">{item.title}</span>}

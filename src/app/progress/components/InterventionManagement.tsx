@@ -577,7 +577,6 @@ export default function InterventionManagement({ interventionId }: { interventio
               </div>
 
               <div className="flex justify-between items-center pt-4 border-t">
-                <div className="text-lg font-semibold">Total: {calculateTotal().toFixed(2)} DT</div>
                 {isEditing && (
                   <button
                     onClick={handleUpdate}
@@ -693,7 +692,7 @@ export default function InterventionManagement({ interventionId }: { interventio
 
               <div className="flex flex-col items-end">
                 <div className="flex justify-between w-full md:w-1/3 border-t pt-4">
-                  <span className="font-bold text-lg">Total:</span>
+                  <span className="font-bold text-lg">Total hors taxes: </span>
                   <span className="font-bold text-lg">{calculateTotal().toFixed(2)} DT</span>
                 </div>
                 <div className="mt-6 flex gap-2">

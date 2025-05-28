@@ -253,10 +253,6 @@ export default function HistoryView({ userRole, userId }: HistoryViewProps) {
                   </div>
                 )}
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="text-xs text-gray-500">Prix :</span>
-                  <span className="font-semibold text-gray-900">{intervention.price.toLocaleString('fr-FR', { style: 'currency', currency: 'TND' })}</span>
-                </div>
-                <div className="flex items-center gap-2 mt-1">
                   <span className="text-xs text-gray-500">Note :</span>
                   {(intervention as any).rate ? (
                     <span className="flex items-center gap-1">
@@ -331,11 +327,6 @@ export default function HistoryView({ userRole, userId }: HistoryViewProps) {
                     </div>
                   </th>
                 )}
-                <th className="hidden sm:table-cell px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <div className="flex items-center space-x-2">
-                    <span>Prix</span>
-                  </div>
-                </th>
                 <th className="hidden md:table-cell px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   <div className="flex items-center space-x-2">
                     <span>Note & Avis</span>
@@ -414,14 +405,6 @@ export default function HistoryView({ userRole, userId }: HistoryViewProps) {
                         </div>
                       </td>
                     )}
-                    <td className="hidden sm:table-cell px-2 sm:px-4 py-3 whitespace-nowrap">
-                      <div className="text-xs sm:text-sm font-medium text-gray-900">
-                        {intervention.price.toLocaleString("fr-FR", {
-                          style: "currency",
-                          currency: "TND",
-                        })}
-                      </div>
-                    </td>
                     <td className="hidden md:table-cell px-2 sm:px-4 py-3 whitespace-nowrap">
                       <div className="flex flex-col space-y-1 sm:space-y-2">
                         <div className="flex items-center">
@@ -561,13 +544,33 @@ export default function HistoryView({ userRole, userId }: HistoryViewProps) {
       </div>
 
       {showFacturePdf && selectedIntervention && (
-        <FacturePdf
-          intervention={selectedIntervention}
-          onClose={() => {
-            setShowFacturePdf(false);
-            setSelectedIntervention(null);
-          }}
-        />
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-auto">
+            <div className="p-4 border-b flex justify-between items-center">
+              <h2 className="text-xl font-semibold">Facture</h2>
+              <button
+                onClick={() => {
+                  setShowFacturePdf(false);
+                  setSelectedIntervention(null);
+                }}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-4">
+              <FacturePdf
+                intervention={selectedIntervention}
+                onClose={() => {
+                  setShowFacturePdf(false);
+                  setSelectedIntervention(null);
+                }}
+              />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -18,7 +18,7 @@ interface EventListProps {
 const EventList = ({ events, handleDeleteConfirmation }: EventListProps) => {
   const [eventsList, setEvents] = useState<CalendarEvent[]>([])
   const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 3
+  const itemsPerPage = 2
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [appointmentToUpdate, setAppointmentToUpdate] = useState<string | null>(null)
@@ -30,31 +30,55 @@ const EventList = ({ events, handleDeleteConfirmation }: EventListProps) => {
     // Fonction pour récupérer les rendez-vous
   const fetchAppointments = async () => {
     try {
-      const response = await fetch(`${API_URL}/appointments/all-appointments`)
+      // Récupérer l'ID de l'utilisateur depuis le token
+      const token = localStorage.getItem('token')
+      if (!token) {
+        throw new Error('Non authentifié')
+      }
+
+      const base64Url = token.split('.')[1]
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+      }).join(''))
+
+      const userData = JSON.parse(jsonPayload)
+      const userId = parseInt(userData.sub)
+
+      // Utiliser l'endpoint correct pour récupérer les rendez-vous de l'utilisateur
+      const response = await fetch(`${API_URL}/appointments/user/${userId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
 
       if (!response.ok) {
         throw new Error('Erreur lors de la récupération des rendez-vous')
       }
 
       const data = await response.json()
-
-      console.log('data', data)
+      console.log('Données reçues:', data)
 
       // Convert string dates to Date objects
       const formattedEvents = data.map((event: any) => ({
-        ...event,
-        title: `Rendez-vous - ${event.vehicle?.brand} ${event.vehicle?.model}`,
-        vehicleName: `${event.vehicle?.brand} ${event.vehicle?.model}`,
-        vehicle: event.vehicle?.id|| '',
+        id: event.id,
+        title: `${event.vehicle.brand} ${event.vehicle.model} - ${event.vehicle.registration} - ${event.service?.name || ''}`,
+        vehicleName: `${event.vehicle.brand} ${event.vehicle.model} `,
         start: new Date(event.date),
         end: new Date(event.date),
-        service: event.service?.name || ''
+        status: event.status,
+        service: event.service?.name,
+        vehicle: event.vehicle,
+        vehicleBrand: event.vehicle.brand,
+        vehicleModel: event.vehicle.model,
+        className: event.service?.name?.toLowerCase().includes('lavage') ? 'washing-event' : 'maintenance-event'
       }))
 
       setEvents(formattedEvents)
-      console.log('events after setting:', formattedEvents)
+      console.log('Events formatés:', formattedEvents)
     } catch (err) {
       console.error('Error fetching appointments:', err)
+      setError('Erreur lors de la récupération des rendez-vous')
     }
   }
 

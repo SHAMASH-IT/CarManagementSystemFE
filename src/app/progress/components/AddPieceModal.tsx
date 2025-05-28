@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { FaTimes } from 'react-icons/fa';
-import { stockService } from '../../stock/services/stockService';
+import { StockService } from '../../stock/services/stockService';
 import { Stock } from '../../types';
 import { toast } from 'react-hot-toast';
+
+const stockService = new StockService();
 
 interface AddPieceModalProps {
   isOpen: boolean;
