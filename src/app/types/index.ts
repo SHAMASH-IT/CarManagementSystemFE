@@ -45,6 +45,7 @@ export interface Appointment {
     model: string
     registration: string
   }
+  serviceData?: Service
 }
 
 export interface User {
@@ -102,6 +103,10 @@ export interface ApiAppointment {
     brand: string
     model: string
     registration: string
+    user?: {
+     
+      name: string
+    }
   }
 }
 
@@ -221,8 +226,10 @@ export interface Stock {
 export interface Category {
   id: number;
   name: string;
+   providerId: number;
 }
 
 export interface CategoryFormData {
-  name: string;
+  name: string;
+ providerId: number;
 }

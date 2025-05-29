@@ -6,7 +6,7 @@ import { useOrders } from "../hooks/useOrders"
 import type { Piece, Supplier } from "../service/OrderService"
 import { orderService } from "../service/OrderService"
 import { Check, Loader2, PackageOpen, ShoppingCart, User, X, Plus } from "lucide-react"
-
+import axios from 'axios';
 interface CreateOrderFormProps {
   onSuccess?: () => void
 }
@@ -19,7 +19,23 @@ const CreateOrderForm: React.FC<CreateOrderFormProps> = ({ onSuccess }) => {
   const [success, setSuccess] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isFormOpen, setIsFormOpen] = useState(false)
-
+useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Utilisez la nouvelle méthode qui filtre par catégories du provider
+        const piecesData = await orderService.getPiecesByProvider();
+        const suppliersData = await orderService.getAllSuppliers();
+        
+        setPieces(piecesData);
+        setSuppliers(suppliersData);
+      } catch (err) {
+        console.error('Erreur:', err);
+        setError('Erreur de chargement');
+      }
+    };
+    
+    if (isFormOpen) fetchData();
+  }, [isFormOpen]);
   // Structure correcte pour les commandes d'achat
   const [selectedPieces, setSelectedPieces] = useState<{ pieceId: number, quantity: number }[]>([
     { pieceId: 0, quantity: 1 }
@@ -64,49 +80,53 @@ const CreateOrderForm: React.FC<CreateOrderFormProps> = ({ onSuccess }) => {
     }
   }, [isFormOpen])
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
-    setSuccess(null)
-    setIsSubmitting(true)
+ const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setError(null);
+  setIsSubmitting(true);
 
-    // Valider que toutes les pièces ont un ID valide
-    const validPieces = selectedPieces.filter(p => p.pieceId > 0 && p.quantity > 0)
-    
-    if (validPieces.length === 0) {
-      setError("Veuillez sélectionner au moins une pièce avec une quantité valide")
-      setIsSubmitting(false)
-      return
-    }
+  const validPieces = selectedPieces.filter(p => p.pieceId > 0 && p.quantity > 0);
 
-    if (selectedSupplier <= 0) {
-      setError("Veuillez sélectionner un fournisseur")
-      setIsSubmitting(false)
-      return
-    }
-
-    try {
-      // Format attendu par le backend
-      const orderData = {
-        pieces: validPieces,
-        userId: selectedSupplier
-      }
-
-      await placeOrder(orderData)
-      
-      // Réinitialiser le formulaire
-      setSelectedPieces([{ pieceId: 0, quantity: 1 }])
-      setSelectedSupplier(0)
-      
-      setSuccess("Commande créée avec succès !")
-      refreshOrders() // Rafraîchir la liste des commandes
-    } catch (err: any) {
-      console.error("Erreur détaillée:", err)
-      setError(err.response?.data?.message || "Erreur lors de la création de la commande")
-    } finally {
-      setIsSubmitting(false)
-    }
+  if (validPieces.length === 0) {
+    setError("Veuillez sélectionner au moins une pièce valide");
+    setIsSubmitting(false);
+    return;
   }
+
+  if (!selectedSupplier) {
+    setError("Veuillez sélectionner un fournisseur");
+    setIsSubmitting(false);
+    return;
+  }
+
+  try {
+    const orderData = {
+      pieces: validPieces,
+      userId: selectedSupplier,
+    };
+
+    await placeOrder(orderData);
+
+    // Réinitialisation
+    setSelectedPieces([{ pieceId: 0, quantity: 1 }]);
+    setSelectedSupplier(0);
+    setSuccess("Commande créée avec succès !");
+    refreshOrders();
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err)) {
+      console.error("Erreur Axios complète:", err);
+      setError(err.response?.data?.message || "Erreur lors de la création de la commande");
+    } else if (err instanceof Error) {
+      console.error("Erreur générique:", err.message);
+      setError(err.message);
+    } else {
+      console.error("Erreur inconnue:", err);
+      setError("Une erreur inconnue est survenue");
+    }
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const addPieceRow = () => {
     setSelectedPieces([...selectedPieces, { pieceId: 0, quantity: 1 }])

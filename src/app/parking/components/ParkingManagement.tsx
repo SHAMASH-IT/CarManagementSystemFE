@@ -19,6 +19,10 @@ interface Parking {
   name: string
   places: number
   serviceId?: number
+  service?: {
+    id: number
+    name: string
+  }
   locations: Location[]
 }
 
@@ -221,7 +225,7 @@ const ParkingManagement: React.FC = () => {
 
             
           </h1>
-          {userRole === 'ADMIN' && (
+          {userRole === 'PROVIDER' && (
             <button
               onClick={() => setShowAddForm(true)}
               className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
@@ -235,7 +239,7 @@ const ParkingManagement: React.FC = () => {
 
 
         <div className="bg-white shadow-lg rounded-xl p-6">
-        <h2 className="text-2xl font-bold text-blue-800 mb-4">Vue d’ensemble des parkings</h2>
+        <h2 className="text-2xl font-bold text-blue-800 mb-4">Vue d'ensemble des parkings</h2>
         <div className="bg-white shadow-lg rounded-xl p-6 mt-6">
           <h2 className="text-2xl font-bold text-blue-800 mb-4"></h2>
           
@@ -296,7 +300,7 @@ const ParkingManagement: React.FC = () => {
                       <th className="px-4 py-3 text-left">ID</th>
                       <th className="px-4 py-3 text-left">Nom</th>
                       <th className="px-4 py-3 text-left">Places</th>
-                      <th className="px-4 py-3 text-left">Service ID</th>
+                      <th className="px-4 py-3 text-left">Service</th>
                       <th className="px-4 py-3 text-left">Emplacements</th>
                       <th className="px-4 py-3 text-left">Disponibilité</th>
                       <th className="px-4 py-3 text-right">Actions</th>
@@ -308,7 +312,7 @@ const ParkingManagement: React.FC = () => {
                         <td className="px-4 py-3">{parking.id}</td>
                         <td className="px-4 py-3 font-medium">{parking.name}</td>
                         <td className="px-4 py-3">{parking.places}</td>
-                        <td className="px-4 py-3">{parking.serviceId || "-"}</td>
+                        <td className="px-4 py-3">{parking.service?.name || "-"}</td>
                         <td className="px-4 py-3">
                           <div className="flex flex-wrap gap-1">
                             {parking.locations.map((location) => (
@@ -423,6 +427,7 @@ const ParkingManagement: React.FC = () => {
     </div>
   )
 }
+
 
 export default ParkingManagement
 

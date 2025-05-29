@@ -145,7 +145,7 @@ const Sidebar = () => {
     },
     { 
       icon: <ClipboardCheck size={22} className="text-green-500 group-hover:scale-110 transition-transform duration-200" />, 
-      title: 'Liste des Rendez-vous', 
+      title: 'Gestion des Rendez-vous', 
       url: '/appointments' 
     },
     { 
@@ -164,6 +164,11 @@ const Sidebar = () => {
       url: '/stock/order' 
     },
     { 
+      icon: <PackageCheck size={22} className="text-emerald-500 group-hover:scale-110 transition-transform duration-200" />, 
+      title: 'Ventes', 
+      url: '/stock/orderSell' 
+    },
+    { 
       icon: <Wrench size={22} className="text-red-500 group-hover:scale-110 transition-transform duration-200" />, 
       title: 'Intervention', 
       url: '/progress' 
@@ -178,44 +183,14 @@ const Sidebar = () => {
   // Menu items pour les administrateurs
   const adminMenuItems = [
     { 
-      icon: <LayoutDashboard size={22} className="text-pink-500 group-hover:scale-110 transition-transform duration-200" />, 
-      title: 'Dashboard', 
-      url: '/appointments/dashboard' 
-    },
-    { 
-      icon: <ClipboardCheck size={22} className="text-green-500 group-hover:scale-110 transition-transform duration-200" />, 
-      title: 'Liste des Rendez-vous', 
-      url: '/appointments' 
-    },
-    { 
       icon: <UserCog size={22} className="text-indigo-500 group-hover:scale-110 transition-transform duration-200" />, 
       title: 'Gestion Utilisateurs', 
       url: '/admin/users' 
     },
     { 
       icon: <Wrench size={22} className="text-blue-500 group-hover:scale-110 transition-transform duration-200" />, 
-      title: 'Services', 
+      title: 'Gestion des Services', 
       url: '/services' 
-    },
-    { 
-      icon: <ParkingCircle size={22} className="text-orange-500 group-hover:scale-110 transition-transform duration-200" />, 
-      title: 'Stationnement', 
-      url: '/parking' 
-    },
-    { 
-      icon: <Warehouse size={22} className="text-purple-500 group-hover:scale-110 transition-transform duration-200" />, 
-      title: 'Stock', 
-      url: '/stock' 
-    },
-    { 
-      icon: <PackageCheck size={22} className="text-indigo-500 group-hover:scale-110 transition-transform duration-200" />, 
-      title: 'Commande', 
-      url: '/stock/order' 
-    },
-    { 
-      icon: <Wrench size={22} className="text-red-500 group-hover:scale-110 transition-transform duration-200" />, 
-      title: 'Intervention', 
-      url: '/progress' 
     },
     { 
       icon: <History size={22} className="text-blue-500 group-hover:scale-110 transition-transform duration-200" />, 

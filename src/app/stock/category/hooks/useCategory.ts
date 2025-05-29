@@ -1,5 +1,3 @@
-// Pour le fichier useCategory.ts - intégrant l'utilisation de onCategoryChange
-
 import { useState, useEffect } from "react";
 import { categoryService } from "../service/categoryService";
 import { Category, CategoryFormData } from "@/app/types";
@@ -10,26 +8,51 @@ export const useCategory = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [toastMessage, setToastMessage] = useState<{ message: string; severity: "success" | "error" } | null>(null);
   const [refreshFlag, setRefreshFlag] = useState(0);
+  const [providerId, setProviderId] = useState<number | null>(null);
+
+  const getProviderIdFromToken = (): number | null => {
+    const token = localStorage.getItem("token");
+    if (!token) return null;
+
+    try {
+      const base64Url = token.split(".")[1];
+      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split("")
+          .map((c) => {
+            return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+          })
+          .join("")
+      );
+
+      const userData = JSON.parse(jsonPayload);
+      return userData?.sub ? parseInt(userData.sub.toString()) : null;
+    } catch (error) {
+      console.error("Erreur lors du décodage du token:", error);
+      return null;
+    }
+  };
 
   const showToast = (message: string, severity: "success" | "error") => {
     setToastMessage({ message, severity });
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  // Fonction pour forcer le rafraîchissement manuellement si nécessaire
   const triggerRefresh = () => {
-    console.log("Déclenchement manuel du rafraîchissement");
     setRefreshFlag(prev => prev + 1);
   };
 
-  // Chargement des catégories
   const loadData = async () => {
     setIsLoading(true);
     try {
-      console.log("Chargement des catégories...");
-      const data = await categoryService.getCategories();
-      const sortedData = data.sort((a, b) => a.id - b.id);
-      console.log("Catégories chargées:", sortedData);
+      const currentProviderId = getProviderIdFromToken();
+      if (!currentProviderId) {
+        throw new Error("Provider ID manquant");
+      }
+      setProviderId(currentProviderId);
+      const data = await categoryService.getCategoriesByProviderId(currentProviderId); // Changé ici
+      const sortedData = data.sort((a: Category, b: Category) => a.id - b.id); // Typage ajouté
       setCategories(sortedData);
     } catch (error) {
       console.error("Erreur lors du chargement des catégories:", error);
@@ -39,31 +62,25 @@ export const useCategory = () => {
     }
   };
 
-  // Effet principal pour le chargement et l'abonnement aux événements
   useEffect(() => {
-    console.log("Effet de chargement exécuté, flag:", refreshFlag);
-    
-    // Chargement initial
-    loadData();
-    
-    // S'abonner aux changements du service
+    if (refreshFlag >= 0) {
+      loadData();
+    }
+
     const unsubscribe = categoryService.onCategoryChange(() => {
-      console.log("Changement détecté via le système d'événements");
       loadData();
     });
-    
-    // Nettoyer l'abonnement lors du démontage
+
     return () => {
       unsubscribe();
     };
-  }, [refreshFlag]); // Dépendance sur refreshFlag pour permettre aussi le rechargement manuel
+  }, [refreshFlag]);
 
-  const addCategory = async (data: CategoryFormData) => {
+  const addCategory = async (data: { name: string; providerId: number }) => {
     try {
-      console.log("Ajout d'une catégorie...");
       await categoryService.createCategory(data);
       showToast("Catégorie ajoutée avec succès", "success");
-      // Pas besoin d'appeler triggerRefresh ici car le service va notifier via notify()
+      triggerRefresh();
     } catch (error) {
       console.error("Erreur lors de l'ajout:", error);
       showToast("Impossible d'ajouter la catégorie", "error");
@@ -73,10 +90,8 @@ export const useCategory = () => {
 
   const updateCategory = async (id: number, data: CategoryFormData) => {
     try {
-      console.log(`Mise à jour de la catégorie ${id}...`);
       await categoryService.updateCategory(id, data);
       showToast("Catégorie mise à jour avec succès", "success");
-      // Pas besoin d'appeler triggerRefresh ici car le service va notifier via notify()
     } catch (error) {
       console.error("Erreur lors de la mise à jour:", error);
       showToast("Impossible de mettre à jour la catégorie", "error");
@@ -86,10 +101,8 @@ export const useCategory = () => {
 
   const deleteCategory = async (id: number) => {
     try {
-      console.log(`Suppression de la catégorie ${id}...`);
       await categoryService.deleteCategory(id);
       showToast("Catégorie supprimée avec succès", "success");
-      // Pas besoin d'appeler triggerRefresh ici car le service va notifier via notify()
     } catch (error) {
       console.error("Erreur lors de la suppression:", error);
       showToast("Impossible de supprimer la catégorie", "error");
@@ -105,6 +118,7 @@ export const useCategory = () => {
     deleteCategory,
     toastMessage,
     showToast,
-    refreshData: triggerRefresh, // Pour un rafraîchissement manuel si nécessaire
+    refreshData: triggerRefresh,
+    providerId,
   };
 };

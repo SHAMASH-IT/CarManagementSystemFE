@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { Pencil, Trash, FilePlus2 } from 'lucide-react' // Icônes modernes
+import { Pencil, Trash, FilePlus2 } from 'lucide-react'
 import AddStockModal from './AddStockModal'
 import UpdateStockModal from './UpdateStockModal'
 import DeleteStockModal from './DeleteStockModal'

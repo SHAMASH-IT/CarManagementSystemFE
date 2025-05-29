@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-
 import moment from 'moment'
 import { toast } from 'react-toastify'
+import { Clock } from 'lucide-react'
 
 import type { CalendarEvent } from '../../types/index'
 
@@ -14,10 +14,16 @@ interface UpdateAppointmentModalProps {
   onUpdateSuccess: () => void
 }
 
-const UpdateAppointmentModal = ({ isOpen, onClose, appointmentId, onUpdateSuccess }: UpdateAppointmentModalProps) => {
+const UpdateAppointmentModal = ({
+  isOpen,
+  onClose,
+  appointmentId,
+  onUpdateSuccess
+}: UpdateAppointmentModalProps) => {
   const [appointment, setAppointment] = useState<CalendarEvent | null>(null)
   const [date, setDate] = useState('')
   const [time, setTime] = useState('')
+  const [selectedTime, setSelectedTime] = useState('')
   const [currentLocationId, setCurrentLocationId] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
@@ -39,23 +45,19 @@ const UpdateAppointmentModal = ({ isOpen, onClose, appointmentId, onUpdateSucces
       }
 
       const data = await response.json()
-      
-      // Trouver le rendez-vous spécifique dans la liste
       const appointmentData = data.find((appointment: any) => appointment.id === parseInt(id))
-      
+
       if (!appointmentData) {
         throw new Error('Rendez-vous non trouvé')
       }
 
       setAppointment(appointmentData)
-      
-      // Stocker l'ID de l'emplacement actuel si disponible
+
       if (appointmentData.vehicle?.positions?.[0]?.location?.id) {
         setCurrentLocationId(appointmentData.vehicle.positions[0].location.id)
       }
 
-      // Format the date and time from the appointment data
-      const appointmentDate = moment.utc(appointmentData.date)
+      const appointmentDate = moment(appointmentData.date)
       setDate(appointmentDate.format('YYYY-MM-DD'))
       setTime(appointmentDate.format('HH:mm'))
     } catch (err) {
@@ -66,40 +68,56 @@ const UpdateAppointmentModal = ({ isOpen, onClose, appointmentId, onUpdateSucces
     }
   }
 
+  const generateTimeSlots = () => {
+    const slots = []
+    for (let hour = 8; hour <= 18; hour++) {
+      if (hour < 18) {
+        const timeString = `${hour.toString().padStart(2, "0")}:00`
+        slots.push({ value: timeString, display: `${hour}h00` })
+      }
+      if (hour < 18) {
+        const timeString = `${hour.toString().padStart(2, "0")}:45`
+        slots.push({ value: timeString, display: `${hour}h45` })
+      }
+    }
+    slots.push({ value: "18:00", display: "18h00" })
+    return slots
+  }
+
+  const timeSlots = generateTimeSlots()
+
+  useEffect(() => {
+    setSelectedTime(time)
+  }, [time])
+
+  const handleTimeSelect = (timeValue: string) => {
+    setSelectedTime(timeValue)
+    setTime(timeValue)
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     setError('')
 
     try {
-      // Créer une date ISO avec la date et l'heure sélectionnées
-      // Utiliser un format ISO standard sans décalage horaire
-      const dateTime = `${date}T${time}:00.000Z`
+      // Création de la date locale au format ISO sans "Z"
+      const dateTime = moment(`${date} ${time}`, 'YYYY-MM-DD HH:mm').format('YYYY-MM-DDTHH:mm:ss')
 
-      console.log('Sending update data:', {
-        date: dateTime
-      })
-
-      // Envoyer la date et l'heure séparément comme le backend pourrait s'y attendre
       const response = await fetch(`${API_URL}/appointments/update/${appointmentId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          date: date,
-          time: time
-        }),
+        body: JSON.stringify({ date: dateTime }),
       })
 
       const responseData = await response.json()
-      
+
       if (!response.ok) {
-        console.error('Server error:', responseData)
         throw new Error(responseData.message || 'Erreur lors de la mise à jour du rendez-vous')
       }
 
-      console.log('Success response:', responseData)
       toast.success('Rendez-vous modifié avec succès')
       onUpdateSuccess()
       onClose()
@@ -144,17 +162,34 @@ const UpdateAppointmentModal = ({ isOpen, onClose, appointmentId, onUpdateSucces
             </div>
 
             <div className='mb-6'>
-              <label htmlFor='time' className='block text-sm font-medium text-gray-700 mb-1'>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Heure
               </label>
-              <input
-                type='time'
-                id='time'
-                value={time}
-                onChange={e => setTime(e.target.value)}
-                className='w-full px-3 py-2 border border-gray-300 rounded-md'
-                required
-              />
+              <div className="grid grid-cols-5 sm:grid-cols-8 gap-1 max-h-52 overflow-y-auto p-1 border border-gray-200 rounded-2xl bg-gray-50">
+                {timeSlots.map((slot) => (
+                  <button
+                    key={slot.value}
+                    type="button"
+                    onClick={() => handleTimeSelect(slot.value)}
+                    className={
+                      `flex flex-col items-center justify-center gap-0.5 px-2 py-1 rounded-full text-xs font-medium transition-all duration-200 shadow-sm border-2 ` +
+                      (selectedTime === slot.value
+                        ? "bg-gradient-to-br from-blue-500 to-indigo-500 text-white border-blue-500 shadow-lg scale-105"
+                        : "bg-white text-gray-800 border-gray-200 hover:shadow-blue-200 hover:shadow-lg hover:scale-105 hover:border-blue-400") +
+                      " focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1 active:scale-95"
+                    }
+                    style={{ minWidth: 0 }}
+                  >
+                    <Clock className={selectedTime === slot.value ? "h-3 w-3 mb-0.5 text-white" : "h-3 w-3 mb-0.5 text-blue-500"} />
+                    <span>{slot.display}</span>
+                  </button>
+                ))}
+              </div>
+              {selectedTime && (
+                <p className="mt-4 text-base text-gray-700">
+                  Heure sélectionnée : <span className="font-bold text-blue-600">{selectedTime}</span>
+                </p>
+              )}
             </div>
 
             <div className='flex justify-end space-x-3'>

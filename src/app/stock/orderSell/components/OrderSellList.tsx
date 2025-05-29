@@ -55,7 +55,30 @@ import {
 } from "@mui/icons-material"
 import { useOrderSell } from "../hooks/useOrderSell"
 import type { Order, Invoice, InvoiceItem } from "../service/OrderSellService"
+import axios from "axios"
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005'
 
+const getProviderIdFromToken = (): number | null => {
+  const token = localStorage.getItem("token")
+  if (!token) return null
+
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    )
+
+    const userData = JSON.parse(jsonPayload)
+    return userData?.sub ? parseInt(userData.sub) : null
+  } catch (error) {
+    console.error("Erreur de décodage du token:", error)
+    return null
+  }
+}
 const getStatusColor = (status: string) => {
   switch (status) {
     case "COMPLETED":
@@ -199,9 +222,10 @@ const SignatureStamp = ({ onSign }: { onSign: (dataUrl: string) => void }) => {
 }
 
 export const OrderSellList = () => {
-  const { orders, isLoading, cancelOrder, completeOrder, getInvoice, isCancelling, isCompleting, isGettingInvoice } =
+ const { orders: allOrders, isLoading, cancelOrder, completeOrder, getInvoice, isCancelling, isCompleting, isGettingInvoice } =
     useOrderSell()
 
+  const [orders, setOrders] = useState<Order[]>([])
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null)
   const [isInvoiceDialogOpen, setIsInvoiceDialogOpen] = useState(false)
   const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null)
@@ -211,6 +235,26 @@ export const OrderSellList = () => {
   const [companyStamp, setCompanyStamp] = useState<string>("")
   const totalsRef = useRef<Record<number, number>>({})
   const invoiceRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const fetchProviderOrders = async () => {
+      const providerId = getProviderIdFromToken()
+      if (!providerId) return
+
+      try {
+        const response = await axios.get(`${API_URL}/stock/orders/selling/provider/${providerId}`)
+        setOrders(response.data)
+      } catch (error) {
+        console.error("Erreur lors de la récupération des commandes du fournisseur:", error)
+        toast.error("Erreur lors du chargement des commandes")
+      }
+    }
+
+    if (allOrders) {
+      fetchProviderOrders()
+    }
+  }, [allOrders])
+
 
   // Sauvegarde des totaux en localStorage
   useEffect(() => {

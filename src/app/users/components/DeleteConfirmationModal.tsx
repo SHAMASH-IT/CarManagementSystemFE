@@ -37,14 +37,20 @@ const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, eventId }: Delete
       if (!response.ok) {
         const errorData = await response.json()
         console.error('Erreur détaillée:', errorData)
+        
+        // Si le rendez-vous n'existe plus, on considère que la suppression est réussie
+        if (errorData.message === 'Appointment not found!') {
+          console.log('Le rendez-vous a déjà été supprimé')
+          onConfirm() // Rafraîchir la liste
+          onClose()
+          return
+        }
+        
         throw new Error(errorData.message || 'Erreur lors de la suppression du rendez-vous')
       }
 
       console.log('Appel API réussi pour la suppression du rendez-vous:', eventId)
-
-      // Call the onConfirm function passed from the parent component
       onConfirm()
-
       console.log('Rendez-vous supprimé avec succès')
     } catch (err) {
       console.error('Erreur lors de la suppression:', err)

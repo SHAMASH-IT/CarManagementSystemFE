@@ -1,4 +1,4 @@
-import { Stock } from '../../types'
+import { Stock , Category } from '../../types'
 import axios from 'axios'
 
 interface CreateStockData {
@@ -14,6 +14,26 @@ interface CreateStockData {
 export class StockService {
   private API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005'
 
+   async getCategoriesByProviderId(providerId: number): Promise<Category[]> {
+    try {
+      const response = await axios.get(`${this.API_URL}/stock/categories/provider/${providerId}`)
+      return response.data
+    } catch (error) {
+      console.error('Erreur lors de la récupération des catégories:', error)
+      throw new Error('Erreur lors de la récupération des catégories')
+    }
+  }
+
+  // Récupérer les pièces d'un provider spécifique
+  async getPiecesByProviderId(providerId: number): Promise<Stock[]> {
+    try {
+      const response = await axios.get(`${this.API_URL}/stock/pieces/provider/${providerId}`)
+      return response.data
+    } catch (error) {
+      console.error('Erreur lors de la récupération des stocks:', error)
+      throw new Error('Erreur lors de la récupération des stocks')
+    }
+  }
   // Récupérer toutes les catégories
   async getAllCategories(): Promise<any[]> {
     try {

@@ -1,34 +1,63 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useEffect } from "react";
+import { useForm, UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useCategory } from "../hooks/useCategory";
-import { CategoryFormData } from "@/app/types";
-
-const formSchema = z.object({
-  name: z.string().min(1, "Le nom est requis"),
-});
 
 interface AddCategoryModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export default function AddCategoryModal({ isOpen, onClose }: AddCategoryModalProps) {
-  const { addCategory } = useCategory();
+const formSchema = z.object({
+  name: z.string().min(1, "Le nom est requis"),
+  providerId: z.number().optional()
+});
 
-  const form = useForm<CategoryFormData>({
+type FormValues = z.infer<typeof formSchema>;
+
+export default function AddCategoryModal({ isOpen, onClose }: AddCategoryModalProps) {
+  const { addCategory, providerId } = useCategory();
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    formState // On garde formState complet
+  } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-    },
-  });
+      providerId: undefined
+    }
+  }) as UseFormReturn<FormValues> & { 
+    formState: { 
+      errors: Record<string, any>;
+      isSubmitting: boolean;
+    } 
+  };
 
-  const onSubmit = async (values: CategoryFormData) => {
+  useEffect(() => {
+    if (providerId) {
+      setValue("providerId", providerId);
+    }
+  }, [providerId, setValue]);
+
+  const onSubmit = async (data: FormValues) => {
+    if (!data.providerId) {
+      console.error("Provider ID manquant");
+      return;
+    }
+
     try {
-      await addCategory(values);
-      form.reset();
+      await addCategory({
+        name: data.name,
+        providerId: data.providerId
+      });
+      reset();
       onClose();
     } catch (error) {
       console.error("Erreur lors de l'ajout de la catégorie:", error);
@@ -41,21 +70,19 @@ export default function AddCategoryModal({ isOpen, onClose }: AddCategoryModalPr
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-md">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">Ajouter une catégorie</h2>
-        
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Nom de la catégorie
             </label>
             <input
-              {...form.register("name")}
+              {...register("name")}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="Entrez le nom de la catégorie"
             />
-            {form.formState.errors.name && (
-              <p className="mt-1 text-sm text-red-600">
-                {form.formState.errors.name.message}
-              </p>
+            {formState.errors.name && (
+              <p className="mt-1 text-sm text-red-600">{formState.errors.name.message}</p>
             )}
           </div>
 
@@ -69,9 +96,10 @@ export default function AddCategoryModal({ isOpen, onClose }: AddCategoryModalPr
             </button>
             <button
               type="submit"
-              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              disabled={formState.isSubmitting}
+              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
             >
-              Ajouter
+              {formState.isSubmitting ? "Envoi..." : "Ajouter"}
             </button>
           </div>
         </form>

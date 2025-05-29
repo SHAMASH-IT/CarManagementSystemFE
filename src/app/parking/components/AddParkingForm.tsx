@@ -1,8 +1,14 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { FaPlus, FaSpinner } from "react-icons/fa"
+
+interface Service {
+  id: number
+  name: string
+  description: string
+}
 
 interface AddParkingFormProps {
   onParkingAdded: () => void
@@ -12,8 +18,31 @@ const AddParkingForm: React.FC<AddParkingFormProps> = ({ onParkingAdded }) => {
   const [name, setName] = useState("")
   const [places, setPlaces] = useState("")
   const [serviceId, setServiceId] = useState("")
+  const [services, setServices] = useState<Service[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const userData = localStorage.getItem('user')
+        if (!userData) return
+
+        const user = JSON.parse(userData)
+        const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/service/provider/${user.id}`)
+        if (!response.ok) {
+          throw new Error('Erreur lors de la récupération des services')
+        }
+        const data = await response.json()
+        setServices(data)
+      } catch (err) {
+        console.error('Error fetching services:', err)
+        setError('Erreur lors de la récupération des services')
+      }
+    }
+
+    fetchServices()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -97,18 +126,22 @@ const AddParkingForm: React.FC<AddParkingFormProps> = ({ onParkingAdded }) => {
           </div>
 
           <div>
-            <label htmlFor="serviceId" className="block mb-2 font-medium text-gray-700">
-              ID du service
+            <label htmlFor="service" className="block mb-2 font-medium text-gray-700">
+              Service
             </label>
-            <input
-              type="number"
-              id="serviceId"
+            <select
+              id="service"
               value={serviceId}
               onChange={(e) => setServiceId(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Ex: 1"
-              min="1"
-            />
+            >
+              <option value="">Sélectionner un service</option>
+              {services.map((service) => (
+                <option key={service.id} value={service.id}>
+                  {service.name}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
@@ -128,3 +161,4 @@ const AddParkingForm: React.FC<AddParkingFormProps> = ({ onParkingAdded }) => {
 }
 
 export default AddParkingForm
+
