@@ -19,7 +19,30 @@ const AddPieceModal: React.FC<AddPieceModalProps> = ({ isOpen, onClose, onAddPie
   const [quantity, setQuantity] = useState<number>(1);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+const [providerId, setProviderId] = useState<number | null>(null)
 
+  // Fonction pour extraire le providerId du token JWT
+  const getProviderIdFromToken = () => {
+    const token = localStorage.getItem("token")
+    if (!token) return null
+
+    try {
+      const base64Url = token.split('.')[1]
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      )
+
+      const userData = JSON.parse(jsonPayload)
+      return userData?.sub ? parseInt(userData.sub) : null
+    } catch (error) {
+      console.error("Erreur lors du décodage du token:", error)
+      return null
+    }
+  }
   useEffect(() => {
     if (isOpen) {
       loadPieces();
@@ -30,7 +53,11 @@ const AddPieceModal: React.FC<AddPieceModalProps> = ({ isOpen, onClose, onAddPie
     try {
       setLoading(true);
       setError(null);
-      const data = await stockService.getAllStocks();
+      const providerId =getProviderIdFromToken();
+      if (!providerId) throw new Error("Provider non identifié")
+      
+      setProviderId(providerId)
+      const data = await stockService.getPiecesByProviderId(providerId);
       setPieces(data);
     } catch (error) {
       console.error('Error loading pieces:', error);

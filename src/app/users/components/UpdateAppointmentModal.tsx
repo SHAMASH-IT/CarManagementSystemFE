@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-
 import moment from 'moment'
 import { toast } from 'react-toastify'
 
@@ -14,7 +13,12 @@ interface UpdateAppointmentModalProps {
   onUpdateSuccess: () => void
 }
 
-const UpdateAppointmentModal = ({ isOpen, onClose, appointmentId, onUpdateSuccess }: UpdateAppointmentModalProps) => {
+const UpdateAppointmentModal = ({
+  isOpen,
+  onClose,
+  appointmentId,
+  onUpdateSuccess
+}: UpdateAppointmentModalProps) => {
   const [appointment, setAppointment] = useState<CalendarEvent | null>(null)
   const [date, setDate] = useState('')
   const [time, setTime] = useState('')
@@ -39,23 +43,19 @@ const UpdateAppointmentModal = ({ isOpen, onClose, appointmentId, onUpdateSucces
       }
 
       const data = await response.json()
-      
-      // Trouver le rendez-vous spécifique dans la liste
       const appointmentData = data.find((appointment: any) => appointment.id === parseInt(id))
-      
+
       if (!appointmentData) {
         throw new Error('Rendez-vous non trouvé')
       }
 
       setAppointment(appointmentData)
-      
-      // Stocker l'ID de l'emplacement actuel si disponible
+
       if (appointmentData.vehicle?.positions?.[0]?.location?.id) {
         setCurrentLocationId(appointmentData.vehicle.positions[0].location.id)
       }
 
-      // Format the date and time from the appointment data
-      const appointmentDate = moment.utc(appointmentData.date)
+      const appointmentDate = moment(appointmentData.date)
       setDate(appointmentDate.format('YYYY-MM-DD'))
       setTime(appointmentDate.format('HH:mm'))
     } catch (err) {
@@ -72,34 +72,23 @@ const UpdateAppointmentModal = ({ isOpen, onClose, appointmentId, onUpdateSucces
     setError('')
 
     try {
-      // Créer une date ISO avec la date et l'heure sélectionnées
-      // Utiliser un format ISO standard sans décalage horaire
-      const dateTime = `${date}T${time}:00.000Z`
+      // Création de la date locale au format ISO sans "Z"
+      const dateTime = moment(`${date} ${time}`, 'YYYY-MM-DD HH:mm').format('YYYY-MM-DDTHH:mm:ss')
 
-      console.log('Sending update data:', {
-        date: dateTime
-      })
-
-      // Envoyer la date et l'heure séparément comme le backend pourrait s'y attendre
       const response = await fetch(`${API_URL}/appointments/update/${appointmentId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          date: date,
-          time: time
-        }),
+        body: JSON.stringify({ date: dateTime }),
       })
 
       const responseData = await response.json()
-      
+
       if (!response.ok) {
-        console.error('Server error:', responseData)
         throw new Error(responseData.message || 'Erreur lors de la mise à jour du rendez-vous')
       }
 
-      console.log('Success response:', responseData)
       toast.success('Rendez-vous modifié avec succès')
       onUpdateSuccess()
       onClose()
