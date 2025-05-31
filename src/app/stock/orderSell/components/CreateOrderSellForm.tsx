@@ -110,12 +110,8 @@ export const CreateOrderSellForm = ({ onSuccess }: Props) => {
   }
 
   const handleDiscountChange = (value: number) => {
-    if (discountType === "percentage" && value > 100) {
-      setDiscount(100)
-      return
-    }
-    setDiscount(value)
-  }
+  setDiscount(Math.min(100, Math.max(0, value))); // Limiter entre 0 et 100
+};
 
   const handleDiscountTypeChange = (type: "percentage" | "fixed") => {
     setDiscountType(type)
@@ -224,22 +220,51 @@ export const CreateOrderSellForm = ({ onSuccess }: Props) => {
   const total = calculateTotal()
 
   return (
-    <Paper elevation={3} sx={{ borderRadius: 2, overflow: "hidden" }}>
-      <Box
-        sx={{
-          bgcolor: "primary.main",
-          color: "white",
-          p: 2,
-          display: "flex",
-          alignItems: "center",
-          gap: 1,
-        }}
-      >
-        <ShoppingCart />
-        <Typography variant="h6">Nouvelle Vente</Typography>
-      </Box>
-      <CardContent sx={{ p: 3 }}>
-        <form onSubmit={handleSubmit}>
+    <Box
+      component="form"
+      onSubmit={handleSubmit}
+      sx={{
+        width: '100%',
+        maxWidth: '100%',
+        mx: 0,
+        px: 0,
+        '& .MuiPaper-root': {
+          width: '100%',
+          maxWidth: '100%',
+          mx: 0,
+          px: 0,
+        },
+        '& .MuiCardContent-root': {
+          width: '100%',
+          maxWidth: '100%',
+          mx: 0,
+          px: 0,
+        },
+        '& .MuiGrid-container': {
+          width: '100%',
+          mx: 0,
+          px: 0,
+        },
+        '& .MuiGrid-item': {
+          px: 1,
+        },
+      }}
+    >
+      <Paper elevation={0} sx={{ width: '100%', p: 2 }}>
+        <Box
+          sx={{
+            bgcolor: "primary.main",
+            color: "white",
+            p: 2,
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+          }}
+        >
+          <ShoppingCart />
+          <Typography variant="h6">Nouvelle Vente</Typography>
+        </Box>
+        <CardContent sx={{ p: 3 }}>
           <Grid container spacing={3}>
             <Grid item xs={12}>
               <Typography variant="subtitle1" sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
@@ -286,7 +311,7 @@ export const CreateOrderSellForm = ({ onSuccess }: Props) => {
                                     <Typography>{p.name}</Typography>
                                     <Stack direction="row" spacing={1} alignItems="center">
                                       <Chip
-                                        label={`${p.price.toFixed(2)}€`}
+                                        label={`${p.price.toFixed(2)} DT`}
                                         size="small"
                                         color="primary"
                                         variant="outlined"
@@ -328,7 +353,7 @@ export const CreateOrderSellForm = ({ onSuccess }: Props) => {
                                 Sous-total:
                               </Typography>
                               <Typography variant="body1" fontWeight="bold">
-                                {(getPiecePrice(piece.pieceId) * piece.quantity).toFixed(2)}€
+                                {(getPiecePrice(piece.pieceId) * piece.quantity).toFixed(2)} DT
                               </Typography>
                             </Box>
                           )}
@@ -401,7 +426,7 @@ export const CreateOrderSellForm = ({ onSuccess }: Props) => {
                         label="Type de remise"
                       >
                         <MenuItem value="percentage">Pourcentage (%)</MenuItem>
-                        <MenuItem value="fixed">Montant fixe (€)</MenuItem>
+                        <MenuItem value="fixed">Montant fixe (DT)</MenuItem>
                       </Select>
                     </FormControl>
                   </Grid>
@@ -413,7 +438,7 @@ export const CreateOrderSellForm = ({ onSuccess }: Props) => {
                       onChange={(e) => handleDiscountChange(Number(e.target.value))}
                       InputProps={{
                         endAdornment: (
-                          <InputAdornment position="end">{discountType === "percentage" ? "%" : "€"}</InputAdornment>
+                          <InputAdornment position="end">{discountType === "percentage" ? "%" : "DT"}</InputAdornment>
                         ),
                         inputProps: {
                           min: 0,
@@ -452,7 +477,7 @@ export const CreateOrderSellForm = ({ onSuccess }: Props) => {
                   </Grid>
                   <Grid item xs={6}>
                     <Typography variant="body1" align="right">
-                      {subtotal.toFixed(2)}€
+                      {subtotal.toFixed(2)} DT
                     </Typography>
                   </Grid>
 
@@ -465,7 +490,7 @@ export const CreateOrderSellForm = ({ onSuccess }: Props) => {
                       </Grid>
                       <Grid item xs={6}>
                         <Typography variant="body1" align="right" color="error">
-                          -{discountAmount.toFixed(2)}€
+                          -{discountAmount.toFixed(2)} DT
                         </Typography>
                       </Grid>
                     </>
@@ -482,7 +507,7 @@ export const CreateOrderSellForm = ({ onSuccess }: Props) => {
                   </Grid>
                   <Grid item xs={6}>
                     <Typography variant="h6" fontWeight="bold" align="right" color="primary">
-                      {total.toFixed(2)}€
+                      {total.toFixed(2)} DT
                     </Typography>
                   </Grid>
                 </Grid>
@@ -506,8 +531,8 @@ export const CreateOrderSellForm = ({ onSuccess }: Props) => {
               {isCreating ? "Création en cours..." : "Créer la vente"}
             </Button>
           </Box>
-        </form>
-      </CardContent>
-    </Paper>
+        </CardContent>
+      </Paper>
+    </Box>
   )
 }

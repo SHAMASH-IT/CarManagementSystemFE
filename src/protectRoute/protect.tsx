@@ -172,6 +172,33 @@ const ProtectRoute = ({children}: {children: React.ReactNode}) => {
                     }
                 }
 
+                // Vérification des routes réservées aux providers
+                if (
+                    pathname.startsWith('/appointments') ||
+                    (pathname.startsWith('/progress') &&!pathname.startsWith('/progress/vehicle-progress-client'))||
+                    pathname.startsWith('/parking')
+                ) {
+                    // Seuls les providers peuvent accéder à ces routes
+                    if (userData.role !== 'PROVIDER') {
+                        setIsAuthorized(false);
+                        setIsLoading(false);
+                        return;
+                    }
+                }
+
+                // Vérification des routes réservées aux admins
+                if (
+                    pathname.startsWith('/services') ||
+                    pathname.startsWith('/admin/users')
+                ) {
+                    // Seuls les admins peuvent accéder à ces routes
+                    if (userData.role !== 'ADMIN') {
+                        setIsAuthorized(false);
+                        setIsLoading(false);
+                        return;
+                    }
+                }
+
                 // Vérification pour les autres routes protégées
                 if (!authService.isAuthenticated()) {
                     router.push('/login');

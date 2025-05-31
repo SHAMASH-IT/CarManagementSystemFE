@@ -21,12 +21,17 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 5
 
-  const filteredAppointments = initialAppointments.filter(appointment => {
-    const matchesSearch = appointment.clientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         appointment.vehicleName?.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = filterStatus === 'ALL' || appointment.status === filterStatus
-    return matchesSearch && matchesStatus
-  })
+  const filteredAppointments = initialAppointments
+    .filter(appointment => {
+      const matchesSearch = appointment.clientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           appointment.vehicleName?.toLowerCase().includes(searchTerm.toLowerCase())
+      const matchesStatus = filterStatus === 'ALL' || appointment.status === filterStatus
+      return matchesSearch && matchesStatus
+    })
+    .sort((a, b) => {
+      // Trier par date décroissante (les plus récents en premier)
+      return new Date(b.date).getTime() - new Date(a.date).getTime()
+    })
 
   // Calcul de la pagination
   const totalPages = Math.ceil(filteredAppointments.length / itemsPerPage)
@@ -279,7 +284,8 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({
                       </td>
                       <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
                         <div className="text-xs sm:text-sm text-gray-900 dark:text-gray-200">
-                          {moment(appointment.date).format('DD/MM/YYYY à HH:mm')}
+                        {moment(appointment.date).subtract(1, 'hour').format('DD/MM/YYYY à HH:mm')}
+
                         </div>
                       </td>
                       <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">

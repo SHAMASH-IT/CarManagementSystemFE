@@ -72,7 +72,7 @@ const [providerId, setProviderId] = useState<number | null>(null)
     if (selectedPieceId && quantity > 0) {
       const selectedPiece = pieces.find(p => String(p.id) === String(selectedPieceId));
       if (selectedPiece && quantity > selectedPiece.stock) {
-        setError(`Stock insuffisant. Disponible: ${selectedPiece.stock}`);
+        setError("Stock insuffisant. Disponible: " + selectedPiece.stock);
         return;
       }
       try {

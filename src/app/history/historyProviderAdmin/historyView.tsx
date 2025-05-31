@@ -58,16 +58,18 @@ export default function HistoryView({ userRole, userId }: HistoryViewProps) {
   };
 
   const filteredInterventions = completedInterventions.filter((intervention) => {
+    // Recherche par texte
     const searchTermLower = searchTerm.toLowerCase();
     const matchesSearch = 
       intervention.appointment?.vehicle.registration.toLowerCase().includes(searchTermLower) ||
       intervention.appointment?.vehicle.brand.toLowerCase().includes(searchTermLower) ||
       intervention.appointment?.vehicle.model.toLowerCase().includes(searchTermLower) ||
-      (userRole === "ADMIN" && intervention.appointment?.service.name.toLowerCase().includes(searchTermLower)) ||
       intervention.description?.toLowerCase().includes(searchTermLower);
 
+    // Filtre par service
     const matchesService = !serviceFilter || intervention.appointment?.service.name === serviceFilter;
 
+    // Les deux conditions doivent être vraies
     return matchesSearch && matchesService;
   });
 
@@ -142,7 +144,7 @@ export default function HistoryView({ userRole, userId }: HistoryViewProps) {
             </div>
             <div>
               <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
-                Suivi des Interventions
+                Historique des Interventions
               </h1>
               <p className="text-sm text-gray-500 mt-1">
                 Consultez l'historique complet de vos interventions

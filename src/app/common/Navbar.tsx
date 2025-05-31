@@ -21,6 +21,7 @@ import {
   CalendarDays,
   Tag,
   CheckCircle,
+  PackageCheck
 } from "lucide-react"
 import moment from "moment"
 import { getUserProfile } from '../profile/services/profileService'
@@ -276,9 +277,6 @@ const Navbar = () => {
         endpoint = `${API_URL}/appointments/date-appointments/${formattedDate}`
         console.log("URL de recherche (date):", endpoint)
       } else {
-        if (isNaN(Number(searchQuery))) {
-          throw new Error("ID du véhicule invalide. Utilisez un nombre")
-        }
         endpoint = `${API_URL}/appointments/vehicle-appointments/${searchQuery}`
         console.log("URL de recherche (véhicule):", endpoint)
       }
@@ -357,258 +355,259 @@ const Navbar = () => {
       <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-20">
           {/* Barre de recherche */}
-          <div
-            className={`${
-              isSearchOpen ? "flex" : "hidden md:flex"
-            } flex-1 items-center justify-center px-2 lg:ml-6 lg:justify-end`}
-          >
-            <div className="max-w-lg w-full" ref={searchRef}>
-              <label htmlFor="search" className="sr-only">
-                Rechercher
-              </label>
-              <div className="relative">
-                {/* Conteneur global de la barre de recherche */}
-                <div
-                  className={`flex items-center space-x-2 rounded-xl overflow-hidden shadow-sm transition-all duration-200 ${
-                    searchFocused ? "shadow-md ring-2 ring-indigo-200" : "shadow-sm"
-                  } bg-gray-50`}
-                >
-                  {/* Boutons de filtre (Date / Véhicule) */}
-                  <div className="flex items-center space-x-1 ml-2">
-                    <button
-                      type="button"
-                      onClick={() => setSearchType("date")}
-                      className={`flex items-center px-2 py-1 text-xs font-medium rounded-full ${
-                        searchType === "date" ? "bg-indigo-100 text-indigo-600" : "text-gray-600 hover:bg-gray-100"
-                      }`}
-                    >
-                      <Calendar className="h-3 w-3 mr-1" />
-                      Date
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setSearchType("vehicle")}
-                      className={`flex items-center px-2 py-1 text-xs font-medium rounded-full ${
-                        searchType === "vehicle" ? "bg-indigo-100 text-indigo-600" : "text-gray-600 hover:bg-gray-100"
-                      }`}
-                    >
-                      <Car className="h-3 w-3 mr-1" />
-                      Véhicule
-                    </button>
-                  </div>
-
-                  {/* Input de recherche (avec icône Search à gauche) */}
-                  <div className="relative flex-1">
-                    <Search
-                      className={`absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 ${
-                        searchFocused ? "text-indigo-500" : "text-gray-400"
-                      }`}
-                    />
-                    <input
-                      id="search"
-                      name="search"
-                      type={searchType === "date" ? "date" : "number"}
-                      placeholder={searchType === "date" ? "Sélectionnez une date" : "ID du véhicule"}
-                      className="w-full pl-8 pr-2 py-2 bg-transparent text-sm text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-0"
-                      value={searchQuery}
-                      onChange={(e) => {
-                        const value = e.target.value
-                        console.log("Nouvelle valeur:", value)
-                        setSearchQuery(value)
-                      }}
-                      onFocus={() => setSearchFocused(true)}
-                      onBlur={() => setSearchFocused(false)}
-                      onKeyPress={(e) => {
-                        if (e.key === "Enter") {
-                          handleSearch()
-                        }
-                      }}
-                      min={searchType === "date" ? moment().format("YYYY-MM-DD") : undefined}
-                    />
-                  </div>
-
-                  {/* Bouton "Rechercher" */}
-                  <button
-                    onClick={handleSearch}
-                    disabled={isLoading}
-                    className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-all duration-200 flex items-center justify-center relative overflow-hidden"
-                  >
-                    {isLoading ? (
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                    ) : (
-                      <>
-                        <Search className="h-4 w-4 mr-1" />
-                        Rechercher
-                      </>
-                    )}
-                  </button>
-
-                  {/* Bouton reset si besoin (facultatif) */}
-                  {searchQuery && !isLoading && (
-                    <button
-                      type="button"
-                      onClick={() => setSearchQuery("")}
-                      className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  )}
-                </div>
-
-                {/* Message d'erreur */}
-                {error && (
+          {(userRole === 'PROVIDER' || userRole === 'ADMIN') && (
+            <div
+              className={`${
+                isSearchOpen ? "flex" : "hidden md:flex"
+              } flex-1 items-center justify-center px-2 lg:ml-6 lg:justify-end`}
+            >
+              <div className="max-w-lg w-full" ref={searchRef}>
+                <label htmlFor="search" className="sr-only">
+                  Rechercher
+                </label>
+                <div className="relative">
+                  {/* Conteneur global de la barre de recherche */}
                   <div
-                    className="mt-3 p-4 bg-gradient-to-r from-red-50 to-red-100 border-l-4 border-red-500 rounded-lg shadow-sm flex items-center justify-between opacity-0 animate-errorIn"
-                    style={{
-                      animation: "errorIn 0.3s ease-out forwards",
-                    }}
+                    className={`flex items-center space-x-2 rounded-xl overflow-hidden shadow-sm transition-all duration-200 ${
+                      searchFocused ? "shadow-md ring-2 ring-indigo-200" : "shadow-sm"
+                    } bg-gray-50`}
                   >
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0">
-                        <AlertCircle className="h-5 w-5 text-red-500" />
-                      </div>
-                      <div className="ml-3">
-                        <p className="text-sm font-medium text-red-800">{error}</p>
-                        <p className="mt-1 text-sm text-red-700">Veuillez réessayer avec des données valides</p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => setError("")}
-                      className="ml-4 flex-shrink-0 flex"
-                    >
-                      <X className="h-5 w-5 text-red-500 hover:text-red-700 transition-colors" />
-                    </button>
-                  </div>
-                )}
-
-                {/* Liste des résultats */}
-                {searchResults.length > 0 && (
-                  <div
-                    className="absolute w-full bg-white border rounded-xl shadow-xl max-h-[70vh] overflow-y-auto z-50 opacity-0 translate-y-[10px] animate-resultsIn"
-                    style={{
-                      animation: "resultsIn 0.3s ease-out forwards",
-                    }}
-                  >
-                    {/* En-tête sticky des résultats (nombre de résultats, etc.) */}
-                    <div className="sticky top-0 bg-white p-3 border-b flex justify-between items-center z-20">
-                      <div className="flex flex-col">
-                        <span className="font-semibold text-gray-800">
-                          {searchResults.length} résultat{searchResults.length > 1 ? "s" : ""}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          {searchType === "date"
-                            ? `Recherche par date: ${moment(searchQuery).format("DD/MM/YYYY")}`
-                            : `Recherche par véhicule: ID ${searchQuery}`}
-                        </span>
-                      </div>
+                    {/* Boutons de filtre (Date / Véhicule) */}
+                    <div className="flex items-center space-x-1 ml-2">
                       <button
-                        onClick={() => setSearchResults([])}
-                        className="text-gray-500 hover:text-gray-700 p-2 rounded-full hover:bg-gray-100 transition-colors"
+                        type="button"
+                        onClick={() => setSearchType("date")}
+                        className={`flex items-center px-2 py-1 text-xs font-medium rounded-full ${
+                          searchType === "date" ? "bg-indigo-100 text-indigo-600" : "text-gray-600 hover:bg-gray-100"
+                        }`}
                       >
-                        <X className="h-5 w-5" />
+                        <Calendar className="h-3 w-3 mr-1" />
+                        Date
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSearchType("vehicle")}
+                        className={`flex items-center px-2 py-1 text-xs font-medium rounded-full ${
+                          searchType === "vehicle" ? "bg-indigo-100 text-indigo-600" : "text-gray-600 hover:bg-gray-100"
+                        }`}
+                      >
+                        <Car className="h-3 w-3 mr-1" />
+                        Véhicule
                       </button>
                     </div>
 
-                    {/* Contenu des résultats */}
-                    <div className="p-2">
-                      {Object.entries(groupedResults).map(([date, results]) => (
-                        <div key={date} className="mb-2 bg-white rounded-lg overflow-hidden">
-                          <div className="bg-gray-50 px-3 py-2 flex items-center justify-between border-b">
-                            <div className="flex items-center">
-                              <CalendarDays className="h-5 w-5 mr-2 text-indigo-500" />
-                              <span className="font-medium text-gray-800">{date}</span>
-                              <span className="ml-2 text-xs px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full">
-                                {results.length} rendez-vous
-                              </span>
-                            </div>
-                            <span className="text-xs text-gray-500">{moment(date, "DD/MM/YYYY").format("dddd")}</span>
-                          </div>
+                    {/* Input de recherche (avec icône Search à gauche) */}
+                    <div className="relative flex-1">
+                      <Search
+                        className={`absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 ${
+                          searchFocused ? "text-indigo-500" : "text-gray-400"
+                        }`}
+                      />
+                      <input
+                        id="search"
+                        name="search"
+                        type={searchType === "date" ? "date" : "text"}
+                        placeholder={searchType === "date" ? "Sélectionnez une date" : "Nom, marque, modèle ou ID du véhicule"}
+                        className="w-full pl-8 pr-2 py-2 bg-transparent text-sm text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-0"
+                        value={searchQuery}
+                        onChange={(e) => {
+                          const value = e.target.value
+                          setSearchQuery(value)
+                        }}
+                        onFocus={() => setSearchFocused(true)}
+                        onBlur={() => setSearchFocused(false)}
+                        onKeyPress={(e) => {
+                          if (e.key === "Enter") {
+                            handleSearch()
+                          }
+                        }}
+                        min={searchType === "date" ? moment().format("YYYY-MM-DD") : undefined}
+                      />
+                    </div>
 
-                          {results.map((result, index) => (
-                            <div
-                              key={result.id}
-                              className={`p-3 hover:bg-gray-50 transition-colors cursor-pointer border-b last:border-b-0 ${
-                                selectedResult === index ? "bg-indigo-50" : ""
-                              }`}
-                              onClick={() => setSelectedResult(index)}
-                            >
-                              <div className="flex items-start">
-                                <div
-                                  className={`p-3 rounded-lg mr-3 ${getStatusColor(result.date)
-                                    .replace("text-", "bg-")
-                                    .replace("-500", "-100")}`}
-                                >
-                                  <Car className={`h-6 w-6 ${getStatusColor(result.date)}`} />
-                                </div>
-                                <div className="flex-1">
-                                  <div className="flex justify-between items-start">
-                                    <div>
-                                      <h3 className="font-semibold text-gray-900 flex items-center">
-                                        {result.vehicle?.brand} {result.vehicle?.model}
-                                        <span
-                                          className={`ml-2 text-xs px-2 py-0.5 rounded-full ${getStatusColor(result.date)
-                                            .replace("text-", "bg-")
-                                            .replace("-500", "-100")} ${getStatusColor(result.date)}`}
-                                        >
-                                          {getStatusText(result.date)}
+                    {/* Bouton "Rechercher" */}
+                    <button
+                      onClick={handleSearch}
+                      disabled={isLoading}
+                      className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-all duration-200 flex items-center justify-center relative overflow-hidden"
+                    >
+                      {isLoading ? (
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                      ) : (
+                        <>
+                          <Search className="h-4 w-4 mr-1" />
+                          Rechercher
+                        </>
+                      )}
+                    </button>
+
+                    {/* Bouton reset si besoin (facultatif) */}
+                    {searchQuery && !isLoading && (
+                      <button
+                        type="button"
+                        onClick={() => setSearchQuery("")}
+                        className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Message d'erreur */}
+                  {error && (
+                    <div
+                      className="mt-3 p-4 bg-gradient-to-r from-red-50 to-red-100 border-l-4 border-red-500 rounded-lg shadow-sm flex items-center justify-between opacity-0 animate-errorIn"
+                      style={{
+                        animation: "errorIn 0.3s ease-out forwards",
+                      }}
+                    >
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                          <AlertCircle className="h-5 w-5 text-red-500" />
+                        </div>
+                        <div className="ml-3">
+                          <p className="text-sm font-medium text-red-800">{error}</p>
+                          <p className="mt-1 text-sm text-red-700">Veuillez réessayer avec des données valides</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setError("")}
+                        className="ml-4 flex-shrink-0 flex"
+                      >
+                        <X className="h-5 w-5 text-red-500 hover:text-red-700 transition-colors" />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Liste des résultats */}
+                  {searchResults.length > 0 && (
+                    <div
+                      className="absolute w-full bg-white border rounded-xl shadow-xl max-h-[70vh] overflow-y-auto z-50 opacity-0 translate-y-[10px] animate-resultsIn"
+                      style={{
+                        animation: "resultsIn 0.3s ease-out forwards",
+                      }}
+                    >
+                      {/* En-tête sticky des résultats (nombre de résultats, etc.) */}
+                      <div className="sticky top-0 bg-white p-3 border-b flex justify-between items-center z-20">
+                        <div className="flex flex-col">
+                          <span className="font-semibold text-gray-800">
+                            {searchResults.length} résultat{searchResults.length > 1 ? "s" : ""}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {searchType === "date"
+                              ? `Recherche par date: ${moment(searchQuery).format("DD/MM/YYYY")}`
+                              : `Recherche par véhicule: ID ${searchQuery}`}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => setSearchResults([])}
+                          className="text-gray-500 hover:text-gray-700 p-2 rounded-full hover:bg-gray-100 transition-colors"
+                        >
+                          <X className="h-5 w-5" />
+                        </button>
+                      </div>
+
+                      {/* Contenu des résultats */}
+                      <div className="p-2">
+                        {Object.entries(groupedResults).map(([date, results]) => (
+                          <div key={date} className="mb-2 bg-white rounded-lg overflow-hidden">
+                            <div className="bg-gray-50 px-3 py-2 flex items-center justify-between border-b">
+                              <div className="flex items-center">
+                                <CalendarDays className="h-5 w-5 mr-2 text-indigo-500" />
+                                <span className="font-medium text-gray-800">{date}</span>
+                                <span className="ml-2 text-xs px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full">
+                                  {results.length} rendez-vous
+                                </span>
+                              </div>
+                              <span className="text-xs text-gray-500">{moment(date, "DD/MM/YYYY").format("dddd")}</span>
+                            </div>
+
+                            {results.map((result, index) => (
+                              <div
+                                key={result.id}
+                                className={`p-3 hover:bg-gray-50 transition-colors cursor-pointer border-b last:border-b-0 ${
+                                  selectedResult === index ? "bg-indigo-50" : ""
+                                }`}
+                                onClick={() => setSelectedResult(index)}
+                              >
+                                <div className="flex items-start">
+                                  <div
+                                    className={`p-3 rounded-lg mr-3 ${getStatusColor(result.date)
+                                      .replace("text-", "bg-")
+                                      .replace("-500", "-100")}`}
+                                  >
+                                    <Car className={`h-6 w-6 ${getStatusColor(result.date)}`} />
+                                  </div>
+                                  <div className="flex-1">
+                                    <div className="flex justify-between items-start">
+                                      <div>
+                                        <h3 className="font-semibold text-gray-900 flex items-center">
+                                          {result.vehicle?.brand} {result.vehicle?.model}
+                                          <span
+                                            className={`ml-2 text-xs px-2 py-0.5 rounded-full ${getStatusColor(result.date)
+                                              .replace("text-", "bg-")
+                                              .replace("-500", "-100")} ${getStatusColor(result.date)}`}
+                                          >
+                                            {getStatusText(result.date)}
+                                          </span>
+                                        </h3>
+                                        <div className="flex items-center mt-1 text-sm text-gray-600">
+                                          <Tag className="h-4 w-4 mr-1 text-gray-400" />
+                                          <span>ID: {result.id}</span>
+                                        </div>
+                                      </div>
+                                      <div className="flex flex-col items-end">
+                                        <span className="text-sm font-medium text-gray-900 flex items-center">
+                                          <Clock className="h-4 w-4 mr-1 text-indigo-500" />
+                                          {moment(result.date).format("HH:mm")}
                                         </span>
-                                      </h3>
-                                      <div className="flex items-center mt-1 text-sm text-gray-600">
-                                        <Tag className="h-4 w-4 mr-1 text-gray-400" />
-                                        <span>ID: {result.id}</span>
+                                        <span className="text-xs text-gray-500 mt-1">
+                                          {moment(result.date).fromNow()}
+                                        </span>
                                       </div>
                                     </div>
-                                    <div className="flex flex-col items-end">
-                                      <span className="text-sm font-medium text-gray-900 flex items-center">
-                                        <Clock className="h-4 w-4 mr-1 text-indigo-500" />
-                                        {moment(result.date).format("HH:mm")}
-                                      </span>
-                                      <span className="text-xs text-gray-500 mt-1">
-                                        {moment(result.date).fromNow()}
-                                      </span>
-                                    </div>
-                                  </div>
 
-                                  <div className="mt-2 flex items-center justify-between">
-                                    <div className="flex items-center text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
-                                      <Wrench className="h-4 w-4 mr-2 text-gray-500" />
-                                      {result.service?.name || "Service non spécifié"}
+                                    <div className="mt-2 flex items-center justify-between">
+                                      <div className="flex items-center text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
+                                        <Wrench className="h-4 w-4 mr-2 text-gray-500" />
+                                        {result.service?.name || "Service non spécifié"}
+                                      </div>
+                                      <button className="text-xs bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-full hover:bg-indigo-200 transition-colors flex items-center font-medium">
+                                        Voir détails <ChevronRight className="h-3 w-3 ml-1" />
+                                      </button>
                                     </div>
-                                    <button className="text-xs bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-full hover:bg-indigo-200 transition-colors flex items-center font-medium">
-                                      Voir détails <ChevronRight className="h-3 w-3 ml-1" />
-                                    </button>
                                   </div>
                                 </div>
                               </div>
-                            </div>
-                          ))}
-                        </div>
-                      ))}
-                    </div>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
 
-                    {/* Bouton de fermeture en bas */}
-                    <div className="p-3 border-t sticky bottom-0 bg-white">
-                      <button
-                        onClick={() => setSearchResults([])}
-                        className="w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors flex items-center justify-center font-medium"
-                      >
-                        <X className="h-4 w-4 mr-2" />
-                        Fermer les résultats
-                      </button>
+                      {/* Bouton de fermeture en bas */}
+                      <div className="p-3 border-t sticky bottom-0 bg-white">
+                        <button
+                          onClick={() => setSearchResults([])}
+                          className="w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors flex items-center justify-center font-medium"
+                        >
+                          <X className="h-4 w-4 mr-2" />
+                          Fermer les résultats
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
-            </div>
 
-            {/* Bouton de fermeture sur mobile */}
-            <button className="ml-2 md:hidden" onClick={() => setIsSearchOpen(false)}>
-              <X className="h-6 w-6 text-gray-500" />
-            </button>
-          </div>
+              {/* Bouton de fermeture sur mobile */}
+              <button className="ml-2 md:hidden" onClick={() => setIsSearchOpen(false)}>
+                <X className="h-6 w-6 text-gray-500" />
+              </button>
+            </div>
+          )}
 
           {/* Icônes de notifications, messages, profil */}
-          <div className="flex items-center">
+          <div className="flex items-center ml-auto">
             <button
               className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 md:hidden"
               onClick={() => setIsSearchOpen(!isSearchOpen)}
@@ -719,11 +718,11 @@ const Navbar = () => {
                               {(notification.type === 'Intervention commance' || notification.type === 'Intervention commencer') && <Wrench className="h-6 w-6 text-yellow-400" />}
                               {notification.type === 'Intervention progresser' && <Loader2 className="h-6 w-6 text-orange-400 animate-spin-slow" />}
                               {notification.type === 'Intervention completer' && <CheckCircle className="h-6 w-6 text-green-400" />}
+                              {notification.type === 'Stock Alert' && <AlertCircle className="h-6 w-6 text-orange-400" />}
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between">
                                 <span className="font-semibold text-gray-900">
-                                  {/* Message principal selon le type */}
                                   {(notification.type === 'Appointment Created') && 'Nouveau rendez-vous créé'}
                                   {(notification.type === 'Appointment Annuler') && 'Votre rendez-vous a été annulé'}
                                   {(notification.type === 'Appointment accepter') && 'Votre rendez-vous a été accepté'}
@@ -742,6 +741,17 @@ const Navbar = () => {
                                         ? `Votre intervention est terminée le ${moment(notification.createdAt).locale('fr').format('DD/MM/YYYY à HH:mm')}`
                                         : "Votre intervention est terminée (date inconnue)"
                                   )}
+                                  {notification.type === 'Stock Alert' && notification.message}
+                                  {![
+                                    'Appointment Created',
+                                    'Appointment Annuler',
+                                    'Appointment accepter',
+                                    'Intervention commance',
+                                    'Intervention commencer',
+                                    'Intervention progresser',
+                                    'Intervention completer',
+                                    'Stock Alert'
+                                  ].includes(notification.type) && notification.message}
                                 </span>
                                 {/* Badge de statut */}
                                 <span className={`ml-2 px-2 py-0.5 text-xs font-medium rounded-full border ${
@@ -751,6 +761,7 @@ const Navbar = () => {
                                   (notification.type === 'Intervention commance' || notification.type === 'Intervention commencer') ? 'bg-yellow-50 text-yellow-700 border-yellow-100' :
                                   notification.type === 'Intervention progresser' ? 'bg-orange-50 text-orange-700 border-orange-100' :
                                   notification.type === 'Intervention completer' ? 'bg-green-50 text-green-700 border-green-100' :
+                                  notification.type === 'Stock Alert' ? 'bg-orange-50 text-orange-700 border-orange-100' :
                                   'bg-gray-50 text-gray-700 border-gray-100'
                                 }`}>
                                   {notification.type === 'Appointment Created' && 'Créé'}
@@ -759,6 +770,7 @@ const Navbar = () => {
                                   {(notification.type === 'Intervention commance' || notification.type === 'Intervention commencer') && 'En cours'}
                                   {notification.type === 'Intervention progresser' && 'En progression'}
                                   {notification.type === 'Intervention completer' && 'Terminé'}
+                                  {notification.type === 'Stock Alert' && 'Alerte stock'}
                                 </span>
                               </div>
                               <div className="flex items-center mt-1 space-x-2">
@@ -820,8 +832,6 @@ const Navbar = () => {
                 )}
               </div>
             )}
-
-          
 
             <div className="ml-3 relative">
               <button

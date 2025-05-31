@@ -59,20 +59,25 @@ const EventList = ({ events, handleDeleteConfirmation }: EventListProps) => {
       const data = await response.json()
       console.log('Données reçues:', data)
 
-      // Convert string dates to Date objects
-      const formattedEvents = data.map((event: any) => ({
-        id: event.id,
-        title: `${event.vehicle.brand} ${event.vehicle.model} - ${event.vehicle.registration} - ${event.service?.name || ''}`,
-        vehicleName: `${event.vehicle.brand} ${event.vehicle.model} `,
-        start: new Date(event.date),
-        end: new Date(event.date),
-        status: event.status,
-        service: event.service?.name,
-        vehicle: event.vehicle,
-        vehicleBrand: event.vehicle.brand,
-        vehicleModel: event.vehicle.model,
-        className: event.service?.name?.toLowerCase().includes('lavage') ? 'washing-event' : 'maintenance-event'
-      }))
+      // Convert string dates to Date objects and sort by date
+      const formattedEvents = data
+        .map((event: any) => ({
+          id: event.id,
+          title: `${event.vehicle.brand} ${event.vehicle.model} - ${event.vehicle.registration} - ${event.service?.name || ''}`,
+          vehicleName: `${event.vehicle.brand} ${event.vehicle.model} `,
+          start: new Date(event.date),
+          end: new Date(event.date),
+          status: event.status,
+          service: event.service?.name,
+          vehicle: event.vehicle,
+          vehicleBrand: event.vehicle.brand,
+          vehicleModel: event.vehicle.model,
+          className: event.service?.name?.toLowerCase().includes('lavage') ? 'washing-event' : 'maintenance-event'
+        }))
+        .sort((a: CalendarEvent, b: CalendarEvent) => {
+          // Trier par date décroissante (les plus récents en premier)
+          return b.start.getTime() - a.start.getTime()
+        })
 
       setEvents(formattedEvents)
       console.log('Events formatés:', formattedEvents)
@@ -180,7 +185,7 @@ const EventList = ({ events, handleDeleteConfirmation }: EventListProps) => {
                       <h3 className="text-lg font-semibold flex-1">{event.title}</h3>
                       {/* Boutons d'action à droite du titre */}
                       <div className="flex gap-2 ml-2">
-                        {event.status === 'CANCELLED' ? (
+                        {event.status === 'CANCELLED' || event.status === 'COMPLETED' ? (
                           <>
                             <span title="Action non disponible" className="flex items-center justify-center rounded-full p-3 text-gray-400 cursor-not-allowed">
                               <Edit size={18} />
@@ -192,7 +197,7 @@ const EventList = ({ events, handleDeleteConfirmation }: EventListProps) => {
                               <Eye size={18} />
                             </span>
                           </>
-                        ) : (event.status === 'COMPLETED' || event.status === 'IN_PROGRESS' || event.status === 'RESERVED') ? (
+                        ) : event.status === 'IN_PROGRESS' ? (
                           <>
                             <span title="Action non disponible" className="flex items-center justify-center rounded-full p-3 text-gray-400 cursor-not-allowed">
                               <Edit size={18} />
@@ -207,6 +212,48 @@ const EventList = ({ events, handleDeleteConfirmation }: EventListProps) => {
                             >
                               <Eye size={18} />
                             </button>
+                          </>
+                        ) : event.status === 'RESERVED' ? (
+                          <>
+                            <span title="Action non disponible" className="flex items-center justify-center rounded-full p-3 text-gray-400 cursor-not-allowed">
+                              <Edit size={18} />
+                            </span>
+                            <button
+                              onClick={() => confirmDelete(event.id)}
+                              className="flex items-center justify-center bg-red-400 hover:bg-red-500 text-white rounded-full p-3 shadow transition-transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-red-300"
+                              title="Supprimer"
+                              disabled={isLoading}
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                            <button
+                              onClick={() => (window.location.href = `/progress/vehicle-progress-client`)}
+                              className="flex items-center justify-center bg-blue-400 hover:bg-blue-500 text-white rounded-full p-3 shadow transition-transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                              title="Voir"
+                            >
+                              <Eye size={18} />
+                            </button>
+                          </>
+                        ) : event.status === 'PENDING' ? (
+                          <>
+                            <button
+                              onClick={() => handleEditClick(event.id)}
+                              className="flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-500 hover:from-purple-600 hover:to-indigo-600 text-white rounded-full p-3 shadow transition-transform hover:shadow-xl hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-purple-400"
+                              title="Modifier"
+                            >
+                              <Edit size={18} />
+                            </button>
+                            <button
+                              onClick={() => confirmDelete(event.id)}
+                              className="flex items-center justify-center bg-red-400 hover:bg-red-500 text-white rounded-full p-3 shadow transition-transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-red-300"
+                              title="Supprimer"
+                              disabled={isLoading}
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                            <span title="Action non disponible" className="flex items-center justify-center rounded-full p-3 text-gray-400 cursor-not-allowed">
+                              <Eye size={18} />
+                            </span>
                           </>
                         ) : (
                           <>
@@ -244,7 +291,8 @@ const EventList = ({ events, handleDeleteConfirmation }: EventListProps) => {
                         <CalendarIcon className="w-4 h-4" /> {moment(event.start).format('DD/MM/YYYY')}
                       </span>
                       <span className="flex items-center gap-1">
-                        <Clock className="w-4 h-4" /> {moment(event.start).format('HH:mm')}
+                        <Clock className="w-4 h-4" /> {moment(event.start).subtract(1, 'hours').format('HH:mm')}
+
                       </span>
                     </div>
                     {/* Statut et service sous les infos du rendez-vous */}

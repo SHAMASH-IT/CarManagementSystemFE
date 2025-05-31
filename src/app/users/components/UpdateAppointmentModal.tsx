@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import moment from 'moment'
 import { toast } from 'react-toastify'
+import { Clock } from 'lucide-react'
 
 import type { CalendarEvent } from '../../types/index'
 
@@ -22,6 +23,7 @@ const UpdateAppointmentModal = ({
   const [appointment, setAppointment] = useState<CalendarEvent | null>(null)
   const [date, setDate] = useState('')
   const [time, setTime] = useState('')
+  const [selectedTime, setSelectedTime] = useState('')
   const [currentLocationId, setCurrentLocationId] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
@@ -57,7 +59,10 @@ const UpdateAppointmentModal = ({
 
       const appointmentDate = moment(appointmentData.date)
       setDate(appointmentDate.format('YYYY-MM-DD'))
-      setTime(appointmentDate.format('HH:mm'))
+
+      const timeMinusOneHour = appointmentDate.clone().subtract(1, 'hours').format('HH:mm')
+      setTime(timeMinusOneHour)
+      setSelectedTime(timeMinusOneHour)
     } catch (err) {
       console.error('Error fetching appointment details:', err)
       setError('Impossible de récupérer les détails du rendez-vous')
@@ -66,14 +71,36 @@ const UpdateAppointmentModal = ({
     }
   }
 
+  const generateTimeSlots = () => {
+    const slots = []
+    for (let hour = 8; hour <= 18; hour++) {
+      if (hour < 18) {
+        const timeString = `${hour.toString().padStart(2, "0")}:00`
+        slots.push({ value: timeString, display: `${hour}h00` })
+      }
+      
+    }
+    slots.push({ value: "18:00", display: "18h00" })
+    return slots
+  }
+
+  const timeSlots = generateTimeSlots()
+
+  const handleTimeSelect = (timeValue: string) => {
+    setSelectedTime(timeValue)
+    setTime(timeValue)
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     setError('')
 
     try {
-      // Création de la date locale au format ISO sans "Z"
-      const dateTime = moment(`${date} ${time}`, 'YYYY-MM-DD HH:mm').format('YYYY-MM-DDTHH:mm:ss')
+      // Envoi de selectedTime + 1h au format ISO local sans "Z"
+      const dateTime = moment(`${date} ${selectedTime}`, 'YYYY-MM-DD HH:mm')
+        .add(1, 'hours')
+        .format('YYYY-MM-DDTHH:mm:ss')
 
       const response = await fetch(`${API_URL}/appointments/update/${appointmentId}`, {
         method: 'PATCH',
@@ -133,17 +160,34 @@ const UpdateAppointmentModal = ({
             </div>
 
             <div className='mb-6'>
-              <label htmlFor='time' className='block text-sm font-medium text-gray-700 mb-1'>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Heure
               </label>
-              <input
-                type='time'
-                id='time'
-                value={time}
-                onChange={e => setTime(e.target.value)}
-                className='w-full px-3 py-2 border border-gray-300 rounded-md'
-                required
-              />
+              <div className="grid grid-cols-5 sm:grid-cols-8 gap-1 max-h-52 overflow-y-auto p-1 border border-gray-200 rounded-2xl bg-gray-50">
+                {timeSlots.map((slot) => (
+                  <button
+                    key={slot.value}
+                    type="button"
+                    onClick={() => handleTimeSelect(slot.value)}
+                    className={
+                      `flex flex-col items-center justify-center gap-0.5 px-2 py-1 rounded-full text-xs font-medium transition-all duration-200 shadow-sm border-2 ` +
+                      (selectedTime === slot.value
+                        ? "bg-gradient-to-br from-blue-500 to-indigo-500 text-white border-blue-500 shadow-lg scale-105"
+                        : "bg-white text-gray-800 border-gray-200 hover:shadow-blue-200 hover:shadow-lg hover:scale-105 hover:border-blue-400") +
+                      " focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1 active:scale-95"
+                    }
+                    style={{ minWidth: 0 }}
+                  >
+                    <Clock className={selectedTime === slot.value ? "h-3 w-3 mb-0.5 text-white" : "h-3 w-3 mb-0.5 text-blue-500"} />
+                    <span>{slot.display}</span>
+                  </button>
+                ))}
+              </div>
+              {selectedTime && (
+                <p className="mt-4 text-base text-gray-700">
+                  Heure sélectionnée : <span className="font-bold text-blue-600">{selectedTime}</span>
+                </p>
+              )}
             </div>
 
             <div className='flex justify-end space-x-3'>

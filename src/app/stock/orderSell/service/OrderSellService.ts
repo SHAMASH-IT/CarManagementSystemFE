@@ -42,6 +42,7 @@ export interface Order {
   orderPieces?: OrderPiece[];
   total?: number;
   discount?: Discount;
+  discountType?: 'percentage' | 'fixed';
 }
 
 export interface InvoiceItem {

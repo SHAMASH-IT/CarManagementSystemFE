@@ -43,7 +43,7 @@ function TabPanel(props: TabPanelProps) {
       aria-labelledby={`simple-tab-${index}`}
       {...other}
     >
-      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+      {value === index && <Box sx={{ p: 0 }}>{children}</Box>}
     </div>
   );
 }
@@ -77,9 +77,9 @@ function OrderSellContent() {
   }
 
   return (
-    <Container maxWidth="lg">
-      <Box sx={{ width: '100%' }}>
-        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+    <Container maxWidth={false} disableGutters>
+      <Box sx={{ width: '100%', px: 5 }}>
+        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3, px: 2 }}>
           <Tabs value={tabValue} onChange={handleTabChange}>
             <Tab label="Liste des Ventes" />
             <Tab label="Nouvelle Vente" />

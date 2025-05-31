@@ -29,7 +29,8 @@ export const useAuth = () => {
       }else if (userData.role === 'PROVIDER'){
         router.push('/appointments');
       }else{
-        router.push('/appointments');
+        // Redirection de l'administrateur vers la page de gestion des utilisateurs
+        router.push('/admin/users');
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Une erreur est survenue');
