@@ -169,146 +169,154 @@ const AddStockModal = ({ isOpen, onClose, onAddSuccess }: AddStockModalProps) =>
     <Modal
       isOpen={isOpen}
       onRequestClose={onClose}
-      className="relative w-full max-w-lg mx-auto p-8 bg-white rounded-xl shadow-2xl animate-fadeIn"
+      className="relative w-full max-w-4xl mx-auto p-6 bg-white rounded-2xl shadow-2xl animate-fadeIn"
       overlayClassName="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center backdrop-blur-sm"
     >
       {showSuccess ? (
         <div className="flex flex-col items-center justify-center space-y-4 py-8">
-          <CheckCircle className="text-green-500" size={64} />
+          <CheckCircle className="text-emerald-500" size={64} />
           <h2 className="text-2xl font-bold text-gray-800">Pièce ajoutée avec succès !</h2>
           <p className="text-gray-600">La pièce a été ajoutée à votre stock.</p>
         </div>
       ) : (
         <>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold text-gray-800">Ajouter une nouvelle pièce</h2>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Ajouter une nouvelle pièce</h2>
             <button
               onClick={onClose}
-              className="text-gray-500 hover:text-gray-700 transition-colors"
+              className="text-gray-500 hover:text-gray-700 transition-colors p-2 hover:bg-gray-100 rounded-full"
             >
               <X size={24} />
             </button>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Nom */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-600">Nom de la pièce</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 shadow focus:ring focus:ring-blue-200 focus:border-blue-500 transition-all"
-                placeholder="Entrez le nom"
-                required
-              />
-              {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
-            </div>
+            <div className="grid grid-cols-2 gap-6">
+              {/* Colonne gauche */}
+              <div className="space-y-5">
+                {/* Nom */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-gray-700">Nom de la pièce</label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-200 focus:border-blue-500 transition-all text-gray-700"
+                    placeholder="Entrez le nom"
+                    required
+                  />
+                  {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+                </div>
 
-            {/* Marque */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-600">Marque</label>
-              <input
-                type="text"
-                value={marque}
-                onChange={(e) => setMarque(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 shadow focus:ring focus:ring-blue-200 focus:border-blue-500 transition-all"
-                placeholder="Entrez la marque"
-                required
-              />
-              {errors.marque && <p className="text-red-500 text-sm">{errors.marque}</p>}
-            </div>
+                {/* Marque */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-gray-700">Marque</label>
+                  <input
+                    type="text"
+                    value={marque}
+                    onChange={(e) => setMarque(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-200 focus:border-blue-500 transition-all text-gray-700"
+                    placeholder="Entrez la marque"
+                    required
+                  />
+                  {errors.marque && <p className="text-red-500 text-sm mt-1">{errors.marque}</p>}
+                </div>
 
-            {/* Stock */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-600">Quantité en stock</label>
-              <input
-                type="number"
-                value={stock}
-                onChange={(e) => setStock(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 shadow focus:ring focus:ring-blue-200 focus:border-blue-500 transition-all"
-                placeholder="Quantité disponible"
-                required
-              />
-              {errors.stock && <p className="text-red-500 text-sm">{errors.stock}</p>}
-            </div>
+                {/* Stock */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-gray-700">Quantité en stock</label>
+                  <input
+                    type="number"
+                    value={stock}
+                    onChange={(e) => setStock(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-200 focus:border-blue-500 transition-all text-gray-700"
+                    placeholder="Quantité disponible"
+                    required
+                  />
+                  {errors.stock && <p className="text-red-500 text-sm mt-1">{errors.stock}</p>}
+                </div>
 
-            {/* Seuil */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-600">Seuil d'alerte</label>
-              <input
-                type="number"
-                value={threshold}
-                onChange={(e) => setThreshold(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 shadow focus:ring focus:ring-blue-200 focus:border-blue-500 transition-all"
-                placeholder="Seuil minimal d'alerte"
-                required
-              />
-              {errors.threshold && <p className="text-red-500 text-sm">{errors.threshold}</p>}
-            </div>
+                {/* Seuil */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-gray-700">Seuil d'alerte</label>
+                  <input
+                    type="number"
+                    value={threshold}
+                    onChange={(e) => setThreshold(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-200 focus:border-blue-500 transition-all text-gray-700"
+                    placeholder="Seuil minimal d'alerte"
+                    required
+                  />
+                  {errors.threshold && <p className="text-red-500 text-sm mt-1">{errors.threshold}</p>}
+                </div>
+              </div>
 
-            {/* Prix Initial */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-600">Prix Initial (DT)</label>
-              <input
-                type="number"
-                step="0.01"
-                value={initialPrice}
-                onChange={(e) => setInitialPrice(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 shadow focus:ring focus:ring-blue-200 focus:border-blue-500 transition-all"
-                placeholder="Prix initial (DT)"
-                required
-              />
-              {errors.initialPrice && <p className="text-red-500 text-sm">{errors.initialPrice}</p>}
-            </div>
+              {/* Colonne droite */}
+              <div className="space-y-5">
+                {/* Prix Initial */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-gray-700">Prix Initial (DT)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={initialPrice}
+                    onChange={(e) => setInitialPrice(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-200 focus:border-blue-500 transition-all text-gray-700"
+                    placeholder="Prix initial (DT)"
+                    required
+                  />
+                  {errors.initialPrice && <p className="text-red-500 text-sm mt-1">{errors.initialPrice}</p>}
+                </div>
 
-            {/* Prix */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-600">Prix de Vente (DT)</label>
-              <input
-                type="number"
-                step="0.01"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 shadow focus:ring focus:ring-blue-200 focus:border-blue-500 transition-all"
-                placeholder="Prix de vente (DT)"
-                required
-              />
-              {errors.price && <p className="text-red-500 text-sm">{errors.price}</p>}
-            </div>
+                {/* Prix */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-gray-700">Prix de Vente (DT)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-200 focus:border-blue-500 transition-all text-gray-700"
+                    placeholder="Prix de vente (DT)"
+                    required
+                  />
+                  {errors.price && <p className="text-red-500 text-sm mt-1">{errors.price}</p>}
+                </div>
 
-            {/* Catégorie */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-600">Catégorie</label>
-              <select
-                value={categoryId}
-                onChange={(e) => setCategoryId(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 shadow focus:ring focus:ring-blue-200 focus:border-blue-500 transition-all"
-                required
-              >
-                <option value="">Sélectionnez une catégorie</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
-              {errors.categoryId && <p className="text-red-500 text-sm">{errors.categoryId}</p>}
+                {/* Catégorie */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-gray-700">Catégorie</label>
+                  <select
+                    value={categoryId}
+                    onChange={(e) => setCategoryId(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-200 focus:border-blue-500 transition-all text-gray-700"
+                    required
+                  >
+                    <option value="">Sélectionnez une catégorie</option>
+                    {categories.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.categoryId && <p className="text-red-500 text-sm mt-1">{errors.categoryId}</p>}
+                </div>
+              </div>
             </div>
 
             {/* Boutons */}
-            <div className="flex justify-end space-x-3">
+            <div className="flex justify-end space-x-4 pt-6">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 hover:text-gray-800 transition-all shadow"
+                className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 hover:text-gray-800 transition-all shadow-sm font-medium"
               >
                 Annuler
               </button>
               <button
                 type="submit"
                 disabled={isLoading}
-                className="px-6 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg shadow-md hover:from-blue-600 hover:to-indigo-600 transition-all disabled:opacity-50"
+                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl shadow-md hover:from-blue-700 hover:to-indigo-700 transition-all disabled:opacity-50 font-medium"
               >
                 {isLoading ? 'Ajout...' : 'Ajouter'}
               </button>
@@ -320,4 +328,4 @@ const AddStockModal = ({ isOpen, onClose, onAddSuccess }: AddStockModalProps) =>
   )
 }
 
-export default AddStockModal
+export default AddStockModal

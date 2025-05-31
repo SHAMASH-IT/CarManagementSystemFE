@@ -216,40 +216,33 @@ const ParkingManagement: React.FC = () => {
     <div className="p-4 bg-gray-50 min-h-screen">
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-blue-800 flex items-center">
-            <FaParking className="mr-2" /> Gestion des Parkings
-
-            
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent flex items-center">
+            <FaParking className="mr-2 text-blue-600" /> Gestion des Parkings
           </h1>
           {userRole === 'ADMIN' && (
             <button
               onClick={() => setShowAddForm(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
             >
-              <FaPlus /> Ajouter un parking
+              Ajouter un parking
             </button>
           )}
         </div>
 
         {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">{error}</div>}
 
-
-        <div className="bg-white shadow-lg rounded-xl p-6">
-        <h2 className="text-2xl font-bold text-blue-800 mb-4">Vue d’ensemble des parkings</h2>
-        <div className="bg-white shadow-lg rounded-xl p-6 mt-6">
-          <h2 className="text-2xl font-bold text-blue-800 mb-4"></h2>
-          
-          <div className="grid grid-cols-2 gap-8">
-            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
-              <div className="flex items-center space-x-3">
-                <div className="bg-white p-3 rounded-lg shadow-sm">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="bg-white shadow-sm rounded-xl p-3">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-2 border border-green-200">
+              <div className="flex items-center space-x-2">
+                <div className="bg-white p-1.5 rounded-lg shadow-sm">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-green-800">Places Disponibles</p>
-                  <p className="text-2xl font-bold text-green-700">
+                  <p className="text-xl font-bold text-green-700">
                     {parkings.reduce((total, parking) => 
                       total + parking.locations.filter(loc => loc.status === 'EMPTY').length, 0
                     )}
@@ -258,16 +251,16 @@ const ParkingManagement: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-4 border border-red-200">
-              <div className="flex items-center space-x-3">
-                <div className="bg-white p-3 rounded-lg shadow-sm">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-2 border border-red-200">
+              <div className="flex items-center space-x-2">
+                <div className="bg-white p-1.5 rounded-lg shadow-sm">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-red-800">Places Occupées</p>
-                  <p className="text-2xl font-bold text-red-700">
+                  <p className="text-xl font-bold text-red-700">
                     {parkings.reduce((total, parking) => 
                       total + parking.locations.filter(loc => loc.status === 'OCCUPIED').length, 0
                     )}
@@ -276,11 +269,10 @@ const ParkingManagement: React.FC = () => {
               </div>
             </div>
           </div>
-        </div><br></br>
+        </div>
+        <div className="mt-6">
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent mb-4">Liste des parkings</h2>
           
-          <h2 className="text-2xl font-bold text-blue-800 mb-4">Liste des parkings</h2><br></br>
-          
-
           {loading ? (
             <div className="flex justify-center items-center py-8">
               <FaSpinner className="animate-spin text-4xl text-blue-800" />
@@ -406,8 +398,6 @@ const ParkingManagement: React.FC = () => {
             </>
           )}
         </div>
-
-       
       </div>
 
       {editingParking && (
