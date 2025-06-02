@@ -75,4 +75,73 @@ export interface ServiceFinancialReport {
   last70Days: number;
   last90Days: number;
   year: number;
+}
+
+// Nouvelles interfaces pour la dashboard admin
+export interface Overview {
+  totalClients: number;
+  totalProviders: number;
+  totalVehicles: number;
+  totalRevenue: number;
+  last28DaysRevenue: number;
+  last70DaysRevenue: number;
+  last90DaysRevenue: number;
+  yearlyRevenue: number;
+}
+
+export interface ServiceStats {
+  serviceId: number;
+  serviceName: string;
+  totalAppointments: number;
+  completedAppointments: number;
+  revenue: number;
+  averageRating: number;
+  ratingCount: number;
+}
+
+export interface ProviderStats {
+  providerId: number;
+  providerName: string;
+  totalAppointments: number;
+  completedAppointments: number;
+  revenue: number;
+  averageRating: number;
+  ratingCount: number;
+}
+
+export interface AppointmentStats {
+  total: number;
+  completed: number;
+  pending: number;
+  cancelled: number;
+  inProgress: number;
+  reserved: number;
+  last28Days: number;
+  last70Days: number;
+  last90Days: number;
+}
+
+export interface LoyalClient {
+  clientId: number;
+  clientName: string;
+  appointmentCount: number;
+}
+
+export interface PeriodStats {
+  activeVehicles: number;
+  activeClients: number;
+  loyalClients: LoyalClient[];
+  period: {
+    startDate: string;
+    endDate: string;
+    days: number;
+  };
+}
+
+export interface AdminDashboardData {
+  overview: Overview;
+  services: ServiceStats[];
+  providers: ProviderStats[];
+  appointments: AppointmentStats;
+  periodStats: PeriodStats;
 } 

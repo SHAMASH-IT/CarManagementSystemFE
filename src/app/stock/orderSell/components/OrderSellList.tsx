@@ -31,6 +31,7 @@ import {
   TextField,
   InputAdornment,
   Divider,
+  TablePagination,
 } from "@mui/material"
 import {
   Receipt as ReceiptIcon,
@@ -233,6 +234,8 @@ export const OrderSellList = () => {
   const [orderTotals, setOrderTotals] = useState<Record<number, number>>({})
   const [signature, setSignature] = useState<string>("")
   const [companyStamp, setCompanyStamp] = useState<string>("")
+  const [page, setPage] = useState(0)
+  const [rowsPerPage, setRowsPerPage] = useState(3)
   const totalsRef = useRef<Record<number, number>>({})
   const invoiceRef = useRef<HTMLDivElement>(null)
 
@@ -495,6 +498,18 @@ export const OrderSellList = () => {
     return dateB - dateA
   })
 
+  // Paginer les commandes triées
+  const paginatedOrders = sortedOrders.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage)
+  }
+
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10))
+    setPage(0)
+  }
+
   if (isLoading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" p={5} minHeight="300px">
@@ -519,296 +534,326 @@ export const OrderSellList = () => {
 
   return (
     <>
-      <Card elevation={3} sx={{ borderRadius: 2, mb: 4, overflow: "visible" }}>
-        <Box
-          sx={{
-            bgcolor: "primary.main",
-            color: "primary.contrastText",
-            py: 2,
-            px: 3,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <ShoppingBag />
-            <Typography variant="h5" fontWeight="bold">
-              Liste des Ventes
-            </Typography>
-          </Box>
-          <Chip
-            label={`${orders.length} vente${orders.length > 1 ? "s" : ""}`}
-            color="default"
-            sx={{ bgcolor: "rgba(255,255,255,0.2)", color: "white" }}
-          />
-        </Box>
-
-        <CardContent sx={{ p: 3 }}>
-          <TextField
-            fullWidth
-            placeholder="Rechercher par numéro de commande..."
-            variant="outlined"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            sx={{ mb: 3 }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search color="action" />
-                </InputAdornment>
-              ),
-              endAdornment: searchTerm && (
-                <InputAdornment position="end">
-                  <IconButton size="small" onClick={() => setSearchTerm("")}>
-                    <Close fontSize="small" />
-                  </IconButton>
-                </InputAdornment>
-              ),
+      <Box sx={{ mb: 4 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+          <ShoppingBag sx={{ fontSize: 28, color: 'primary.main' }} />
+          <Typography
+            variant="h5"
+            sx={{
+              fontWeight: 'bold',
+              fontSize: '1.75rem',
+              background: 'linear-gradient(to right, #2563eb, #1e40af)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
             }}
-          />
+          >
+            Gestion des commandes
+          </Typography>
+        </Box>
+        <Card elevation={3} sx={{ borderRadius: 2, mb: 4, overflow: "visible" }}>
+          <Box
+            sx={{
+              bgcolor: "primary.main",
+              color: "primary.contrastText",
+              py: 2,
+              px: 3,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <ShoppingBag />
+              <Typography variant="h5" fontWeight="bold">
+                Liste des Ventes
+              </Typography>
+            </Box>
+            <Chip
+              label={`${orders.length} vente${orders.length > 1 ? "s" : ""}`}
+              color="default"
+              sx={{ bgcolor: "rgba(255,255,255,0.2)", color: "white" }}
+            />
+          </Box>
 
-          {sortedOrders.map((order) => {
-            // Calculer les valeurs pour chaque commande
-            const subtotal = calculateSubtotal(order)
-            const discountAmount = calculateDiscountAmount(order)
-            const total = calculateTotal(order)
+          <CardContent sx={{ p: 3 }}>
+            <TextField
+              fullWidth
+              placeholder="Rechercher par numéro de commande..."
+              variant="outlined"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              sx={{ mb: 3 }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search color="action" />
+                  </InputAdornment>
+                ),
+                endAdornment: searchTerm && (
+                  <InputAdornment position="end">
+                    <IconButton size="small" onClick={() => setSearchTerm("")}>
+                      <Close fontSize="small" />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
 
-            return (
-              <Paper
-                key={order.id}
-                elevation={1}
-                sx={{
-                  mb: 3,
-                  borderRadius: 2,
-                  overflow: "hidden",
-                  transition: "all 0.2s",
-                  "&:hover": {
-                    boxShadow: 3,
-                  },
-                }}
-              >
-                <Box
+            {paginatedOrders.map((order) => {
+              // Calculer les valeurs pour chaque commande
+              const subtotal = calculateSubtotal(order)
+              const discountAmount = calculateDiscountAmount(order)
+              const total = calculateTotal(order)
+
+              return (
+                <Paper
+                  key={order.id}
+                  elevation={1}
                   sx={{
-                    p: 2,
-                    display: "flex",
-                    flexDirection: { xs: "column", sm: "row" },
-                    alignItems: { xs: "flex-start", sm: "center" },
-                    justifyContent: "space-between",
-                    gap: 2,
-                    bgcolor: expandedOrderId === order.id ? "action.hover" : "background.paper",
-                    borderBottom: expandedOrderId === order.id ? "1px solid" : "none",
-                    borderColor: "divider",
+                    mb: 3,
+                    borderRadius: 2,
+                    overflow: "hidden",
+                    transition: "all 0.2s",
+                    "&:hover": {
+                      boxShadow: 3,
+                    },
                   }}
                 >
-                  <Grid container spacing={2} alignItems="center">
-                    <Grid item xs={12} sm={3}>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                        <Avatar sx={{ bgcolor: "primary.main", width: 40, height: 40 }}>
-                          <Tag />
-                        </Avatar>
-                        <Box>
-                          <Typography variant="subtitle1" fontWeight="medium">
-                            Commande #{order.id}
-                          </Typography>
-                          {order.clientInfo?.phone && (
-                            <Typography variant="caption" color="text.secondary">
-                              {order.clientInfo.phone}
+                  <Box
+                    sx={{
+                      p: 2,
+                      display: "flex",
+                      flexDirection: { xs: "column", sm: "row" },
+                      alignItems: { xs: "flex-start", sm: "center" },
+                      justifyContent: "space-between",
+                      gap: 2,
+                      bgcolor: expandedOrderId === order.id ? "action.hover" : "background.paper",
+                      borderBottom: expandedOrderId === order.id ? "1px solid" : "none",
+                      borderColor: "divider",
+                    }}
+                  >
+                    <Grid container spacing={2} alignItems="center">
+                      <Grid item xs={12} sm={3}>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                          <Avatar sx={{ bgcolor: "primary.main", width: 40, height: 40 }}>
+                            <Tag />
+                          </Avatar>
+                          <Box>
+                            <Typography variant="subtitle1" fontWeight="medium">
+                              Commande #{order.id}
                             </Typography>
-                          )}
+                            {order.clientInfo?.phone && (
+                              <Typography variant="caption" color="text.secondary">
+                                {order.clientInfo.phone}
+                              </Typography>
+                            )}
+                          </Box>
                         </Box>
-                      </Box>
-                    </Grid>
+                      </Grid>
 
-                    <Grid item xs={6} sm={2}>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                        <AttachMoney fontSize="small" color="action" />
-                        <Typography variant="body2" fontWeight="bold">
-                          {total.toFixed(2)} DT
-                        </Typography>
-                      </Box>
-                    </Grid>
+                      <Grid item xs={6} sm={2}>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                          <AttachMoney fontSize="small" color="action" />
+                          <Typography variant="body2" fontWeight="bold">
+                            {total.toFixed(2)} DT
+                          </Typography>
+                        </Box>
+                      </Grid>
 
-                    <Grid item xs={6} sm={2}>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                        <CalendarToday fontSize="small" color="action" />
-                        <Typography variant="body2">{new Date(order.date).toLocaleDateString()}</Typography>
-                      </Box>
-                    </Grid>
+                      <Grid item xs={6} sm={2}>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                          <CalendarToday fontSize="small" color="action" />
+                          <Typography variant="body2">{new Date(order.date).toLocaleDateString()}</Typography>
+                        </Box>
+                      </Grid>
 
-                    <Grid item xs={6} sm={2}>
-                      <Chip
-                        label={getStatusLabel(order.status)}
-                        color={getStatusColor(order.status) as any}
-                        size="small"
-                        sx={{ fontWeight: "medium" }}
-                      />
-                      {order.discount && order.discount.value > 0 && (
+                      <Grid item xs={6} sm={2}>
                         <Chip
-                          icon={<Discount fontSize="small" />}
-                          label={
-                            order.discount.type === "percentage"
-                              ? `${order.discount.value}%`
-                              : `${order.discount.value} DT`
-                          }
-                          color="secondary"
+                          label={getStatusLabel(order.status)}
+                          color={getStatusColor(order.status) as any}
                           size="small"
-                          sx={{ ml: 1, fontWeight: "medium" }}
+                          sx={{ fontWeight: "medium" }}
                         />
-                      )}
-                    </Grid>
+                        {order.discount && order.discount.value > 0 && (
+                          <Chip
+                            icon={<Discount fontSize="small" />}
+                            label={
+                              order.discount.type === "percentage"
+                                ? `${order.discount.value}%`
+                                : `${order.discount.value} DT`
+                            }
+                            color="secondary"
+                            size="small"
+                            sx={{ ml: 1, fontWeight: "medium" }}
+                          />
+                        )}
+                      </Grid>
 
-                    <Grid item xs={6} sm={3} sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}>
-                      {order.status === "RESERVED" && (
-                        <>
-                          <Tooltip title="Compléter la commande">
-                            <Button
-                              variant="contained"
-                              color="success"
-                              size="small"
-                              onClick={() => handleComplete(order.id)}
-                              disabled={isCompleting}
-                              startIcon={<CheckCircle />}
-                              sx={{ borderRadius: 2 }}
-                            >
-                              Compléter
-                            </Button>
-                          </Tooltip>
-                          <Tooltip title="Annuler la commande">
+                      <Grid item xs={6} sm={3} sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}>
+                        {order.status === "RESERVED" && (
+                          <>
+                            <Tooltip title="Compléter la commande">
+                              <Button
+                                variant="contained"
+                                color="success"
+                                size="small"
+                                onClick={() => handleComplete(order.id)}
+                                disabled={isCompleting}
+                                startIcon={<CheckCircle />}
+                                sx={{ borderRadius: 2 }}
+                              >
+                                Compléter
+                              </Button>
+                            </Tooltip>
+                            <Tooltip title="Annuler la commande">
+                              <Button
+                                variant="outlined"
+                                color="error"
+                                size="small"
+                                onClick={() => cancelOrder(order.id)}
+                                disabled={isCancelling}
+                                startIcon={<Cancel />}
+                                sx={{ borderRadius: 2 }}
+                              >
+                                Annuler
+                              </Button>
+                            </Tooltip>
+                          </>
+                        )}
+                        {order.status === "COMPLETED" && (
+                          <Tooltip title="Voir la facture">
                             <Button
                               variant="outlined"
-                              color="error"
+                              color="primary"
                               size="small"
-                              onClick={() => cancelOrder(order.id)}
-                              disabled={isCancelling}
-                              startIcon={<Cancel />}
+                              startIcon={<ReceiptIcon />}
+                              onClick={() => handleViewInvoice(order.id)}
+                              disabled={isGettingInvoice}
                               sx={{ borderRadius: 2 }}
                             >
-                              Annuler
+                              Facture
                             </Button>
                           </Tooltip>
-                        </>
-                      )}
-                      {order.status === "COMPLETED" && (
-                        <Tooltip title="Voir la facture">
-                          <Button
-                            variant="outlined"
-                            color="primary"
-                            size="small"
-                            startIcon={<ReceiptIcon />}
-                            onClick={() => handleViewInvoice(order.id)}
-                            disabled={isGettingInvoice}
-                            sx={{ borderRadius: 2 }}
-                          >
-                            Facture
-                          </Button>
-                        </Tooltip>
-                      )}
+                        )}
+                      </Grid>
                     </Grid>
-                  </Grid>
 
-                  <IconButton onClick={() => toggleOrderExpand(order.id)} size="small" sx={{ ml: "auto" }}>
-                    {expandedOrderId === order.id ? <ExpandLess /> : <ExpandMore />}
-                  </IconButton>
-                </Box>
+                    <IconButton onClick={() => toggleOrderExpand(order.id)} size="small" sx={{ ml: "auto" }}>
+                      {expandedOrderId === order.id ? <ExpandLess /> : <ExpandMore />}
+                    </IconButton>
+                  </Box>
 
-                <Collapse in={expandedOrderId === order.id}>
-                  <Box sx={{ p: 3, bgcolor: "background.default" }}>
-                    <Typography variant="subtitle2" gutterBottom sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <Info fontSize="small" color="primary" /> Détails de la commande
-                    </Typography>
+                  <Collapse in={expandedOrderId === order.id}>
+                    <Box sx={{ p: 3, bgcolor: "background.default" }}>
+                      <Typography variant="subtitle2" gutterBottom sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        <Info fontSize="small" color="primary" /> Détails de la commande
+                      </Typography>
 
-                    <TableContainer component={Paper} elevation={0} sx={{ mt: 2 }}>
-                      <Table size="small">
-                        <TableHead>
-                          <TableRow>
-                            <TableCell>Pièce</TableCell>
-                            <TableCell align="center">Quantité</TableCell>
-                            <TableCell align="right">Prix unitaire</TableCell>
-                            <TableCell align="right">Sous-total</TableCell>
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {order.orderPieces?.map((op, index) => {
-                            const pieceName = op.piece?.name || `Pièce #${op.pieceId}`
-                            const piecePrice = op.piece?.price !== undefined ? Number(op.piece.price) : 0
-                            const quantity = op.quantity || 0
-                            const subtotal = piecePrice * quantity
+                      <TableContainer component={Paper} elevation={0} sx={{ mt: 2 }}>
+                        <Table size="small">
+                          <TableHead>
+                            <TableRow>
+                              <TableCell>Pièce</TableCell>
+                              <TableCell align="center">Quantité</TableCell>
+                              <TableCell align="right">Prix unitaire</TableCell>
+                              <TableCell align="right">Sous-total</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {order.orderPieces?.map((op, index) => {
+                              const pieceName = op.piece?.name || `Pièce #${op.pieceId}`
+                              const piecePrice = op.piece?.price !== undefined ? Number(op.piece.price) : 0
+                              const quantity = op.quantity || 0
+                              const subtotal = piecePrice * quantity
 
-                            return (
-                              <TableRow key={index}>
-                                <TableCell>{pieceName}</TableCell>
-                                <TableCell align="center">{quantity}</TableCell>
-                                <TableCell align="right">{piecePrice.toFixed(2)} DT</TableCell>
-                                <TableCell align="right">{subtotal.toFixed(2)} DT</TableCell>
-                              </TableRow>
-                            )
-                          })}
-
-                          {/* Calculer et afficher le sous-total, la remise et le total */}
-                          {(() => {
-                            const subtotal =
-                              order.orderPieces?.reduce((total, op) => {
-                                const piecePrice = op.piece?.price !== undefined ? Number(op.piece.price) : 0
-                                const quantity = op.quantity || 0
-                                return total + piecePrice * quantity
-                              }, 0) || 0
-
-                            let discountAmount = 0
-                            if (order.discount && order.discount.value > 0) {
-                              if (order.discount.type === "percentage") {
-                                discountAmount = subtotal * (order.discount.value / 100)
-                              } else {
-                                discountAmount = Math.min(subtotal, order.discount.value)
-                              }
-                            }
-
-                            const total = subtotal - discountAmount
-
-                            return (
-                              <>
-                                <TableRow>
-                                  <TableCell colSpan={3} align="right" sx={{ fontWeight: "medium" }}>
-                                    Sous-total
-                                  </TableCell>
-                                  <TableCell align="right" sx={{ fontWeight: "medium" }}>
-                                    {subtotal.toFixed(2)} DT
-                                  </TableCell>
+                              return (
+                                <TableRow key={index}>
+                                  <TableCell>{pieceName}</TableCell>
+                                  <TableCell align="center">{quantity}</TableCell>
+                                  <TableCell align="right">{piecePrice.toFixed(2)} DT</TableCell>
+                                  <TableCell align="right">{subtotal.toFixed(2)} DT</TableCell>
                                 </TableRow>
+                              )
+                            })}
 
-                                {/* Afficher la remise si elle existe */}
-                                {order.discount && order.discount.value > 0 && (
+                            {/* Calculer et afficher le sous-total, la remise et le total */}
+                            {(() => {
+                              const subtotal =
+                                order.orderPieces?.reduce((total, op) => {
+                                  const piecePrice = op.piece?.price !== undefined ? Number(op.piece.price) : 0
+                                  const quantity = op.quantity || 0
+                                  return total + piecePrice * quantity
+                                }, 0) || 0
+
+                              let discountAmount = 0
+                              if (order.discount && order.discount.value > 0) {
+                                if (order.discount.type === "percentage") {
+                                  discountAmount = subtotal * (order.discount.value / 100)
+                                } else {
+                                  discountAmount = Math.min(subtotal, order.discount.value)
+                                }
+                              }
+
+                              const total = subtotal - discountAmount
+
+                              return (
+                                <>
                                   <TableRow>
-                                    <TableCell colSpan={3} align="right" sx={{ color: "error.main" }}>
-                                      Remise {order.discount.type === "percentage" ? `(${order.discount.value}%)` : ""}
+                                    <TableCell colSpan={3} align="right" sx={{ fontWeight: "medium" }}>
+                                      Sous-total
                                     </TableCell>
-                                    <TableCell align="right" sx={{ color: "error.main" }}>
-                                      -{discountAmount.toFixed(2)} DT
+                                    <TableCell align="right" sx={{ fontWeight: "medium" }}>
+                                      {subtotal.toFixed(2)} DT
                                     </TableCell>
                                   </TableRow>
-                                )}
 
-                                <TableRow>
-                                  <TableCell colSpan={3} align="right" sx={{ fontWeight: "bold" }}>
-                                    Total
-                                  </TableCell>
-                                  <TableCell align="right" sx={{ fontWeight: "bold" }}>
-                                    {total.toFixed(2)} DT
-                                  </TableCell>
-                                </TableRow>
-                              </>
-                            )
-                          })()}
-                        </TableBody>
-                      </Table>
-                    </TableContainer>
-                  </Box>
-                </Collapse>
-              </Paper>
-            )
-          })}
-        </CardContent>
-      </Card>
+                                  {/* Afficher la remise si elle existe */}
+                                  {order.discount && order.discount.value > 0 && (
+                                    <TableRow>
+                                      <TableCell colSpan={3} align="right" sx={{ color: "error.main" }}>
+                                        Remise {order.discount.type === "percentage" ? `(${order.discount.value}%)` : ""}
+                                      </TableCell>
+                                      <TableCell align="right" sx={{ color: "error.main" }}>
+                                        -{discountAmount.toFixed(2)} DT
+                                      </TableCell>
+                                    </TableRow>
+                                  )}
+
+                                  <TableRow>
+                                    <TableCell colSpan={3} align="right" sx={{ fontWeight: "bold" }}>
+                                      Total
+                                    </TableCell>
+                                    <TableCell align="right" sx={{ fontWeight: "bold" }}>
+                                      {total.toFixed(2)} DT
+                                    </TableCell>
+                                  </TableRow>
+                                </>
+                              )
+                            })()}
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                    </Box>
+                  </Collapse>
+                </Paper>
+              )
+            })}
+            <TablePagination
+              rowsPerPageOptions={[3, 5, 10]}
+              component="div"
+              count={sortedOrders.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+              labelRowsPerPage="Ventes par page"
+              labelDisplayedRows={({ from, to, count }) =>
+                `${from}-${to} sur ${count !== -1 ? count : `plus de ${to}`} ventes`
+              }
+            />
+          </CardContent>
+        </Card>
+      </Box>
 
       <Dialog
         open={isInvoiceDialogOpen}

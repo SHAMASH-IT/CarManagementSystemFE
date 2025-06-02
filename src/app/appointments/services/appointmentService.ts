@@ -20,7 +20,21 @@ export const createAppointment = async (data: CreateAppointmentDto): Promise<App
     body: JSON.stringify(data)
   })
 
-  if (!res.ok) throw new Error('Failed to create appointment')
+   if (!res.ok) {
+      const errorText = await res.text()
+      let errorInfo
+
+      try {
+        errorInfo = JSON.parse(errorText)
+      } catch (e) {
+        errorInfo = { message: errorText }
+      }
+
+      console.error('API error:', errorInfo)
+
+      // Lancer une erreur plus descriptive
+      throw new Error(`Failed to update appointment: ${errorInfo.message || 'Unknown error'}`)
+    }
 
   const apiAppointment: ApiAppointment = await res.json()
 
