@@ -30,7 +30,7 @@ export const useAuth = () => {
         router.push('/appointments');
       }else{
         // Redirection de l'administrateur vers la page de gestion des utilisateurs
-        router.push('/admin/users');
+        router.push('/reports');
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Une erreur est survenue');

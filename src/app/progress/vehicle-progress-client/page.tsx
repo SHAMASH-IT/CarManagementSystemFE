@@ -6,19 +6,14 @@ import Navbar from "../../common/Navbar"
 import { usePathname } from 'next/navigation'
 import { Drawer, IconButton, Typography, Divider, Box } from '@mui/material'
 import { Menu as MenuIcon, Close as CloseIcon } from '@mui/icons-material'
-import { LayoutDashboard, ClipboardCheck, UserCog, Wrench, ParkingCircle, Warehouse, PackageCheck, History } from 'lucide-react'
+import { LayoutDashboard, ClipboardCheck, UserCog, Wrench, ParkingCircle, Warehouse, PackageCheck, History,CalendarPlus, Car , Search } from 'lucide-react'
 import React from 'react'
 
 const menuItems = [
-  { icon: <LayoutDashboard size={22} className="text-pink-500" />, title: 'Dashboard', url: '/appointments/dashboard' },
-  { icon: <ClipboardCheck size={22} className="text-green-500" />, title: 'Liste des Rendez-vous', url: '/appointments' },
-  { icon: <UserCog size={22} className="text-indigo-500" />, title: 'Gestion Utilisateurs', url: '/admin/users' },
-  { icon: <Wrench size={22} className="text-blue-500" />, title: 'Services', url: '/services' },
-  { icon: <ParkingCircle size={22} className="text-orange-500" />, title: 'Stationnement', url: '/parking' },
-  { icon: <Warehouse size={22} className="text-purple-500" />, title: 'Stock', url: '/stock' },
-  { icon: <PackageCheck size={22} className="text-indigo-500" />, title: 'Commande', url: '/stock/order' },
-  { icon: <Wrench size={22} className="text-red-500" />, title: 'Intervention', url: '/progress' },
-  { icon: <History size={22} className="text-blue-500" />, title: 'Historique des interventions', url: '/history/historyProviderAdmin' }
+  { icon: <CalendarPlus size={22} className="text-yellow-500" />, title: 'Prendre un rendez-vous', url: '/users' },
+  { icon: <Car size={22} className="text-blue-700" />, title: 'Ajouter un véhicule', url: '/users/vehicle' },
+  { icon: <Search size={22} className="text-teal-500" />, title: 'Rechercher un rendez-vous', url: '/progress/vehicle-progress-client' },
+  { icon: <History size={22} className="text-cyan-500" />, title: 'Historique des rendez-vous', url: '/history' }
 ];
 
 export default function VehicleProgressClientPage() {
@@ -78,8 +73,8 @@ export default function VehicleProgressClientPage() {
           <Navbar />
         </div>
         {/* Page Content : même structure qu'avant, max-w-7xl mx-auto p-4 */}
-        <main className="flex-1 overflow-y-auto p-4">
-          <div className="max-w-7xl mx-auto">
+        <main className="flex-1 overflow-y-auto px-2 sm:px-6 py-4">
+          <div className="w-full">
             <VehicleProgressTracker />
           </div>
         </main>

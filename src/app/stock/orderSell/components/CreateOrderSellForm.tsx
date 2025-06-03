@@ -110,12 +110,8 @@ export const CreateOrderSellForm = ({ onSuccess }: Props) => {
   }
 
   const handleDiscountChange = (value: number) => {
-    if (discountType === "percentage" && value > 100) {
-      setDiscount(100)
-      return
-    }
-    setDiscount(value)
-  }
+  setDiscount(Math.min(100, Math.max(0, value))); // Limiter entre 0 et 100
+};
 
   const handleDiscountTypeChange = (type: "percentage" | "fixed") => {
     setDiscountType(type)
@@ -402,60 +398,7 @@ export const CreateOrderSellForm = ({ onSuccess }: Props) => {
               </Box>
             </Grid>
 
-            <Grid item xs={12}>
-              <Divider sx={{ my: 2 }} />
-
-              <Typography variant="subtitle1" sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
-                <DiscountIcon fontSize="small" color="primary" />
-                Remise
-              </Typography>
-
-              <Paper
-                elevation={1}
-                sx={{
-                  p: 2,
-                  mb: 3,
-                  borderRadius: 2,
-                  border: "1px solid",
-                  borderColor: "divider",
-                }}
-              >
-                <Grid container spacing={2} alignItems="center">
-                  <Grid item xs={12} sm={6}>
-                    <FormControl fullWidth size="small">
-                      <InputLabel>Type de remise</InputLabel>
-                      <Select
-                        value={discountType}
-                        onChange={(e) => handleDiscountTypeChange(e.target.value as "percentage" | "fixed")}
-                        label="Type de remise"
-                      >
-                        <MenuItem value="percentage">Pourcentage (%)</MenuItem>
-                        <MenuItem value="fixed">Montant fixe (DT)</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      type="number"
-                      label={discountType === "percentage" ? "Pourcentage de remise" : "Montant de la remise"}
-                      value={discount}
-                      onChange={(e) => handleDiscountChange(Number(e.target.value))}
-                      InputProps={{
-                        endAdornment: (
-                          <InputAdornment position="end">{discountType === "percentage" ? "%" : "DT"}</InputAdornment>
-                        ),
-                        inputProps: {
-                          min: 0,
-                          max: discountType === "percentage" ? 100 : undefined,
-                        },
-                      }}
-                      fullWidth
-                      size="small"
-                    />
-                  </Grid>
-                </Grid>
-              </Paper>
-            </Grid>
+            
 
             <Grid item xs={12}>
               <Paper

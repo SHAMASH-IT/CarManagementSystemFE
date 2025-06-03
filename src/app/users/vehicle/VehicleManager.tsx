@@ -59,11 +59,7 @@ function VehicleCard({ vehicle, onEdit, onDelete, isEditing, onChange, onSave, o
       }}
       onMouseLeave={closeMenu}
     >
-      {/* Badge place */}
-      <span className="absolute left-2 top-2 bg-white border border-gray-300 rounded-full px-2 py-0.5 text-xs text-gray-500 shadow">
-        Place #{vehicle.id}
-      </span>
-      {/* Menu contextuel */}
+    
       <div className="absolute top-2 right-2" onMouseEnter={openMenu} onMouseLeave={closeMenu}>
         <button
           onClick={openMenu}
@@ -353,7 +349,7 @@ export default function GarageVehicleManager() {
             Cliquez sur <span className="font-semibold">Ajouter un véhicule</span> pour commencer.
           </div>
         ) : (
-          <div className="flex flex-row gap-8 overflow-x-auto pb-4 ml-[1cm] mr-[1cm] mt-[0.5cm] scrollbar-thin scrollbar-thumb-blue-200 scrollbar-track-blue-50">
+          <div className="flex flex-col gap-4 sm:flex-row sm:gap-8 sm:overflow-x-auto pb-4 ml-[1cm] mr-[1cm] mt-[0.5cm] scrollbar-thin scrollbar-thumb-blue-200 scrollbar-track-blue-50">
             {vehicles.map(v => (
               <div key={v.id} className="flex-shrink-0 w-80">
                 <VehicleCard

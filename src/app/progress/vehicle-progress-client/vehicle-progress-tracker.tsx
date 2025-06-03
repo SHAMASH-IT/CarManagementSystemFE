@@ -585,37 +585,7 @@ export function VehicleProgressTracker() {
                         </motion.div>
                       )}
 
-                      {/* Contact Info */}
-                      <motion.div
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: 0.6 }}
-                        className={`bg-gradient-to-r ${colors.gradientLight} rounded-xl border border-${colors.border} p-5 flex items-start shadow-sm`}
-                      >
-                        <div className="bg-white p-3 rounded-full mr-3 shadow-sm">
-                          <Phone className={`w-5 h-5 text-${colors.primary}`} />
-                        </div>
-                        <div>
-                          <h4 className={`font-medium mb-1 text-${colors.text}`}>
-                            Besoin d'informations supplémentaires ?
-                          </h4>
-                          <p className="text-sm text-gray-600 mb-3">
-                            Notre équipe est disponible pour répondre à toutes vos questions concernant votre véhicule.
-                          </p>
-                          <div className="flex flex-wrap gap-2">
-                            <a
-                              href="tel:0123456789"
-                              className={`inline-flex items-center px-3 py-1.5 bg-white border border-${colors.border} rounded-md text-sm font-medium text-${colors.primary} hover:bg-${colors.buttonBg} hover:text-white transition-colors shadow-sm`}
-                            >
-                              <Phone className="w-4 h-4 mr-1.5" />
-                              01 23 45 67 89
-                            </a>
-                          
-                          </div>
-                        </div>
-                      </motion.div>
-
-                      {/* Feedback Section */}
+                     
                      
 
                    

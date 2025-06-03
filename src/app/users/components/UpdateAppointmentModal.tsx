@@ -59,7 +59,10 @@ const UpdateAppointmentModal = ({
 
       const appointmentDate = moment(appointmentData.date)
       setDate(appointmentDate.format('YYYY-MM-DD'))
-      setTime(appointmentDate.format('HH:mm'))
+
+      const timeMinusOneHour = appointmentDate.clone().subtract(1, 'hours').format('HH:mm')
+      setTime(timeMinusOneHour)
+      setSelectedTime(timeMinusOneHour)
     } catch (err) {
       console.error('Error fetching appointment details:', err)
       setError('Impossible de récupérer les détails du rendez-vous')
@@ -75,20 +78,13 @@ const UpdateAppointmentModal = ({
         const timeString = `${hour.toString().padStart(2, "0")}:00`
         slots.push({ value: timeString, display: `${hour}h00` })
       }
-      if (hour < 18) {
-        const timeString = `${hour.toString().padStart(2, "0")}:45`
-        slots.push({ value: timeString, display: `${hour}h45` })
-      }
+      
     }
     slots.push({ value: "18:00", display: "18h00" })
     return slots
   }
 
   const timeSlots = generateTimeSlots()
-
-  useEffect(() => {
-    setSelectedTime(time)
-  }, [time])
 
   const handleTimeSelect = (timeValue: string) => {
     setSelectedTime(timeValue)
@@ -101,8 +97,10 @@ const UpdateAppointmentModal = ({
     setError('')
 
     try {
-      // Création de la date locale au format ISO sans "Z"
-      const dateTime = moment(`${date} ${time}`, 'YYYY-MM-DD HH:mm').format('YYYY-MM-DDTHH:mm:ss')
+      // Envoi de selectedTime + 1h au format ISO local sans "Z"
+      const dateTime = moment(`${date} ${selectedTime}`, 'YYYY-MM-DD HH:mm')
+        .add(1, 'hours')
+        .format('YYYY-MM-DDTHH:mm:ss')
 
       const response = await fetch(`${API_URL}/appointments/update/${appointmentId}`, {
         method: 'PATCH',

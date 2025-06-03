@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { Pencil, Trash, FilePlus2 } from 'lucide-react'
+import { Pencil, Trash, FilePlus2, Boxes } from 'lucide-react' // Changement de l'icône
 import AddStockModal from './AddStockModal'
 import UpdateStockModal from './UpdateStockModal'
 import DeleteStockModal from './DeleteStockModal'
@@ -72,7 +72,10 @@ const StockList = () => {
   return (
     <div className='mb-6'> 
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Gestion des Stocks</h2>
+        <div className="flex items-center gap-2">
+          <Boxes size={28} className="text-blue-600" />
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">Gestion des Stocks</h2>
+        </div>
         <button
           onClick={handleAddClick}
           className="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-6 py-2 rounded-lg shadow-lg hover:shadow-xl hover:from-blue-600 hover:to-indigo-700 transition-all transform hover:scale-105"

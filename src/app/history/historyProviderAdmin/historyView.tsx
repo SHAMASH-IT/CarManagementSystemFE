@@ -33,7 +33,7 @@ export default function HistoryView({ userRole, userId }: HistoryViewProps) {
   const [showFacturePdf, setShowFacturePdf] = useState(false);
   const [selectedIntervention, setSelectedIntervention] = useState<Intervention | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 7;
 
   useEffect(() => {
     console.log("Completed interventions:", completedInterventions);

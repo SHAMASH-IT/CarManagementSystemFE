@@ -89,8 +89,8 @@ export default function Login() {
         setShowStats(true)
         const interval = setInterval(() => {
           setStats(prev => ({
-            appointments: Math.min(prev.appointments + 1, 160),
-            vehicles: Math.min(prev.vehicles + 2, 156),
+            appointments: Math.min(prev.appointments + 1, 120),
+            vehicles: Math.min(prev.vehicles + 2, 140),
             punctuality: Math.min(prev.punctuality + 1, 98)
           }))
         }, 50)
@@ -146,6 +146,9 @@ export default function Login() {
 
     if (!registerData.phone) {
       newErrors.phone = "Le téléphone est requis"
+      isValid = false
+    } else if (!/^\d{8}$/.test(registerData.phone.replace(/\s/g, ''))) {
+      newErrors.phone = "Le numéro de téléphone doit contenir exactement 8 chiffres (ex: 20 500 600)"
       isValid = false
     }
 
@@ -230,8 +233,11 @@ export default function Login() {
               </div>
             </div>
 
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight text-center">
-              Auto<span className="text-yellow-300">Service</span> Pro
+            <h1 className="text-4xl md:text-5xl font-extrabold text-center mb-4 leading-tight drop-shadow-xl">
+              <span className="inline-block text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-blue-600 to-yellow-300 animate-pulse shadow-blue-400/40">
+                Auto<span className="text-yellow-300">Service</span>
+              </span>
+              <span className="inline-block align-middle ml-3 px-4 py-1 rounded-full bg-gradient-to-r from-blue-700 to-blue-500 text-white text-lg font-bold shadow-lg border-2 border-white/30 backdrop-blur-md animate-glow">Pro</span>
             </h1>
 
             <p className="text-blue-100 text-xl mb-8 text-center">Votre solution complète de gestion automobile</p>
@@ -260,7 +266,7 @@ export default function Login() {
 
         {/* Section droite - Formulaire */}
         <div className="w-full md:w-1/2 flex items-center justify-center p-6 md:p-12 relative">
-          <div className="w-full max-w-md z-10">
+          <div className="w-full max-w-lg z-10">
             <div className="flex items-center justify-center mb-8 md:hidden">
               <div className="relative bg-blue-600 p-3 rounded-full shadow-lg">
                 <Car className="w-8 h-8 text-white" strokeWidth={1.5} />
@@ -291,7 +297,7 @@ export default function Login() {
               </button>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+            <div className="bg-white rounded-2xl shadow-xl p-12 border border-gray-100">
               {activeTab === 'login' ? (
                 <>
                   <div className="mb-8">
@@ -650,6 +656,16 @@ export default function Login() {
           </div>
         </div>
       </div>
+
+      {/* Ajout d'une animation CSS pour le glow */}
+      <style jsx global>{`
+      @keyframes glow {
+        0%, 100% { box-shadow: 0 0 16px 4px #3b82f6, 0 0 32px 8px #facc15; }
+        50% { box-shadow: 0 0 32px 8px #facc15, 0 0 16px 4px #3b82f6; }
+      }
+      .animate-glow { animation: glow 2s infinite alternate; }
+      .animate-spin-slow { animation: spin 4s linear infinite; }
+      `}</style>
     </div>
   );
 }

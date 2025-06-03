@@ -217,8 +217,8 @@ const ParkingManagement: React.FC = () => {
   }
 
   return (
-    <div className="p-4 bg-gray-50 min-h-screen">
-      <div className="max-w-6xl mx-auto">
+    <div className="m-[38px]">
+      <div className="w-full h-full">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-blue-800 flex items-center">
             <FaParking className="mr-2" /> Gestion des Parkings

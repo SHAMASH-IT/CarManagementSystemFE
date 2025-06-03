@@ -32,14 +32,7 @@ const generateTimeSlots = () => {
         display: `${hour}h00`,
       })
     }
-    // Ajouter les 45 minutes (sauf pour 18h)
-    if (hour < 18) {
-      const timeString = `${hour.toString().padStart(2, "0")}:45`
-      slots.push({
-        value: timeString,
-        display: `${hour}h45`,
-      })
-    }
+  
   }
   // Ajouter 18h00 à la fin
   slots.push({

@@ -3,7 +3,8 @@ import { useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { Drawer, IconButton, Typography, Divider, Box } from '@mui/material'
 import { Menu as MenuIcon, Close as CloseIcon } from '@mui/icons-material'
-import { LayoutDashboard, ClipboardCheck, UserCog, Wrench, ParkingCircle, Warehouse, PackageCheck, History } from 'lucide-react'
+import { CalendarPlus, Car, Search, History } from 'lucide-react'
+import { LayoutDashboard, ClipboardCheck, UserCog, Wrench, ParkingCircle, Warehouse, PackageCheck } from 'lucide-react'
 
 import { ToastContainer } from 'react-toastify'
 
@@ -14,15 +15,10 @@ import type { CalendarEvent } from '../types/index'
 import  ProtectRoute  from '@/protectRoute/protect'
 
 const menuItems = [
-  { icon: <LayoutDashboard size={22} className="text-pink-500" />, title: 'Dashboard', url: '/appointments/dashboard' },
-  { icon: <ClipboardCheck size={22} className="text-green-500" />, title: 'Liste des Rendez-vous', url: '/appointments' },
-  { icon: <UserCog size={22} className="text-indigo-500" />, title: 'Gestion Utilisateurs', url: '/admin/users' },
-  { icon: <Wrench size={22} className="text-blue-500" />, title: 'Services', url: '/services' },
-  { icon: <ParkingCircle size={22} className="text-orange-500" />, title: 'Stationnement', url: '/parking' },
-  { icon: <Warehouse size={22} className="text-purple-500" />, title: 'Stock', url: '/stock' },
-  { icon: <PackageCheck size={22} className="text-indigo-500" />, title: 'Commande', url: '/stock/order' },
-  { icon: <Wrench size={22} className="text-red-500" />, title: 'Intervention', url: '/progress' },
-  { icon: <History size={22} className="text-blue-500" />, title: 'Historique des interventions', url: '/history/historyProviderAdmin' }
+  { icon: <CalendarPlus size={22} className="text-yellow-500" />, title: 'Prendre un rendez-vous', url: '/users' },
+  { icon: <Car size={22} className="text-blue-700" />, title: 'Ajouter un véhicule', url: '/users/vehicle' },
+  { icon: <Search size={22} className="text-teal-500" />, title: 'Rechercher un rendez-vous', url: '/progress/vehicle-progress-client' },
+  { icon: <History size={22} className="text-cyan-500" />, title: 'Historique des rendez-vous', url: '/history' }
 ];
 
 export default function CalendarPage() {
@@ -84,9 +80,8 @@ export default function CalendarPage() {
             <Navbar />
           </div>
           {/* Page Content */}
-          <div className="flex-1 flex flex-col p-2 sm:p-4">
-            <div className="container mx-auto">
-              {/* CalendarManager n'est pas dans une div scrollable/overflow */}
+          <div className="flex-1 flex flex-col p-0">
+            <div className="w-full">
               <CalendarManager initialEvents={events} />
             </div>
           </div>

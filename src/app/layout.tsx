@@ -12,7 +12,7 @@ import '@assets/iconify-icons/generated-icons.css'
 
 
 export const metadata = {
-  title: 'Car Management System',
+  title: 'AutoService Pro',
   description: 'Système de gestion de voitures et de pièces détachées'
 }
 
@@ -22,6 +22,9 @@ const RootLayout = ({ children }: ChildrenType) => {
 
   return (
     <html id='__next' dir={direction} lang="fr">
+      <head>
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+      </head>
       <body className='flex is-full min-bs-full flex-auto flex-col'>
        
          

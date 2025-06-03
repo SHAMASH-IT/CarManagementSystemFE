@@ -18,7 +18,7 @@ interface EventListProps {
 const EventList = ({ events, handleDeleteConfirmation }: EventListProps) => {
   const [eventsList, setEvents] = useState<CalendarEvent[]>([])
   const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 2
+  const itemsPerPage = 3
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [appointmentToUpdate, setAppointmentToUpdate] = useState<string | null>(null)
@@ -291,7 +291,8 @@ const EventList = ({ events, handleDeleteConfirmation }: EventListProps) => {
                         <CalendarIcon className="w-4 h-4" /> {moment(event.start).format('DD/MM/YYYY')}
                       </span>
                       <span className="flex items-center gap-1">
-                        <Clock className="w-4 h-4" /> {moment(event.start).format('HH:mm')}
+                        <Clock className="w-4 h-4" /> {moment(event.start).subtract(1, 'hours').format('HH:mm')}
+
                       </span>
                     </div>
                     {/* Statut et service sous les infos du rendez-vous */}

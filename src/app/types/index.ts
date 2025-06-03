@@ -71,6 +71,7 @@ export interface Service {
   id: number
   name: string
   description: string
+  providerId: number
 }
 
 // Calendar related interfaces

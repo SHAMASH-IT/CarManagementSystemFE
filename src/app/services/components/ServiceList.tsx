@@ -367,9 +367,7 @@ export const ServiceList: React.FC = () => {
                   <h2 className="text-lg font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
                     {service.name}
                   </h2>
-                  <span className="px-2.5 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-full">
-                    ID: {service.providerId}
-                  </span>
+                 
                 </div>
                 <p className="text-gray-600 line-clamp-3 mb-6">{service.description}</p>
                 <div className="flex justify-end space-x-3">
