@@ -128,9 +128,11 @@ const calendarClassName = `
     border-radius: 50%;
   }
 `
-
+const userStr = typeof window !== 'undefined' ? localStorage.getItem('user') : null
+const user = userStr ? JSON.parse(userStr) : null
+const userId = user?.id
 const DashboardProvider = () => {
-  const { appointments, pendingAppointments } = useAppointments()
+  const { appointments, pendingAppointments } = useAppointments(userId)
   const [selectedDate, setSelectedDate] = useState<Value>(new Date())
   const [selectedPeriod, setSelectedPeriod] = useState('today')
   const [isDateSelected, setIsDateSelected] = useState(false)
