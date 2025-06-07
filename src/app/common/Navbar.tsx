@@ -701,7 +701,7 @@ const Navbar = () => {
                           <p className="text-sm text-gray-400 mt-1">Vous serez notifié ici des mises à jour importantes</p>
                         </div>
                       ) : (
-                        notifications.map((notification, index) => (
+                        [...notifications].reverse().map((notification, index) => (
                           <div
                             key={notification.id}
                             className={`relative flex items-start space-x-3 p-4 rounded-xl transition mb-3 border border-gray-100

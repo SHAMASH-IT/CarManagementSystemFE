@@ -6,18 +6,13 @@ import VehicleManager from './VehicleManager';
 import { usePathname } from 'next/navigation'
 import { Drawer, IconButton, Typography, Divider, Box } from '@mui/material'
 import { Menu as MenuIcon, Close as CloseIcon } from '@mui/icons-material'
-import { LayoutDashboard, ClipboardCheck, UserCog, Wrench, ParkingCircle, Warehouse, PackageCheck, History } from 'lucide-react'
+import { LayoutDashboard, ClipboardCheck, UserCog, Wrench, ParkingCircle, Warehouse, PackageCheck, History, CalendarPlus, Car, Search } from 'lucide-react'
 
 const menuItems = [
-  { icon: <LayoutDashboard size={22} className="text-pink-500" />, title: 'Dashboard', url: '/appointments/dashboard' },
-  { icon: <ClipboardCheck size={22} className="text-green-500" />, title: 'Liste des Rendez-vous', url: '/appointments' },
-  { icon: <UserCog size={22} className="text-indigo-500" />, title: 'Gestion Utilisateurs', url: '/admin/users' },
-  { icon: <Wrench size={22} className="text-blue-500" />, title: 'Services', url: '/services' },
-  { icon: <ParkingCircle size={22} className="text-orange-500" />, title: 'Stationnement', url: '/parking' },
-  { icon: <Warehouse size={22} className="text-purple-500" />, title: 'Stock', url: '/stock' },
-  { icon: <PackageCheck size={22} className="text-indigo-500" />, title: 'Commande', url: '/stock/order' },
-  { icon: <Wrench size={22} className="text-red-500" />, title: 'Intervention', url: '/progress' },
-  { icon: <History size={22} className="text-blue-500" />, title: 'Historique des interventions', url: '/history/historyProviderAdmin' }
+  { icon: <CalendarPlus size={22} className="text-yellow-500" />, title: 'Prendre un rendez-vous', url: '/users' },
+  { icon: <Car size={22} className="text-blue-700" />, title: 'Ajouter un véhicule', url: '/users/vehicle' },
+  { icon: <Search size={22} className="text-teal-500" />, title: 'Rechercher un rendez-vous', url: '/progress/vehicle-progress-client' },
+  { icon: <History size={22} className="text-cyan-500" />, title: 'Historique des rendez-vous', url: '/history' }
 ];
 
 export default function VehiclePage() {
@@ -81,8 +76,8 @@ export default function VehiclePage() {
             <Navbar />
           </div>
           {/* Page Content : paddings responsives, pas d'overflow qui coupe les modals */}
-          <div className="flex-1 flex flex-col p-2 sm:p-4">
-            <div className="container mx-auto">
+          <div className="flex-1 flex flex-col px-2 sm:px-4 py-2">
+            <div className="w-full">
               {/* VehicleManager n'est pas dans une div scrollable/overflow pour garantir l'affichage des modals */}
               <VehicleManager />
             </div>

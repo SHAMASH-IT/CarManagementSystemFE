@@ -175,7 +175,10 @@ const ProtectRoute = ({children}: {children: React.ReactNode}) => {
                 // Vérification des routes réservées aux providers
                 if (
                     pathname.startsWith('/appointments') ||
-                    (pathname.startsWith('/progress') &&!pathname.startsWith('/progress/vehicle-progress-client'))||
+
+                    (pathname.startsWith('/progress') && !pathname.startsWith('/progress/vehicle-progress-client')) ||
+
+                   
                     pathname.startsWith('/parking')
                 ) {
                     // Seuls les providers peuvent accéder à ces routes

@@ -62,10 +62,8 @@ const getCurrentUserId = (): number | undefined => {
 }
 
 const menuItems = [
-  { icon: <LayoutDashboard size={22} className="text-pink-500" />, title: 'Dashboard', url: '/appointments/dashboard' },
+  { icon: <LayoutDashboard size={22} className="text-pink-500" />, title: 'Tableau de bord', url: '/appointments/dashboard' },
   { icon: <ClipboardCheck size={22} className="text-green-500" />, title: 'Liste des Rendez-vous', url: '/appointments' },
-  { icon: <UserCog size={22} className="text-indigo-500" />, title: 'Gestion Utilisateurs', url: '/admin/users' },
-  { icon: <Wrench size={22} className="text-blue-500" />, title: 'Services', url: '/services' },
   { icon: <ParkingCircle size={22} className="text-orange-500" />, title: 'Stationnement', url: '/parking' },
   { icon: <Warehouse size={22} className="text-purple-500" />, title: 'Stock', url: '/stock' },
   { icon: <PackageCheck size={22} className="text-indigo-500" />, title: 'Commande', url: '/stock/order' },
@@ -190,9 +188,9 @@ const AppointmentsPage: React.FC<ChildrenType> = ({ children }) => {
             <Navbar />
           </div>
           {/* Page Content */}
-          <main className="flex-1 flex flex-col overflow-y-auto p-2 sm:p-4">
-            <div className="container mx-auto">
-              <div className="overflow-x-auto">
+          <main className="flex-1 flex flex-col overflow-hidden p-2 sm:p-4">
+            <div className="h-full w-full">
+              <div className="h-full w-full">
                 <AppointmentTable
                   appointments={appointments}
                   onDelete={deleteAppointmentById}

@@ -82,7 +82,7 @@ const Sidebar = () => {
   useEffect(() => {
     // Met à jour automatiquement l'élément actif en fonction du pathname
     if (pathname === '/appointments/dashboard') {
-      setActiveItem('Dashboard')
+      setActiveItem('Tableau de bord')
     } else if (pathname === '/appointments') {
       setActiveItem('Liste des Rendez-vous')
     } else if (pathname === '/page') {
@@ -140,7 +140,7 @@ const Sidebar = () => {
   const providerMenuItems = [
     { 
       icon: <LayoutDashboard size={22} className="text-pink-500 group-hover:scale-110 transition-transform duration-200" />, 
-      title: 'Dashboard', 
+      title: 'Tableau de bord', 
       url: '/appointments/dashboard' 
     },
     { 
@@ -182,6 +182,11 @@ const Sidebar = () => {
 
   // Menu items pour les administrateurs
   const adminMenuItems = [
+    { 
+      icon: <LayoutDashboard size={22} className="text-indigo-600 group-hover:scale-110 transition-transform duration-200" />, 
+      title: 'Tableau de bord', 
+      url: '/reports' 
+    },
     { 
       icon: <UserCog size={22} className="text-indigo-500 group-hover:scale-110 transition-transform duration-200" />, 
       title: 'Gestion Utilisateurs', 

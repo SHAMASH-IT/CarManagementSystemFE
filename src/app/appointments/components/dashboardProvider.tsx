@@ -353,12 +353,12 @@ const DashboardProvider = () => {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen w-screen bg-gray-50">
       <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden h-full w-full">
         <Navbar />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50">
-          <div className="container mx-auto px-6 py-4">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 h-full w-full">
+          <div className="w-full h-full px-2 sm:px-[40px] m-2 sm:m-4">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center">
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
@@ -382,66 +382,66 @@ const DashboardProvider = () => {
             {/* Cards de statistiques */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-10">
               {/* Nombre total des rendez-vous */}
-              <div className="relative rounded-lg bg-gradient-to-br from-blue-100 to-blue-200 shadow hover:shadow-md transform hover:-translate-y-0.5 transition-all duration-300">
-                <div className="flex items-center justify-between p-3">
+              <div className="relative rounded-2xl bg-gradient-to-br from-blue-100 to-blue-200 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-l-8 border-blue-400 flex flex-col items-center justify-between p-6 group">
+                <div className="flex items-center justify-between w-full">
                   <div>
-                    <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide">Total des rendez-vous</p>
-                    <p className="text-xl font-bold text-blue-800 mt-0.5">{stats.total}</p>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">Total des rendez-vous</p>
+                    <p className="text-4xl font-extrabold text-blue-900 mt-2">{stats.total}</p>
                   </div>
-                  <div className="flex items-center justify-center w-8 h-8 bg-blue-200 rounded-lg">
-                    <FaRegCalendar className="text-blue-700 w-4 h-4" />
+                  <div className="flex items-center justify-center w-14 h-14 bg-white/40 backdrop-blur-md rounded-full shadow-lg border border-blue-200 group-hover:bg-blue-200 group-hover:text-blue-800 transition-all duration-300">
+                    <FaRegCalendar className="text-blue-700 w-7 h-7" />
                   </div>
                 </div>
               </div>
 
               {/* Rendez-vous réservés */}
-              <div className="relative rounded-lg bg-gradient-to-br from-amber-100 to-amber-200 shadow hover:shadow-md transform hover:-translate-y-0.5 transition-all duration-300">
-                <div className="flex items-center justify-between p-3">
+              <div className="relative rounded-2xl bg-gradient-to-br from-amber-100 to-amber-200 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-l-8 border-amber-400 flex flex-col items-center justify-between p-6 group">
+                <div className="flex items-center justify-between w-full">
                   <div>
-                    <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide">Rendez-vous réservés</p>
-                    <p className="text-xl font-bold text-amber-800 mt-0.5">{stats.reserved}</p>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">Rendez-vous réservés</p>
+                    <p className="text-4xl font-extrabold text-amber-800 mt-2">{stats.reserved}</p>
                   </div>
-                  <div className="flex items-center justify-center w-8 h-8 bg-amber-200 rounded-lg">
-                    <FaCalendarAlt className="text-amber-700 w-4 h-4" />
+                  <div className="flex items-center justify-center w-14 h-14 bg-white/40 backdrop-blur-md rounded-full shadow-lg border border-amber-200 group-hover:bg-amber-200 group-hover:text-amber-800 transition-all duration-300">
+                    <FaCalendarAlt className="text-amber-700 w-7 h-7" />
                   </div>
                 </div>
               </div>
 
-              {/* Confirmations */}
-              <div className="relative rounded-lg bg-gradient-to-br from-emerald-100 to-emerald-200 shadow hover:shadow-md transform hover:-translate-y-0.5 transition-all duration-300">
-                <div className="flex items-center justify-between p-3">
+              {/* Rendez-vous terminés */}
+              <div className="relative rounded-2xl bg-gradient-to-br from-emerald-100 to-emerald-200 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-l-8 border-emerald-400 flex flex-col items-center justify-between p-6 group">
+                <div className="flex items-center justify-between w-full">
                   <div>
-                    <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wide">Rendez-vous terminés</p>
-                    <p className="text-xl font-bold text-emerald-800 mt-0.5">{stats.confirmed}</p>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Rendez-vous terminés</p>
+                    <p className="text-4xl font-extrabold text-emerald-800 mt-2">{stats.confirmed}</p>
                   </div>
-                  <div className="flex items-center justify-center w-8 h-8 bg-emerald-200 rounded-lg">
-                    <FaCheckCircle className="text-emerald-700 w-4 h-4" />
+                  <div className="flex items-center justify-center w-14 h-14 bg-white/40 backdrop-blur-md rounded-full shadow-lg border border-emerald-200 group-hover:bg-emerald-200 group-hover:text-emerald-800 transition-all duration-300">
+                    <FaCheckCircle className="text-emerald-700 w-7 h-7" />
                   </div>
                 </div>
               </div>
 
-              {/* Annulations */}
-              <div className="relative rounded-lg bg-gradient-to-br from-rose-100 to-rose-200 shadow hover:shadow-md transform hover:-translate-y-0.5 transition-all duration-300">
-                <div className="flex items-center justify-between p-3">
+              {/* Rendez-vous annulés */}
+              <div className="relative rounded-2xl bg-gradient-to-br from-rose-100 to-rose-200 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-l-8 border-rose-400 flex flex-col items-center justify-between p-6 group">
+                <div className="flex items-center justify-between w-full">
                   <div>
-                    <p className="text-xs font-semibold text-rose-700 uppercase tracking-wide">Rendez-vous annulés</p>
-                    <p className="text-xl font-bold text-rose-800 mt-0.5">{stats.canceled}</p>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-rose-700">Rendez-vous annulés</p>
+                    <p className="text-4xl font-extrabold text-rose-800 mt-2">{stats.canceled}</p>
                   </div>
-                  <div className="flex items-center justify-center w-8 h-8 bg-rose-200 rounded-lg">
-                    <FaTimesCircle className="text-rose-700 w-4 h-4" />
+                  <div className="flex items-center justify-center w-14 h-14 bg-white/40 backdrop-blur-md rounded-full shadow-lg border border-rose-200 group-hover:bg-rose-200 group-hover:text-rose-800 transition-all duration-300">
+                    <FaTimesCircle className="text-rose-700 w-7 h-7" />
                   </div>
                 </div>
               </div>
 
               {/* Rendez-vous en attente */}
-              <div className="relative rounded-lg bg-gradient-to-br from-sky-100 to-sky-200 shadow hover:shadow-md transform hover:-translate-y-0.5 transition-all duration-300">
-                <div className="flex items-center justify-between p-3">
+              <div className="relative rounded-2xl bg-gradient-to-br from-sky-100 to-sky-200 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-l-8 border-sky-400 flex flex-col items-center justify-between p-6 group">
+                <div className="flex items-center justify-between w-full">
                   <div>
-                    <p className="text-xs font-semibold text-sky-700 uppercase tracking-wide">Rendez-vous en attente</p>
-                    <p className="text-xl font-bold text-sky-800 mt-0.5">{stats.pending}</p>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-sky-700">Rendez-vous en attente</p>
+                    <p className="text-4xl font-extrabold text-sky-800 mt-2">{stats.pending}</p>
                   </div>
-                  <div className="flex items-center justify-center w-8 h-8 bg-sky-200 rounded-lg">
-                    <FaClock className="text-sky-700 w-4 h-4" />
+                  <div className="flex items-center justify-center w-14 h-14 bg-white/40 backdrop-blur-md rounded-full shadow-lg border border-sky-200 group-hover:bg-sky-200 group-hover:text-sky-800 transition-all duration-300">
+                    <FaClock className="text-sky-700 w-7 h-7" />
                   </div>
                 </div>
               </div>

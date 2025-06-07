@@ -18,7 +18,7 @@ interface EventListProps {
 const EventList = ({ events, handleDeleteConfirmation }: EventListProps) => {
   const [eventsList, setEvents] = useState<CalendarEvent[]>([])
   const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 2
+  const itemsPerPage = 3
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [appointmentToUpdate, setAppointmentToUpdate] = useState<string | null>(null)

@@ -82,16 +82,8 @@ export default function Footer() {
             <h3 className="text-lg font-bold mb-6 text-white">Horaires d'ouverture</h3>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span>Lundi - Vendredi:</span>
+                <span>Tous les jours:</span>
                 <span className="text-[#3b82f6]">8h00 - 19h00</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span>Samedi:</span>
-                <span className="text-[#3b82f6]">9h00 - 17h00</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span>Dimanche:</span>
-                <span className="text-gray-400">Fermé</span>
               </div>
             </div>
           </div>

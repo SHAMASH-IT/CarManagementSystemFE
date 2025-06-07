@@ -6,7 +6,9 @@ import { useState, useEffect } from "react"
 import axios from "axios"
 import type { AdminDashboardData } from "./types"
 // @ts-ignore
-import html2pdf from "html2pdf.js"
+
+import Sidebar from '../common/Sidebar';
+import Navbar from '../common/Navbar';
 
 // Définition des composants Card simplifiés si vous n'avez pas shadcn/ui
 const Card = ({ className, children }: { className?: string; children: React.ReactNode }) => (
@@ -267,10 +269,28 @@ const Activity = ({ className }: { className?: string }) => (
   </IconWrapper>
 )
 
-const AdminDashboard = () => {
+const AdminDashboard =  () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showReport, setShowReport] = useState(false)
+  const [activeClients, setActiveClients] = useState(0);
+const [visibleVehicles, setVisibleVehicles] = useState(0);
+useEffect(() => {
+  const fetchCounts = async () => {
+    try {
+      const [clientsRes, vehiclesRes] = await Promise.all([
+        axios.get("http://localhost:3005/reports/clients/count"),
+        axios.get("http://localhost:3005/reports/vehicles/visible/count"),
+      ]);
+      setActiveClients(clientsRes.data.totalClients || 0);
+      setVisibleVehicles(vehiclesRes.data.totalVisibleVehicles || 0);
+    } catch (err) {
+      console.error("Erreur lors de la récupération des counts :", err);
+    }
+  };
+
+  fetchCounts();
+}, []);
   const [dashboardData, setDashboardData] = useState<AdminDashboardData>({
     overview: {
       totalClients: 0,
@@ -305,7 +325,9 @@ const AdminDashboard = () => {
         days: 28,
       },
     },
+    
   })
+
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -322,7 +344,9 @@ const AdminDashboard = () => {
           revenue90Days,
           revenueYear,
           averageRates,
-          periodStats,
+          activeClients,
+          activeVehicles,
+        
         ] = await Promise.all([
           axios.get("http://localhost:3005/reports/last-28-days"),
           axios.get("http://localhost:3005/reports/last-70-days"),
@@ -332,7 +356,9 @@ const AdminDashboard = () => {
           axios.get("http://localhost:3005/reports/invoices/last90days"),
           axios.get("http://localhost:3005/reports/invoices/year"),
           axios.get("http://localhost:3005/reports/average-rates"),
-          axios.get("http://localhost:3005/reports/period-stats"),
+           axios.get("http://localhost:3005/reports/clients/count"),
+          axios.get("http://localhost:3005/reports/vehicles/visible/count"),
+        
         ])
 
         console.log("Données reçues:", {
@@ -344,7 +370,8 @@ const AdminDashboard = () => {
           revenue90Days: revenue90Days.data,
           revenueYear: revenueYear.data,
           averageRates: averageRates.data,
-          periodStats: periodStats.data,
+         activeClients : activeClients.data,
+          activeVehicles: activeVehicles.data,
         })
 
         // Vérifier si les données sont valides et les transformer si nécessaire
@@ -513,13 +540,23 @@ const AdminDashboard = () => {
 
         console.log("Services calculés:", Array.from(servicesMap.values()))
         console.log("Prestataires calculés:", Array.from(providersMap.values()))
-
+const defaultPeriodStats = {
+  activeVehicles: 0,
+  activeClients: 0,
+  loyalClients: [],
+  period: {
+    startDate: new Date().toISOString(),
+    endDate: new Date().toISOString(),
+    days: 28,
+  },
+};
         setDashboardData({
           overview,
           services: Array.from(servicesMap.values()),
           providers: Array.from(providersMap.values()),
           appointments,
-          periodStats: periodStats.data,
+          periodStats: defaultPeriodStats,
+          
         })
 
         console.log("Données du tableau de bord mises à jour")
@@ -549,23 +586,24 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-4 md:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto space-y-8">
+      <div className="w-full space-y-8">
         {/* Header */}
-        <div className="text-center space-y-4">
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent">
-            Tableau de bord administrateur
-          </h1>
-          <p className="text-slate-600 text-lg">Vue d'ensemble de votre plateforme</p>
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-semibold text-slate-900 tracking-tight">Tableau de bord</h1>
+            <p className="text-slate-500 text-base mt-1">Vue d'ensemble de votre plateforme</p>
+          </div>
           <button
             onClick={() => setShowReport(!showReport)}
-            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg shadow-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 flex items-center space-x-2 mx-auto"
+            className="px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg shadow-sm hover:bg-indigo-700 transition-all duration-300 flex items-center space-x-2"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
             </svg>
             <span>{showReport ? "Masquer le rapport" : "Afficher le rapport complet"}</span>
           </button>
         </div>
+       
 
         {showReport && (
           <div className="bg-white rounded-lg shadow-2xl p-8 print:p-0" id="report-content">
@@ -577,19 +615,23 @@ const AdminDashboard = () => {
               </div>
               <div className="flex space-x-4 print:hidden">
                 <button
-                  onClick={() => {
-                    const element = document.getElementById('report-content');
-                    if (element) {
-                      const opt = {
-                        margin: 1,
-                        filename: `rapport-analyse-${new Date().toISOString().split('T')[0]}.pdf`,
-                        image: { type: 'jpeg', quality: 0.98 },
-                        html2canvas: { scale: 2 },
-                        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-                      };
-                      html2pdf().set(opt).from(element).save();
-                    }
-                  }}
+  onClick={async () => {
+    if (typeof window === "undefined") return;
+
+    const element = document.getElementById("report-content");
+    if (element) {
+      const html2pdf = (await import("html2pdf.js")).default;
+
+      const opt = {
+        margin: 1,
+        filename: `rapport-analyse-${new Date().toISOString().split("T")[0]}.pdf`,
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
+      };
+      html2pdf().set(opt).from(element).save();
+    }
+  }}
                   className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center space-x-2"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -1027,7 +1069,7 @@ const AdminDashboard = () => {
                     <Car className="h-12 w-12 text-blue-600 mr-4" />
                     <div>
                       <p className="text-3xl font-bold text-blue-700">
-                        {dashboardData.periodStats?.activeVehicles || 0}
+                        {visibleVehicles}
                       </p>
                       <p className="text-sm text-blue-600">Véhicules en service</p>
                     </div>
@@ -1047,7 +1089,7 @@ const AdminDashboard = () => {
                     <Users className="h-12 w-12 text-emerald-600 mr-4" />
                     <div>
                       <p className="text-3xl font-bold text-emerald-700">
-                        {dashboardData.periodStats?.activeClients || 0}
+                        {activeClients}
                       </p>
                       <p className="text-sm text-emerald-600">Clients actifs</p>
                     </div>
@@ -1056,26 +1098,7 @@ const AdminDashboard = () => {
               </Card>
 
               {/* Clients fidèles */}
-              <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 bg-gradient-to-br from-purple-50 via-purple-100 to-purple-200">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg text-center text-slate-800 border-b border-purple-200 pb-2">
-                    Clients Fidèles
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="space-y-2">
-                    {dashboardData.periodStats?.loyalClients.map((client, index) => (
-                      <div key={client.clientId} className="flex items-center justify-between p-2 bg-purple-50 rounded-lg border border-purple-100 hover:bg-purple-100 transition-colors duration-200">
-                        <div className="flex items-center">
-                          <UserCheck className="h-5 w-5 text-purple-600 mr-2" />
-                          <span className="text-sm font-medium text-purple-700">{client.clientName}</span>
-                        </div>
-                        <span className="text-sm font-bold text-purple-600">{client.appointmentCount} RDV</span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+              
             </div>
           </CardContent>
         </Card>
@@ -1084,4 +1107,22 @@ const AdminDashboard = () => {
   )
 }
 
-export default AdminDashboard
+const ReportsLayout = () => (
+  <div className="min-h-screen flex">
+    {/* Sidebar à gauche */}
+    <Sidebar />
+    {/* Contenu principal avec navbar en haut */}
+    <div className="flex-1 flex flex-col">
+      {/* Navbar en haut */}
+      <div className="flex justify-end">
+        <Navbar />
+      </div>
+      {/* Contenu principal */}
+      <main className="flex-1 p-4 bg-slate-50 overflow-auto">
+        <AdminDashboard />
+      </main>
+    </div>
+  </div>
+)
+
+export default ReportsLayout;

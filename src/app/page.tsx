@@ -202,7 +202,7 @@ export default function Home() {
       title: "Réparation Mécanique",
       description: "Diagnostic et réparation de tous types de pannes mécaniques par nos experts certifiés.",
       price: "À partir de 200 DT",
-      duration: "1-3 heures",
+     
       benefits: ["Diagnostic précis", "Pièces d'origine", "Garantie 6 mois"],
       includes: ["Diagnostic électronique", "Main d'œuvre", "Pièces de rechange"],
       image:
@@ -213,7 +213,7 @@ export default function Home() {
       title: "Entretien Régulier",
       description: "Vidange, filtres, freins et tous les services d'entretien préventif pour votre véhicule.",
       price: "À partir de 150 DT",
-      duration: "1-2 heures",
+     
       benefits: ["Prolonge la durée de vie", "Économie de carburant", "Prévention des pannes"],
       includes: ["Vidange d'huile", "Remplacement des filtres", "Vérification des niveaux"],
       image:
@@ -224,7 +224,7 @@ export default function Home() {
       title: "Service de Lavage",
       description: "Nettoyage intérieur et extérieur professionnel pour redonner l'éclat à votre véhicule.",
       price: "À partir de 80 DT",
-      duration: "30-60 minutes",
+    
       benefits: ["Protection de la carrosserie", "Élimination des allergènes", "Préservation de la valeur"],
       includes: ["Lavage extérieur", "Nettoyage intérieur", "Traitement des jantes"],
       image:
@@ -235,7 +235,7 @@ export default function Home() {
       title: "Diagnostic Complet",
       description: "Analyse complète de l'état de votre véhicule avec rapport détaillé et recommandations.",
       price: "À partir de 120 DT",
-      duration: "1 heure",
+      
       benefits: ["Détection précoce des problèmes", "Rapport détaillé", "Conseils personnalisés"],
       includes: ["Diagnostic électronique", "Inspection visuelle", "Test routier"],
       image:
@@ -403,17 +403,7 @@ export default function Home() {
         "Configurez votre mode de paiement"
       ],
     },
-    {
-      icon: <HelpCircle className="h-6 w-6" />,
-      title: "Obtenir de l'Aide",
-      description: "Accédez à l'assistance et au support client quand vous en avez besoin.",
-      steps: [
-        "Consultez la FAQ",
-        "Contactez le support",
-        "Trouvez des réponses rapides",
-        "Demandez un rappel"
-      ],
-    }
+
   ]
 
   return (
@@ -435,7 +425,11 @@ export default function Home() {
               <div className="bg-gradient-to-r from-[#3b82f6] to-[#2563eb] text-white p-2 rounded-lg">
                 <Car className="h-6 w-6" />
               </div>
-              <span>AutoService</span>
+              <span className="font-extrabold flex items-center">
+                <span className="text-blue-700" style={{letterSpacing: '1px'}}>Auto</span>
+                <span className="text-yellow-400 ml-1" style={{letterSpacing: '1px'}}>Service</span>
+                <span className="ml-2 px-3 py-0.5 rounded-full bg-blue-600 text-white text-base font-bold shadow-lg border-2 border-blue-200 relative animate-glow" style={{boxShadow: '0 0 16px 4px #facc15, 0 0 8px 2px #3b82f6'}}>Pro</span>
+              </span>
             </div>
 
             {/* Desktop Navigation */}
@@ -566,8 +560,8 @@ export default function Home() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid gap-12 md:grid-cols-2 items-center">
             <div className="max-w-xl slide-in-left">
-              <div className="inline-flex items-center px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm text-white text-sm font-medium mb-6 animate-pulse">
-                <Sparkles className="h-4 w-4 mr-2" />
+              <div className="inline-flex items-center px-4 py-1 rounded-full bg-blue-600 text-white text-sm font-bold mb-6 animate-glow shadow-lg border-2 border-blue-200" style={{boxShadow: '0 0 16px 4px #facc15, 0 0 8px 2px #3b82f6'}}>
+                <Sparkles className="h-4 w-4 mr-2 text-yellow-300" />
                 <span>Solution Innovante</span>
               </div>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white mb-6 leading-tight hero-text">
@@ -787,7 +781,7 @@ export default function Home() {
                     <div className="flex justify-between items-center">
                       <span className="text-lg font-bold">{service.price}</span>
                       <span className="text-xs px-2 py-1 bg-white/20 backdrop-blur-sm rounded-full">
-                        {service.duration}
+                      
                       </span>
                     </div>
                   </div>
@@ -816,8 +810,7 @@ export default function Home() {
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-sm text-gray-500">
-                      <span>Garantie</span>
-                      <span className="text-blue-600 font-medium">6 mois</span>
+                      
                     </div>
                   </div>
                   <div className="mt-6 space-y-3">
@@ -829,13 +822,7 @@ export default function Home() {
                       Réserver maintenant
                       <ArrowRight className="h-4 w-4 transform transition-transform group-hover:translate-x-1" />
                     </button>
-                    <button
-                      onClick={() => setSelectedService(index)}
-                      className="w-full py-3 border border-gray-200 text-gray-700 rounded-xl font-medium hover:border-[#3b82f6] hover:text-[#3b82f6] transition-all duration-300 flex items-center justify-center gap-2"
-                    >
-                      <FileText className="h-4 w-4" />
-                      Voir les détails
-                    </button>
+                  
                   </div>
                 </div>
               </div>
@@ -928,15 +915,7 @@ export default function Home() {
                   <div className={`absolute inset-0 bg-blue-500 rounded-2xl blur-lg opacity-0 transition-opacity duration-500
                     ${activeFeature === index ? 'opacity-20' : 'group-hover:opacity-10'}`}
                   />
-                  <div className={`rounded-2xl p-4 transition-all duration-500 relative
-                    ${activeFeature === index 
-                      ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white transform scale-110' 
-                      : 'bg-blue-50 text-blue-500 group-hover:bg-blue-100'}`}
-                  >
-                    <div className="w-12 h-12 flex items-center justify-center">
-                      {feature.icon}
-                    </div>
-                  </div>
+               
                 </div>
 
                 {/* Title and Description */}
@@ -1067,7 +1046,7 @@ export default function Home() {
             >
               {workshopImages.map((image, index) => (
                 <div key={index} className="min-w-full">
-                  <div className="relative h-[500px] w-full">
+                  <div className="relative h-[600px] w-full">
                     <img src={image.src || "/placeholder.svg"} alt={image.alt} className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
                   </div>
@@ -1280,32 +1259,32 @@ export default function Home() {
                 icon: <Calendar className="h-6 w-6" />,
                 question: "Comment prendre rendez-vous pour mon véhicule ?",
                 answer:
-                  "Prendre rendez-vous est simple ! Connectez-vous à votre compte, sélectionnez votre véhicule, choisissez le service souhaité, puis sélectionnez une date et une heure disponibles. Vous recevrez une confirmation par email et SMS avec tous les détails de votre rendez-vous. Notre système intelligent vous propose les créneaux les plus adaptés à votre emploi du temps.",
+                  "Prendre rendez-vous est simple ! Connectez-vous à votre compte, sélectionnez votre véhicule, choisissez le service souhaité, puis sélectionnez une date et une heure disponibles.",
               },
               {
                 icon: <Bell className="h-6 w-6" />,
                 question: "Comment suivre l'avancement de mon service ?",
                 answer:
-                  "Vous pouvez suivre l'avancement de votre service en temps réel via notre application mobile ou le portail web. Vous recevrez des notifications à chaque étape importante (réception du véhicule, diagnostic, début des travaux, finalisation). Vous pouvez également consulter des photos et des commentaires de nos techniciens pendant l'intervention. Notre système de suivi en temps réel vous permet de rester informé à chaque étape.",
+                  "Vous pouvez suivre l'avancement de votre service en temps réel via notre application web. Vous recevrez des notifications à chaque étape importante (réception du véhicule, diagnostic, début des travaux, finalisation). Notre système de suivi en temps réel vous permet de rester informé à chaque étape.",
               },
               {
                 icon: <FileText className="h-6 w-6" />,
                 question: "Puis-je consulter l'historique des services de mon véhicule ?",
                 answer:
-                  "Absolument ! Dans votre espace client, vous avez accès à l'historique complet de tous les services effectués sur votre véhicule. Vous pouvez consulter les détails de chaque intervention, télécharger les factures et voir les recommandations pour les futurs entretiens. Notre système conserve également les rapports techniques détaillés et les photos des interventions.",
+                  "Absolument ! Dans votre espace client, vous avez accès à l'historique complet de tous les services effectués sur votre véhicule . Vous pouvez également y laisser votre avis en attribuant une note sous forme d'étoiles et en ajoutant un commentaire pour partager votre expérience. ",
               },
               {
                 icon: <Car className="h-6 w-6" />,
                 question: "Comment ajouter un nouveau véhicule à mon compte ?",
                 answer:
-                  "Pour ajouter un nouveau véhicule, connectez-vous à votre compte et accédez à la section 'Mes Véhicules'. Cliquez sur 'Ajouter un véhicule' et renseignez les informations demandées (marque, modèle, année, kilométrage, etc.). Vous pouvez également ajouter une photo et des documents comme la carte grise. Notre système vous guidera étape par étape dans le processus d'enregistrement.",
+                  "Pour ajouter un nouveau véhicule, connectez-vous à votre compte et accédez à la section 'Mes Véhicules'. Cliquez sur 'Ajouter un véhicule' et renseignez les informations demandées (marque, modèle, année, immatriculation ). Notre système vous guidera étape par étape dans le processus d'enregistrement.",
               },
              
               {
                 icon: <Phone className="h-6 w-6" />,
                 question: "Comment contacter le service client en cas de problème ?",
                 answer:
-                  "Notre service client est disponible du lundi au vendredi de 8h à 19h et le samedi de 9h à 17h. Vous pouvez nous contacter par téléphone au +216 71 234 567, par email à support@autoservice.tn, ou via le chat en direct dans l'application. Pour les urgences en dehors des heures d'ouverture, un service d'assistance téléphonique est disponible 24h/24. Notre équipe répond généralement dans les 15 minutes.",
+                  "Notre service client est disponible tout au long de la semaine de 8h à 19h. Vous pouvez nous contacter par téléphone au +216 71 234 567, par email à support@autoservice.tn. Pour les urgences en dehors des heures d'ouverture, un service d'assistance téléphonique est disponible 24h/24. Notre équipe répond généralement dans les 15 minutes.",
               },
               {
                 icon: <Shield className="h-6 w-6" />,
@@ -1457,7 +1436,7 @@ export default function Home() {
               <div className="flex justify-between items-center mb-6">
                 <div className="text-2xl font-bold text-[#3b82f6]">{services[selectedService].price}</div>
                 <div className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-sm">
-                  {services[selectedService].duration}
+                
                 </div>
               </div>
               <p className="text-gray-700 mb-6">{services[selectedService].description}</p>

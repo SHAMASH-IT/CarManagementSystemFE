@@ -250,3 +250,5 @@ export const getAppointmentsByUserRole = async (userId: number): Promise<Appoint
     throw error
   }
 }
+
+

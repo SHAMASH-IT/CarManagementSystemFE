@@ -228,14 +228,14 @@ export default function ProfileForm() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 py-12">
-      <div className="max-w-6xl mx-auto px-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 py-10">
+      <div className="w-full px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-2xl shadow-2xl overflow-hidden backdrop-blur-sm"
+          className="bg-white rounded-2xl shadow-2xl overflow-hidden backdrop-blur-sm h-[755px]"
         >
-          <div className="grid grid-cols-1 lg:grid-cols-2">
+          <div className="grid grid-cols-1 lg:grid-cols-2 h-full">
             {/* Section Photo avec Carrousel */}
             <div className="relative h-full min-h-[600px] overflow-hidden">
               <AnimatePresence mode="sync">
@@ -275,7 +275,7 @@ export default function ProfileForm() {
             </div>
 
             {/* Section Formulaire */}
-            <div className="p-8 lg:p-12">
+            <div className="p-8 lg:p-12 h-full overflow-y-auto">
               {/* En-tête du formulaire */}
               <div className="mb-6">
                 <div className="flex items-center gap-4">

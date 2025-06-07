@@ -377,14 +377,14 @@ export const OrderSellList = () => {
             if (order && order.orderPieces) {
               const enrichedInvoice = {
                 ...invoice,
-                items: order.orderPieces.map((orderPiece) => ({
-                  id: orderPiece.id,
+                items: order.orderPieces.map((orderPiece, idx) => ({
+                  id: orderPiece.pieceId + '-' + idx,
                   pieceId: orderPiece.pieceId,
                   description: orderPiece.piece?.name || `Pièce #${orderPiece.pieceId}`,
                   quantity: orderPiece.quantity || 0,
                   unitPrice: Number(orderPiece.piece?.price || 0),
                   total: (orderPiece.quantity || 0) * Number(orderPiece.piece?.price || 0)
-                }))
+                })),
               }
               setSelectedInvoice(enrichedInvoice)
             } else {
@@ -411,14 +411,14 @@ export const OrderSellList = () => {
         if (order && order.orderPieces) {
           const enrichedInvoice = {
             ...invoice,
-            items: order.orderPieces.map((orderPiece) => ({
-              id: orderPiece.id,
+            items: order.orderPieces.map((orderPiece, idx) => ({
+              id: orderPiece.pieceId + '-' + idx,
               pieceId: orderPiece.pieceId,
               description: orderPiece.piece?.name || `Pièce #${orderPiece.pieceId}`,
               quantity: orderPiece.quantity || 0,
               unitPrice: Number(orderPiece.piece?.price || 0),
               total: (orderPiece.quantity || 0) * Number(orderPiece.piece?.price || 0)
-            }))
+            })),
           }
           setSelectedInvoice(enrichedInvoice)
         } else {
@@ -674,19 +674,7 @@ export const OrderSellList = () => {
                           size="small"
                           sx={{ fontWeight: "medium" }}
                         />
-                        {order.discount && order.discount.value > 0 && (
-                          <Chip
-                            icon={<Discount fontSize="small" />}
-                            label={
-                              order.discount.type === "percentage"
-                                ? `${order.discount.value}%`
-                                : `${order.discount.value} DT`
-                            }
-                            color="secondary"
-                            size="small"
-                            sx={{ ml: 1, fontWeight: "medium" }}
-                          />
-                        )}
+                       
                       </Grid>
 
                       <Grid item xs={6} sm={3} sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}>
@@ -904,7 +892,7 @@ export const OrderSellList = () => {
                       </Typography>
                     </Box>
                     <Typography variant="body2">123 Rue du Commerce</Typography>
-                    <Typography variant="body2">75000 Nabeul ,Tunis</Typography>
+                    <Typography variant="body2">75000 Tunis</Typography>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1 }}>
                       <Phone fontSize="small" color="action" />
                       <Typography variant="body2">+216 72 879 654</Typography>
@@ -1078,7 +1066,7 @@ export const OrderSellList = () => {
                                 align="right"
                                 sx={{ fontWeight: "bold", color: "primary.contrastText" }}
                               >
-                                Total12
+                                Total
                               </TableCell>
                               <TableCell align="right" sx={{ fontWeight: "bold", color: "primary.contrastText" }}>
                                 {subtotal.toFixed(2)} DT
@@ -1209,35 +1197,8 @@ export const OrderSellList = () => {
           <Button onClick={() => setIsInvoiceDialogOpen(false)} variant="outlined" startIcon={<Close />}>
             Fermer
           </Button>
-          <Button
-            variant="outlined"
-            color="primary"
-            startIcon={<ContentCopy />}
-            onClick={() => {
-              if (invoiceRef.current) {
-                const range = document.createRange()
-                range.selectNode(invoiceRef.current)
-                window.getSelection()?.removeAllRanges()
-                window.getSelection()?.addRange(range)
-                document.execCommand("copy")
-                window.getSelection()?.removeAllRanges()
-                toast.success("Facture copiée dans le presse-papier")
-              }
-            }}
-          >
-            Copier
-          </Button>
-          <Button
-            variant="outlined"
-            color="primary"
-            startIcon={<Download />}
-            onClick={() => {
-              // Logique pour télécharger la facture en PDF
-              toast.success("Téléchargement de la facture")
-            }}
-          >
-            Télécharger
-          </Button>
+         
+          
           <Button variant="contained" color="primary" startIcon={<Print />} onClick={handlePrintInvoice}>
             Imprimer
           </Button>
@@ -1245,4 +1206,9 @@ export const OrderSellList = () => {
       </Dialog>
     </>
   )
+}
+
+function getPieceInfoFromStock(pieceId: number) {
+  // À adapter selon la source de la liste des pièces
+  return { name: `Pièce #${pieceId}` };
 }

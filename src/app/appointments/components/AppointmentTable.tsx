@@ -19,13 +19,15 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({
   const [filterStatus, setFilterStatus] = useState('ALL')
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 5
+  const itemsPerPage = 9
 
   const filteredAppointments = initialAppointments
     .filter(appointment => {
       const matchesSearch = appointment.clientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            appointment.vehicleName?.toLowerCase().includes(searchTerm.toLowerCase())
-      const matchesStatus = filterStatus === 'ALL' || appointment.status === filterStatus
+      const matchesStatus = filterStatus === 'ALL' 
+        ? appointment.status !== 'CANCELED'  // Exclure les annulés par défaut
+        : appointment.status === filterStatus
       return matchesSearch && matchesStatus
     })
     .sort((a, b) => {
@@ -125,7 +127,6 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({
     { value: 'IN_PROGRESS', label: 'En cours', icon: <FaTools className="w-4 h-4" /> },
     { value: 'RESERVED', label: 'Réservés', icon: <FaCalendarAlt className="w-4 h-4" /> },
     { value: 'CONFIRMED', label: 'Terminés', icon: <FaCheckCircle className="w-4 h-4" /> },
-    { value: 'CANCELED', label: 'Annulés', icon: <FaTrashAlt className="w-4 h-4" /> }
   ]
 
   const getCurrentFilterLabel = () => {
@@ -133,11 +134,11 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({
   }
 
   return (
-    <div className="space-y-6 p-2 sm:p-4">
+    <div className="space-y-6 p-0 sm:p-2">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-3 sm:p-6"
+        className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-3 sm:p-6 mx-0"
       >
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
           <div className="flex items-center space-x-3">

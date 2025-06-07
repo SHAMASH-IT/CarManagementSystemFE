@@ -44,6 +44,13 @@ export function InterventionHistory() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [selectedServiceType, setSelectedServiceType] = useState<string>("")
   const [dateRange, setDateRange] = useState<string>("all")
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 3
+  const totalPages = Math.ceil(filteredInterventions.length / itemsPerPage)
+  const paginatedInterventions = filteredInterventions.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  )
 
   const mostRequestedService = useMemo(() => {
     if (!completedInterventions.length) return { name: "Aucun service", count: 0 }
@@ -109,6 +116,10 @@ export function InterventionHistory() {
     }
   }
 
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+  }
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -144,49 +155,94 @@ export function InterventionHistory() {
           Historique des interventions
         </h1>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {/* Total interventions */}
           <motion.div
-            whileHover={{ y: -3, boxShadow: "0 8px 20px -12px rgba(79, 70, 229, 0.3)" }}
-            className="bg-gradient-to-br from-indigo-50 to-white rounded-lg p-3 border border-indigo-100 shadow-sm transition-all"
+            whileHover={{
+              y: -2,
+              boxShadow: "0 6px 24px -6px #2563eb33",
+              background: "rgba(255,255,255,0.95)",
+              borderColor: "#3b82f6"
+            }}
+            className="relative bg-white/80 backdrop-blur-lg rounded-xl p-3 border border-blue-100 shadow flex flex-col items-start overflow-hidden transition-all duration-300"
           >
-            <div className="flex justify-between items-start mb-2">
-              <div className="bg-indigo-100 p-1 rounded-md">
-                <BarChart3 className="w-3.5 h-3.5 text-indigo-600" />
-              </div>
-              <span className="text-[10px] font-medium text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-full">Total</span>
+            {/* Badge */}
+            <span className="absolute top-2 right-3 bg-blue-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow">
+              Stat
+            </span>
+            {/* Watermark icon */}
+            <div className="absolute bottom-1 right-2 opacity-10 text-blue-400 text-3xl pointer-events-none select-none">
+              <Car className="w-10 h-10" />
             </div>
-            <div className="text-xl font-bold text-gray-800">{completedInterventions.length}</div>
-            <div className="text-xs text-gray-500">Interventions réalisées</div>
+            {/* Content */}
+            <div className="flex items-center gap-2 mb-1">
+              <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 shadow">
+                <Clock className="w-5 h-5 text-blue-600" />
+              </span>
+              <span className="text-xs font-bold text-blue-700 uppercase tracking-wide">Total</span>
+            </div>
+            <div className="text-xl font-extrabold text-blue-800 mb-0.5 transition-all duration-300">
+              {completedInterventions.length}
+            </div>
+            <div className="text-xs text-gray-500">Interventions</div>
           </motion.div>
 
+          {/* Service le plus populaire */}
           <motion.div
-            whileHover={{ y: -3, boxShadow: "0 8px 20px -12px rgba(245, 158, 11, 0.3)" }}
-            className="bg-gradient-to-br from-amber-50 to-white rounded-lg p-3 border border-amber-100 shadow-sm transition-all"
+            whileHover={{
+              y: -2,
+              boxShadow: "0 6px 24px -6px #f59e0b33",
+              background: "rgba(255,255,255,0.95)",
+              borderColor: "#f59e0b"
+            }}
+            className="relative bg-white/80 backdrop-blur-lg rounded-xl p-3 border border-yellow-100 shadow flex flex-col items-start overflow-hidden transition-all duration-300"
           >
-            <div className="flex justify-between items-start mb-2">
-              <div className="bg-amber-100 p-1 rounded-md">
-                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-              </div>
-              <span className="text-[10px] font-medium text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full">Populaire</span>
+            <span className="absolute top-2 right-3 bg-yellow-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow">
+              Pop
+            </span>
+            <div className="absolute bottom-1 right-2 opacity-10 text-yellow-400 text-3xl pointer-events-none select-none">
+              <Wrench className="w-10 h-10" />
             </div>
-            <div className="text-sm font-bold text-gray-800 line-clamp-1">{mostRequestedService.name}</div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-yellow-100 shadow">
+                <Sparkles className="w-5 h-5 text-yellow-600" />
+              </span>
+              <span className="text-xs font-bold text-yellow-700 uppercase tracking-wide">Populaire</span>
+            </div>
+            <div className="text-xl font-bold text-yellow-800 line-clamp-1 transition-all duration-300">
+              {mostRequestedService.name}
+            </div>
             <div className="text-xs text-gray-500">
               {mostRequestedService.count} intervention{mostRequestedService.count > 1 ? "s" : ""}
             </div>
           </motion.div>
 
+          {/* Véhicules servis */}
           <motion.div
-            whileHover={{ y: -3, boxShadow: "0 8px 20px -12px rgba(14, 165, 233, 0.3)" }}
-            className="bg-gradient-to-br from-sky-50 to-white rounded-lg p-3 border border-sky-100 shadow-sm transition-all"
+            whileHover={{
+              y: -2,
+              boxShadow: "0 6px 24px -6px #0ea5e933",
+              background: "rgba(255,255,255,0.95)",
+              borderColor: "#0ea5e9"
+            }}
+            className="relative bg-white/80 backdrop-blur-lg rounded-xl p-3 border border-sky-100 shadow flex flex-col items-start overflow-hidden transition-all duration-300"
           >
-            <div className="flex justify-between items-start mb-2">
-              <div className="bg-sky-100 p-1 rounded-md">
-                <Car className="w-3.5 h-3.5 text-sky-600" />
-              </div>
-              <span className="text-[10px] font-medium text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded-full">Véhicules servis</span>
+            <span className="absolute top-2 right-3 bg-sky-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow">
+              Véhicules
+            </span>
+            <div className="absolute bottom-1 right-2 opacity-10 text-sky-400 text-3xl pointer-events-none select-none">
+              <Car className="w-10 h-10" />
             </div>
-            <div className="text-xl font-bold text-gray-800">{uniqueVehicles}</div>
-            <div className="text-xs text-gray-500">Véhicules uniques</div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-sky-100 shadow">
+                <BarChart3 className="w-5 h-5 text-sky-600" />
+              </span>
+              <span className="text-xs font-bold text-sky-700 uppercase tracking-wide">Véhicules</span>
+            </div>
+            <div className="text-xl font-extrabold text-sky-800 mb-0.5 transition-all duration-300">
+              {uniqueVehicles}
+            </div>
+            <div className="text-xs text-gray-500">Uniques</div>
           </motion.div>
         </div>
       </motion.div>
@@ -279,7 +335,7 @@ export function InterventionHistory() {
         ) : (
           <div className="relative">
             <div className="absolute left-8 top-4 bottom-4 w-0.5 bg-gradient-to-b from-indigo-200 via-indigo-300 to-transparent rounded-full"></div>
-            {filteredInterventions.map((intervention, index) => (
+            {paginatedInterventions.map((intervention, index) => (
               <motion.div key={index} variants={itemVariants} className="relative pl-16">
                 <div className="absolute left-8 -translate-x-1/2 w-6 h-6 rounded-full bg-white border-4 border-indigo-500 shadow-md z-10"></div>
                 <motion.div
@@ -460,6 +516,33 @@ export function InterventionHistory() {
                 </motion.div>
               </motion.div>
             ))}
+            {totalPages > 1 && (
+              <div className="flex justify-center mt-6 gap-2">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
+                >
+                  Précédent
+                </button>
+                {[...Array(totalPages)].map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => handlePageChange(i + 1)}
+                    className={`px-3 py-1 rounded ${currentPage === i + 1 ? 'bg-indigo-500 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
+                >
+                  Suivant
+                </button>
+              </div>
+            )}
           </div>
         )}
       </motion.div>
